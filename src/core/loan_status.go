@@ -7,64 +7,16 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	LoanStatus struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_status"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_status"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Name        string `gorm:"type:varchar(255);not null"`
-		Icon        string `gorm:"type:varchar(255)"`
-		Color       string `gorm:"type:varchar(255)"`
-		Description string `gorm:"type:text"`
-	}
-
-	LoanStatusResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Name           string                `json:"name"`
-		Icon           string                `json:"icon"`
-		Color          string                `json:"color"`
-		Description    string                `json:"description"`
-	}
-
-	LoanStatusRequest struct {
-		Name        string `json:"name" validate:"required,min=1,max=255"`
-		Icon        string `json:"icon,omitempty"`
-		Color       string `json:"color,omitempty"`
-		Description string `json:"description,omitempty"`
-	}
-)
-
-func LoanStatusManager(service *horizon.HorizonService) *registry.Registry[LoanStatus, LoanStatusResponse, LoanStatusRequest] {
+func LoanStatusManager(service *horizon.HorizonService) *registry.Registry[
+	types.LoanStatus, types.LoanStatusResponse, types.LoanStatusRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		LoanStatus, LoanStatusResponse, LoanStatusRequest,
+		types.LoanStatus, types.LoanStatusResponse, types.LoanStatusRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -73,11 +25,11 @@ func LoanStatusManager(service *horizon.HorizonService) *registry.Registry[LoanS
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *LoanStatus) *LoanStatusResponse {
+		Resource: func(data *types.LoanStatus) *types.LoanStatusResponse {
 			if data == nil {
 				return nil
 			}
-			return &LoanStatusResponse{
+			return &types.LoanStatusResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -96,7 +48,7 @@ func LoanStatusManager(service *horizon.HorizonService) *registry.Registry[LoanS
 			}
 		},
 
-		Created: func(data *LoanStatus) registry.Topics {
+		Created: func(data *types.LoanStatus) registry.Topics {
 			return []string{
 				"loan_status.create",
 				fmt.Sprintf("loan_status.create.%s", data.ID),
@@ -104,7 +56,7 @@ func LoanStatusManager(service *horizon.HorizonService) *registry.Registry[LoanS
 				fmt.Sprintf("loan_status.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanStatus) registry.Topics {
+		Updated: func(data *types.LoanStatus) registry.Topics {
 			return []string{
 				"loan_status.update",
 				fmt.Sprintf("loan_status.update.%s", data.ID),
@@ -112,7 +64,7 @@ func LoanStatusManager(service *horizon.HorizonService) *registry.Registry[LoanS
 				fmt.Sprintf("loan_status.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanStatus) registry.Topics {
+		Deleted: func(data *types.LoanStatus) registry.Topics {
 			return []string{
 				"loan_status.delete",
 				fmt.Sprintf("loan_status.delete.%s", data.ID),
@@ -123,9 +75,10 @@ func LoanStatusManager(service *horizon.HorizonService) *registry.Registry[LoanS
 	})
 }
 
-func loanStatusSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func loanStatusSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID,
+	organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	loanStatuses := []*LoanStatus{
+	loanStatuses := []*types.LoanStatus{
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -736,8 +689,9 @@ func loanStatusSeed(context context.Context, service *horizon.HorizonService, tx
 	return nil
 }
 
-func LoanStatusCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanStatus, error) {
-	return LoanStatusManager(service).Find(context, &LoanStatus{
+func LoanStatusCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID,
+	branchID uuid.UUID) ([]*types.LoanStatus, error) {
+	return LoanStatusManager(service).Find(context, &types.LoanStatus{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

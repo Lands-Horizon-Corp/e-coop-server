@@ -7,64 +7,14 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	LoanTermsAndConditionSuggestedPayment struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_terms_and_condition_suggested_payment"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_terms_and_condition_suggested_payment"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		LoanTransactionID uuid.UUID        `gorm:"type:uuid;not null"`
-		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
-
-		Name        string `gorm:"type:varchar(255)"`
-		Description string `gorm:"type:varchar(255)"`
-	}
-
-	LoanTermsAndConditionSuggestedPaymentResponse struct {
-		ID                uuid.UUID                `json:"id"`
-		CreatedAt         string                   `json:"created_at"`
-		CreatedByID       uuid.UUID                `json:"created_by_id"`
-		CreatedBy         *UserResponse            `json:"created_by,omitempty"`
-		UpdatedAt         string                   `json:"updated_at"`
-		UpdatedByID       uuid.UUID                `json:"updated_by_id"`
-		UpdatedBy         *UserResponse            `json:"updated_by,omitempty"`
-		OrganizationID    uuid.UUID                `json:"organization_id"`
-		Organization      *OrganizationResponse    `json:"organization,omitempty"`
-		BranchID          uuid.UUID                `json:"branch_id"`
-		Branch            *BranchResponse          `json:"branch,omitempty"`
-		LoanTransactionID uuid.UUID                `json:"loan_transaction_id"`
-		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
-		Name              string                   `json:"name"`
-		Description       string                   `json:"description"`
-	}
-
-	LoanTermsAndConditionSuggestedPaymentRequest struct {
-		ID                *uuid.UUID `json:"id"`
-		LoanTransactionID uuid.UUID  `json:"loan_transaction_id" validate:"required"`
-		Name              string     `json:"name"`
-		Description       string     `json:"description"`
-	}
-)
-
-func LoanTermsAndConditionSuggestedPaymentManager(service *horizon.HorizonService) *registry.Registry[LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest] {
+func LoanTermsAndConditionSuggestedPaymentManager(service *horizon.HorizonService) *registry.Registry[
+	types.LoanTermsAndConditionSuggestedPayment, types.LoanTermsAndConditionSuggestedPaymentResponse, types.LoanTermsAndConditionSuggestedPaymentRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		LoanTermsAndConditionSuggestedPayment, LoanTermsAndConditionSuggestedPaymentResponse, LoanTermsAndConditionSuggestedPaymentRequest,
+		types.LoanTermsAndConditionSuggestedPayment, types.LoanTermsAndConditionSuggestedPaymentResponse, types.LoanTermsAndConditionSuggestedPaymentRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "LoanTransaction",
@@ -73,11 +23,11 @@ func LoanTermsAndConditionSuggestedPaymentManager(service *horizon.HorizonServic
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *LoanTermsAndConditionSuggestedPayment) *LoanTermsAndConditionSuggestedPaymentResponse {
+		Resource: func(data *types.LoanTermsAndConditionSuggestedPayment) *types.LoanTermsAndConditionSuggestedPaymentResponse {
 			if data == nil {
 				return nil
 			}
-			return &LoanTermsAndConditionSuggestedPaymentResponse{
+			return &types.LoanTermsAndConditionSuggestedPaymentResponse{
 				ID:                data.ID,
 				CreatedAt:         data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:       data.CreatedByID,
@@ -96,7 +46,7 @@ func LoanTermsAndConditionSuggestedPaymentManager(service *horizon.HorizonServic
 			}
 		},
 
-		Created: func(data *LoanTermsAndConditionSuggestedPayment) registry.Topics {
+		Created: func(data *types.LoanTermsAndConditionSuggestedPayment) registry.Topics {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.create",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.create.%s", data.ID),
@@ -104,7 +54,7 @@ func LoanTermsAndConditionSuggestedPaymentManager(service *horizon.HorizonServic
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanTermsAndConditionSuggestedPayment) registry.Topics {
+		Updated: func(data *types.LoanTermsAndConditionSuggestedPayment) registry.Topics {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.update",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.update.%s", data.ID),
@@ -112,7 +62,7 @@ func LoanTermsAndConditionSuggestedPaymentManager(service *horizon.HorizonServic
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanTermsAndConditionSuggestedPayment) registry.Topics {
+		Deleted: func(data *types.LoanTermsAndConditionSuggestedPayment) registry.Topics {
 			return []string{
 				"loan_terms_and_condition_suggested_payment.delete",
 				fmt.Sprintf("loan_terms_and_condition_suggested_payment.delete.%s", data.ID),
@@ -123,8 +73,9 @@ func LoanTermsAndConditionSuggestedPaymentManager(service *horizon.HorizonServic
 	})
 }
 
-func LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanTermsAndConditionSuggestedPayment, error) {
-	return LoanTermsAndConditionSuggestedPaymentManager(service).Find(context, &LoanTermsAndConditionSuggestedPayment{
+func LoanTermsAndConditionSuggestedPaymentCurrentBranch(context context.Context,
+	service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.LoanTermsAndConditionSuggestedPayment, error) {
+	return LoanTermsAndConditionSuggestedPaymentManager(service).Find(context, &types.LoanTermsAndConditionSuggestedPayment{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

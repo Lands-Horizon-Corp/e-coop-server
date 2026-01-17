@@ -7,57 +7,14 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	GroceryComputationSheet struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_grocery_computation_sheet"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_grocery_computation_sheet"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		SchemeNumber int    `gorm:"not null;unique"`
-		Description  string `gorm:"type:text"`
-	}
-
-	GroceryComputationSheetResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		SchemeNumber   int                   `json:"scheme_number"`
-		Description    string                `json:"description"`
-	}
-
-	GroceryComputationSheetRequest struct {
-		SchemeNumber int    `json:"scheme_number" validate:"required"`
-		Description  string `json:"description,omitempty"`
-	}
-)
-
-func GroceryComputationSheetManager(service *horizon.HorizonService) *registry.Registry[GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest] {
+func GroceryComputationSheetManager(service *horizon.HorizonService) *registry.Registry[
+	types.GroceryComputationSheet, types.GroceryComputationSheetResponse, types.GroceryComputationSheetRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		GroceryComputationSheet, GroceryComputationSheetResponse, GroceryComputationSheetRequest,
+		types.GroceryComputationSheet, types.GroceryComputationSheetResponse, types.GroceryComputationSheetRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -66,11 +23,11 @@ func GroceryComputationSheetManager(service *horizon.HorizonService) *registry.R
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *GroceryComputationSheet) *GroceryComputationSheetResponse {
+		Resource: func(data *types.GroceryComputationSheet) *types.GroceryComputationSheetResponse {
 			if data == nil {
 				return nil
 			}
-			return &GroceryComputationSheetResponse{
+			return &types.GroceryComputationSheetResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -86,7 +43,7 @@ func GroceryComputationSheetManager(service *horizon.HorizonService) *registry.R
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *GroceryComputationSheet) registry.Topics {
+		Created: func(data *types.GroceryComputationSheet) registry.Topics {
 			return []string{
 				"grocery_computation_sheet.create",
 				fmt.Sprintf("grocery_computation_sheet.create.%s", data.ID),
@@ -94,7 +51,7 @@ func GroceryComputationSheetManager(service *horizon.HorizonService) *registry.R
 				fmt.Sprintf("grocery_computation_sheet.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GroceryComputationSheet) registry.Topics {
+		Updated: func(data *types.GroceryComputationSheet) registry.Topics {
 			return []string{
 				"grocery_computation_sheet.update",
 				fmt.Sprintf("grocery_computation_sheet.update.%s", data.ID),
@@ -102,7 +59,7 @@ func GroceryComputationSheetManager(service *horizon.HorizonService) *registry.R
 				fmt.Sprintf("grocery_computation_sheet.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GroceryComputationSheet) registry.Topics {
+		Deleted: func(data *types.GroceryComputationSheet) registry.Topics {
 			return []string{
 				"grocery_computation_sheet.delete",
 				fmt.Sprintf("grocery_computation_sheet.delete.%s", data.ID),
@@ -113,8 +70,9 @@ func GroceryComputationSheetManager(service *horizon.HorizonService) *registry.R
 	})
 }
 
-func GroceryComputationSheetCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*GroceryComputationSheet, error) {
-	return GroceryComputationSheetManager(service).Find(context, &GroceryComputationSheet{
+func GroceryComputationSheetCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.GroceryComputationSheet, error) {
+	return GroceryComputationSheetManager(service).Find(context, &types.GroceryComputationSheet{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

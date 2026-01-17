@@ -187,7 +187,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		accountCategory, err := core.AccountCategoryManager(service).GetByID(context, *accountCategoryID)
+		accountCategory, err := core.AccountCategoryManager(service).GetByID(context, *types.AccountCategoryID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -250,7 +250,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		accountCategory, err := core.AccountCategoryManager(service).GetByID(context, *accountCategoryID)
+		accountCategory, err := core.AccountCategoryManager(service).GetByID(context, *types.AccountCategoryID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",

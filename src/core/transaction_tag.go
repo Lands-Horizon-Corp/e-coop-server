@@ -7,74 +7,14 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	TransactionTag struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_transaction_tag"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_transaction_tag"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		TransactionID uuid.UUID    `gorm:"type:uuid;not null"`
-		Transaction   *Transaction `gorm:"foreignKey:TransactionID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"transaction,omitempty"`
-
-		Name        string      `gorm:"type:varchar(50)"`
-		Description string      `gorm:"type:text"`
-		Category    TagCategory `gorm:"type:varchar(50)"`
-		Color       string      `gorm:"type:varchar(20)"`
-		Icon        string      `gorm:"type:varchar(20)"`
-	}
-
-	TransactionTagResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		TransactionID  uuid.UUID             `json:"transaction_id"`
-		Transaction    *TransactionResponse  `json:"transaction,omitempty"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-		Category       TagCategory           `json:"category"`
-		Color          string                `json:"color"`
-		Icon           string                `json:"icon"`
-	}
-
-	TransactionTagRequest struct {
-		OrganizationID uuid.UUID   `json:"organization_id" validate:"required"`
-		BranchID       uuid.UUID   `json:"branch_id" validate:"required"`
-		TransactionID  uuid.UUID   `json:"transaction_id" validate:"required"`
-		Name           string      `json:"name" validate:"required,min=1,max=50"`
-		Description    string      `json:"description,omitempty"`
-		Category       TagCategory `json:"category,omitempty"`
-		Color          string      `json:"color,omitempty"`
-		Icon           string      `json:"icon,omitempty"`
-	}
-)
-
-func TransactionTagManager(service *horizon.HorizonService) *registry.Registry[TransactionTag, TransactionTagResponse, TransactionTagRequest] {
+func TransactionTagManager(service *horizon.HorizonService) *registry.Registry[
+	types.TransactionTag, types.TransactionTagResponse, types.TransactionTagRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		TransactionTag, TransactionTagResponse, TransactionTagRequest,
+		types.TransactionTag, types.TransactionTagResponse, types.TransactionTagRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Transaction",
@@ -83,11 +23,11 @@ func TransactionTagManager(service *horizon.HorizonService) *registry.Registry[T
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *TransactionTag) *TransactionTagResponse {
+		Resource: func(data *types.TransactionTag) *types.TransactionTagResponse {
 			if data == nil {
 				return nil
 			}
-			return &TransactionTagResponse{
+			return &types.TransactionTagResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -109,7 +49,7 @@ func TransactionTagManager(service *horizon.HorizonService) *registry.Registry[T
 			}
 		},
 
-		Created: func(data *TransactionTag) registry.Topics {
+		Created: func(data *types.TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.create",
 				fmt.Sprintf("transaction_tag.create.%s", data.ID),
@@ -117,7 +57,7 @@ func TransactionTagManager(service *horizon.HorizonService) *registry.Registry[T
 				fmt.Sprintf("transaction_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TransactionTag) registry.Topics {
+		Updated: func(data *types.TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.update",
 				fmt.Sprintf("transaction_tag.update.%s", data.ID),
@@ -125,7 +65,7 @@ func TransactionTagManager(service *horizon.HorizonService) *registry.Registry[T
 				fmt.Sprintf("transaction_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TransactionTag) registry.Topics {
+		Deleted: func(data *types.TransactionTag) registry.Topics {
 			return []string{
 				"transaction_tag.delete",
 				fmt.Sprintf("transaction_tag.delete.%s", data.ID),
@@ -136,8 +76,9 @@ func TransactionTagManager(service *horizon.HorizonService) *registry.Registry[T
 	})
 }
 
-func TransactionTagCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*TransactionTag, error) {
-	return TransactionTagManager(service).Find(context, &TransactionTag{
+func TransactionTagCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.TransactionTag, error) {
+	return TransactionTagManager(service).Find(context, &types.TransactionTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

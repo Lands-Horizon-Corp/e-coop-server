@@ -7,66 +7,14 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	GroceryComputationSheetMonthly struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_grocery_computation_sheet_monthly"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_grocery_computation_sheet_monthly"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		GroceryComputationSheetID uuid.UUID                `gorm:"type:uuid;not null"`
-		GroceryComputationSheet   *GroceryComputationSheet `gorm:"foreignKey:GroceryComputationSheetID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"grocery_computation_sheet,omitempty"`
-
-		Months                 int     `gorm:"default:0"`
-		InterestRate           float64 `gorm:"type:decimal;default:0"`
-		LoanGuaranteedFundRate float64 `gorm:"type:decimal;default:0"`
-	}
-
-	GroceryComputationSheetMonthlyResponse struct {
-		ID                        uuid.UUID                        `json:"id"`
-		CreatedAt                 string                           `json:"created_at"`
-		CreatedByID               uuid.UUID                        `json:"created_by_id"`
-		CreatedBy                 *UserResponse                    `json:"created_by,omitempty"`
-		UpdatedAt                 string                           `json:"updated_at"`
-		UpdatedByID               uuid.UUID                        `json:"updated_by_id"`
-		UpdatedBy                 *UserResponse                    `json:"updated_by,omitempty"`
-		OrganizationID            uuid.UUID                        `json:"organization_id"`
-		Organization              *OrganizationResponse            `json:"organization,omitempty"`
-		BranchID                  uuid.UUID                        `json:"branch_id"`
-		Branch                    *BranchResponse                  `json:"branch,omitempty"`
-		GroceryComputationSheetID uuid.UUID                        `json:"grocery_computation_sheet_id"`
-		GroceryComputationSheet   *GroceryComputationSheetResponse `json:"grocery_computation_sheet,omitempty"`
-		Months                    int                              `json:"months"`
-		InterestRate              float64                          `json:"interest_rate"`
-		LoanGuaranteedFundRate    float64                          `json:"loan_guaranteed_fund_rate"`
-	}
-
-	GroceryComputationSheetMonthlyRequest struct {
-		GroceryComputationSheetID uuid.UUID `json:"grocery_computation_sheet_id" validate:"required"`
-		Months                    int       `json:"months,omitempty"`
-		InterestRate              float64   `json:"interest_rate,omitempty"`
-		LoanGuaranteedFundRate    float64   `json:"loan_guaranteed_fund_rate,omitempty"`
-	}
-)
-
-func GroceryComputationSheetMonthlyManager(service *horizon.HorizonService) *registry.Registry[GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest] {
+func GroceryComputationSheetMonthlyManager(service *horizon.HorizonService) *registry.Registry[
+	types.GroceryComputationSheetMonthly, types.GroceryComputationSheetMonthlyResponse, types.GroceryComputationSheetMonthlyRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		GroceryComputationSheetMonthly, GroceryComputationSheetMonthlyResponse, GroceryComputationSheetMonthlyRequest,
+		types.GroceryComputationSheetMonthly, types.GroceryComputationSheetMonthlyResponse, types.GroceryComputationSheetMonthlyRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "GroceryComputationSheet",
@@ -75,11 +23,11 @@ func GroceryComputationSheetMonthlyManager(service *horizon.HorizonService) *reg
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *GroceryComputationSheetMonthly) *GroceryComputationSheetMonthlyResponse {
+		Resource: func(data *types.GroceryComputationSheetMonthly) *types.GroceryComputationSheetMonthlyResponse {
 			if data == nil {
 				return nil
 			}
-			return &GroceryComputationSheetMonthlyResponse{
+			return &types.GroceryComputationSheetMonthlyResponse{
 				ID:                        data.ID,
 				CreatedAt:                 data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:               data.CreatedByID,
@@ -98,7 +46,7 @@ func GroceryComputationSheetMonthlyManager(service *horizon.HorizonService) *reg
 				LoanGuaranteedFundRate:    data.LoanGuaranteedFundRate,
 			}
 		},
-		Created: func(data *GroceryComputationSheetMonthly) registry.Topics {
+		Created: func(data *types.GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.create",
 				fmt.Sprintf("grocery_computation_sheet_monthly.create.%s", data.ID),
@@ -106,7 +54,7 @@ func GroceryComputationSheetMonthlyManager(service *horizon.HorizonService) *reg
 				fmt.Sprintf("grocery_computation_sheet_monthly.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GroceryComputationSheetMonthly) registry.Topics {
+		Updated: func(data *types.GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.update",
 				fmt.Sprintf("grocery_computation_sheet_monthly.update.%s", data.ID),
@@ -114,7 +62,7 @@ func GroceryComputationSheetMonthlyManager(service *horizon.HorizonService) *reg
 				fmt.Sprintf("grocery_computation_sheet_monthly.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GroceryComputationSheetMonthly) registry.Topics {
+		Deleted: func(data *types.GroceryComputationSheetMonthly) registry.Topics {
 			return []string{
 				"grocery_computation_sheet_monthly.delete",
 				fmt.Sprintf("grocery_computation_sheet_monthly.delete.%s", data.ID),
@@ -125,8 +73,8 @@ func GroceryComputationSheetMonthlyManager(service *horizon.HorizonService) *reg
 	})
 }
 
-func GroceryComputationSheetMonthlyCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*GroceryComputationSheetMonthly, error) {
-	return GroceryComputationSheetMonthlyManager(service).Find(context, &GroceryComputationSheetMonthly{
+func GroceryComputationSheetMonthlyCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.GroceryComputationSheetMonthly, error) {
+	return GroceryComputationSheetMonthlyManager(service).Find(context, &types.GroceryComputationSheetMonthly{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

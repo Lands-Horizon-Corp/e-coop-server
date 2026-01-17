@@ -7,78 +7,23 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MutualFundAdditionalMembers struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_mutual_fund_additional" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_mutual_fund_additional" json:"branch_id"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MutualFundID uuid.UUID   `gorm:"type:uuid;not null;index:idx_mutual_fund_additional_members" json:"mutual_fund_id"`
-		MutualFund   *MutualFund `gorm:"foreignKey:MutualFundID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"mutual_fund,omitempty"`
-
-		MemberTypeID    uuid.UUID   `gorm:"type:uuid;not null;index:idx_member_type_additional" json:"member_type_id"`
-		MemberType      *MemberType `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"member_type,omitempty"`
-		NumberOfMembers int         `gorm:"not null" json:"number_of_members"`
-		Ratio           float64     `gorm:"type:decimal(15,4);not null" json:"ratio"`
-	}
-
-	MutualFundAdditionalMembersResponse struct {
-		ID              uuid.UUID             `json:"id"`
-		CreatedAt       string                `json:"created_at"`
-		CreatedByID     uuid.UUID             `json:"created_by_id"`
-		CreatedBy       *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt       string                `json:"updated_at"`
-		UpdatedByID     uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy       *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID  uuid.UUID             `json:"organization_id"`
-		Organization    *OrganizationResponse `json:"organization,omitempty"`
-		BranchID        uuid.UUID             `json:"branch_id"`
-		Branch          *BranchResponse       `json:"branch,omitempty"`
-		MutualFundID    uuid.UUID             `json:"mutual_fund_id"`
-		MutualFund      *MutualFundResponse   `json:"mutual_fund,omitempty"`
-		MemberTypeID    uuid.UUID             `json:"member_type_id"`
-		MemberType      *MemberTypeResponse   `json:"member_type,omitempty"`
-		NumberOfMembers int                   `json:"number_of_members"`
-		Ratio           float64               `json:"ratio"`
-	}
-
-	MutualFundAdditionalMembersRequest struct {
-		ID              *uuid.UUID `json:"id,omitempty"`
-		MutualFundID    uuid.UUID  `json:"mutual_fund_id" validate:"required"`
-		MemberTypeID    uuid.UUID  `json:"member_type_id" validate:"required"`
-		NumberOfMembers int        `json:"number_of_members" validate:"required,min=1"`
-		Ratio           float64    `json:"ratio" validate:"required,min=0,max=100"`
-	}
-)
-
-func MutualFundAdditionalMembersManager(service *horizon.HorizonService) *registry.Registry[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MutualFundAdditionalMembers, MutualFundAdditionalMembersResponse, MutualFundAdditionalMembersRequest]{
+func MutualFundAdditionalMembersManager(service *horizon.HorizonService) *registry.Registry[
+	types.MutualFundAdditionalMembers, types.MutualFundAdditionalMembersResponse, types.MutualFundAdditionalMembersRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.MutualFundAdditionalMembers, types.MutualFundAdditionalMembersResponse, types.MutualFundAdditionalMembersRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "MutualFund", "MemberType"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MutualFundAdditionalMembers) *MutualFundAdditionalMembersResponse {
+		Resource: func(data *types.MutualFundAdditionalMembers) *types.MutualFundAdditionalMembersResponse {
 			if data == nil {
 				return nil
 			}
-			return &MutualFundAdditionalMembersResponse{
+			return &types.MutualFundAdditionalMembersResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -98,7 +43,7 @@ func MutualFundAdditionalMembersManager(service *horizon.HorizonService) *regist
 				Ratio:           data.Ratio,
 			}
 		},
-		Created: func(data *MutualFundAdditionalMembers) registry.Topics {
+		Created: func(data *types.MutualFundAdditionalMembers) registry.Topics {
 			return []string{
 				"mutual_fund_additional_members.create",
 				fmt.Sprintf("mutual_fund_additional_members.create.%s", data.ID),
@@ -108,7 +53,7 @@ func MutualFundAdditionalMembersManager(service *horizon.HorizonService) *regist
 				fmt.Sprintf("mutual_fund_additional_members.create.member_type.%s", data.MemberTypeID),
 			}
 		},
-		Updated: func(data *MutualFundAdditionalMembers) registry.Topics {
+		Updated: func(data *types.MutualFundAdditionalMembers) registry.Topics {
 			return []string{
 				"mutual_fund_additional_members.update",
 				fmt.Sprintf("mutual_fund_additional_members.update.%s", data.ID),
@@ -118,7 +63,7 @@ func MutualFundAdditionalMembersManager(service *horizon.HorizonService) *regist
 				fmt.Sprintf("mutual_fund_additional_members.update.member_type.%s", data.MemberTypeID),
 			}
 		},
-		Deleted: func(data *MutualFundAdditionalMembers) registry.Topics {
+		Deleted: func(data *types.MutualFundAdditionalMembers) registry.Topics {
 			return []string{
 				"mutual_fund_additional_members.delete",
 				fmt.Sprintf("mutual_fund_additional_members.delete.%s", data.ID),
@@ -131,15 +76,15 @@ func MutualFundAdditionalMembersManager(service *horizon.HorizonService) *regist
 	})
 }
 
-func MutualFundAdditionalMembersCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
-	return MutualFundAdditionalMembersManager(service).Find(context, &MutualFundAdditionalMembers{
+func MutualFundAdditionalMembersCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MutualFundAdditionalMembers, error) {
+	return MutualFundAdditionalMembersManager(service).Find(context, &types.MutualFundAdditionalMembers{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func MutualFundAdditionalMembersByMutualFund(context context.Context, service *horizon.HorizonService, mutualFundID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundAdditionalMembers, error) {
-	return MutualFundAdditionalMembersManager(service).Find(context, &MutualFundAdditionalMembers{
+func MutualFundAdditionalMembersByMutualFund(context context.Context, service *horizon.HorizonService, mutualFundID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MutualFundAdditionalMembers, error) {
+	return MutualFundAdditionalMembersManager(service).Find(context, &types.MutualFundAdditionalMembers{
 		MutualFundID:   mutualFundID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,

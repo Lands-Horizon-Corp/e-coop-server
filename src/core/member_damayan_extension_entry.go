@@ -7,71 +7,20 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MemberDamayanExtensionEntry struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_damayan_extension_entry"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_damayan_extension_entry"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		Name        string     `gorm:"type:varchar(255)"`
-		Description string     `gorm:"type:text"`
-		Birthdate   *time.Time `gorm:"type:timestamp"`
-	}
-
-	MemberDamayanExtensionEntryResponse struct {
-		ID              uuid.UUID              `json:"id"`
-		CreatedAt       string                 `json:"created_at"`
-		CreatedByID     uuid.UUID              `json:"created_by_id"`
-		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt       string                 `json:"updated_at"`
-		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID  uuid.UUID              `json:"organization_id"`
-		Organization    *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID        uuid.UUID              `json:"branch_id"`
-		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID uuid.UUID              `json:"member_profile_id"`
-		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
-		Name            string                 `json:"name"`
-		Description     string                 `json:"description"`
-		Birthdate       *string                `json:"birthdate,omitempty"`
-	}
-
-	MemberDamayanExtensionEntryRequest struct {
-		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
-		Name            string     `json:"name" validate:"required,min=1,max=255"`
-		Description     string     `json:"description,omitempty"`
-		Birthdate       *time.Time `json:"birthdate,omitempty"`
-	}
-)
-
-func MemberDamayanExtensionEntryManager(service *horizon.HorizonService) *registry.Registry[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberDamayanExtensionEntry, MemberDamayanExtensionEntryResponse, MemberDamayanExtensionEntryRequest]{
+func MemberDamayanExtensionEntryManager(service *horizon.HorizonService) *registry.Registry[
+	types.MemberDamayanExtensionEntry, types.MemberDamayanExtensionEntryResponse, types.MemberDamayanExtensionEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
+		types.MemberDamayanExtensionEntry, types.MemberDamayanExtensionEntryResponse, types.MemberDamayanExtensionEntryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberDamayanExtensionEntry) *MemberDamayanExtensionEntryResponse {
+		Resource: func(data *types.MemberDamayanExtensionEntry) *types.MemberDamayanExtensionEntryResponse {
 			if data == nil {
 				return nil
 			}
@@ -80,7 +29,7 @@ func MemberDamayanExtensionEntryManager(service *horizon.HorizonService) *regist
 				s := data.Birthdate.Format(time.RFC3339)
 				birthdateStr = &s
 			}
-			return &MemberDamayanExtensionEntryResponse{
+			return &types.MemberDamayanExtensionEntryResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -100,7 +49,7 @@ func MemberDamayanExtensionEntryManager(service *horizon.HorizonService) *regist
 			}
 		},
 
-		Created: func(data *MemberDamayanExtensionEntry) registry.Topics {
+		Created: func(data *types.MemberDamayanExtensionEntry) registry.Topics {
 			return []string{
 				"member_damayan_extension_entry.create",
 				fmt.Sprintf("member_damayan_extension_entry.create.%s", data.ID),
@@ -108,7 +57,7 @@ func MemberDamayanExtensionEntryManager(service *horizon.HorizonService) *regist
 				fmt.Sprintf("member_damayan_extension_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberDamayanExtensionEntry) registry.Topics {
+		Updated: func(data *types.MemberDamayanExtensionEntry) registry.Topics {
 			return []string{
 				"member_damayan_extension_entry.update",
 				fmt.Sprintf("member_damayan_extension_entry.update.%s", data.ID),
@@ -116,7 +65,7 @@ func MemberDamayanExtensionEntryManager(service *horizon.HorizonService) *regist
 				fmt.Sprintf("member_damayan_extension_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberDamayanExtensionEntry) registry.Topics {
+		Deleted: func(data *types.MemberDamayanExtensionEntry) registry.Topics {
 			return []string{
 				"member_damayan_extension_entry.delete",
 				fmt.Sprintf("member_damayan_extension_entry.delete.%s", data.ID),
@@ -127,8 +76,9 @@ func MemberDamayanExtensionEntryManager(service *horizon.HorizonService) *regist
 	})
 }
 
-func MemberDamayanExtensionEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberDamayanExtensionEntry, error) {
-	return MemberDamayanExtensionEntryManager(service).Find(context, &MemberDamayanExtensionEntry{
+func MemberDamayanExtensionEntryCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberDamayanExtensionEntry, error) {
+	return MemberDamayanExtensionEntryManager(service).Find(context, &types.MemberDamayanExtensionEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

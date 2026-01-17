@@ -7,61 +7,15 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	Collateral struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_collateral"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_collateral"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Icon        string `gorm:"type:varchar(255)"` // from React Icons, e.g. "FaCar", "MdHome"
-		Name        string `gorm:"type:varchar(255);not null"`
-		Description string `gorm:"type:text"`
-	}
-
-	CollateralResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Icon           string                `json:"icon"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-	}
-
-	CollateralRequest struct {
-		Icon        string `json:"icon,omitempty"`
-		Name        string `json:"name" validate:"required,min=1,max=255"`
-		Description string `json:"description,omitempty"`
-	}
-)
-
-func CollateralManager(service *horizon.HorizonService) *registry.Registry[Collateral, CollateralResponse, CollateralRequest] {
+func CollateralManager(service *horizon.HorizonService) *registry.Registry[types.Collateral, types.CollateralResponse, types.CollateralRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		Collateral, CollateralResponse, CollateralRequest,
+		types.Collateral, types.CollateralResponse, types.CollateralRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -70,11 +24,11 @@ func CollateralManager(service *horizon.HorizonService) *registry.Registry[Colla
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *Collateral) *CollateralResponse {
+		Resource: func(data *types.Collateral) *types.CollateralResponse {
 			if data == nil {
 				return nil
 			}
-			return &CollateralResponse{
+			return &types.CollateralResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -91,7 +45,7 @@ func CollateralManager(service *horizon.HorizonService) *registry.Registry[Colla
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Collateral) registry.Topics {
+		Created: func(data *types.Collateral) registry.Topics {
 			return []string{
 				"collateral.create",
 				fmt.Sprintf("collateral.create.%s", data.ID),
@@ -99,7 +53,7 @@ func CollateralManager(service *horizon.HorizonService) *registry.Registry[Colla
 				fmt.Sprintf("collateral.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Collateral) registry.Topics {
+		Updated: func(data *types.Collateral) registry.Topics {
 			return []string{
 				"collateral.update",
 				fmt.Sprintf("collateral.update.%s", data.ID),
@@ -107,7 +61,7 @@ func CollateralManager(service *horizon.HorizonService) *registry.Registry[Colla
 				fmt.Sprintf("collateral.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Collateral) registry.Topics {
+		Deleted: func(data *types.Collateral) registry.Topics {
 			return []string{
 				"collateral.delete",
 				fmt.Sprintf("collateral.delete.%s", data.ID),
@@ -118,9 +72,10 @@ func CollateralManager(service *horizon.HorizonService) *registry.Registry[Colla
 	})
 }
 
-func collateralSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func collateralSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID,
+	organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	collaterals := []*Collateral{
+	collaterals := []*types.Collateral{
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -230,8 +185,9 @@ func collateralSeed(context context.Context, service *horizon.HorizonService, tx
 	return nil
 }
 
-func CollateralCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Collateral, error) {
-	return CollateralManager(service).Find(context, &Collateral{
+func CollateralCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.Collateral, error) {
+	return CollateralManager(service).Find(context, &types.Collateral{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

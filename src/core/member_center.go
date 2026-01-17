@@ -7,67 +7,24 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	MemberCenter struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_center"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_center"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Name        string `gorm:"type:varchar(255)"`
-		Description string `gorm:"type:text"`
-	}
-
-	MemberCenterResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-	}
-
-	MemberCenterRequest struct {
-		Name        string `json:"name" validate:"required,min=1,max=255"`
-		Description string `json:"description,omitempty"`
-	}
-)
-
-func MemberCenterManager(service *horizon.HorizonService) *registry.Registry[MemberCenter, MemberCenterResponse, MemberCenterRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberCenter, MemberCenterResponse, MemberCenterRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
+func MemberCenterManager(service *horizon.HorizonService) *registry.Registry[types.MemberCenter, types.MemberCenterResponse, types.MemberCenterRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.MemberCenter, types.MemberCenterResponse, types.MemberCenterRequest]{
+		Preloads: []string{"CreatedBy", "UpdatedBy", },
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberCenter) *MemberCenterResponse {
+		Resource: func(data *types.MemberCenter) *types.MemberCenterResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberCenterResponse{
+			return &types.MemberCenterResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -84,7 +41,7 @@ func MemberCenterManager(service *horizon.HorizonService) *registry.Registry[Mem
 			}
 		},
 
-		Created: func(data *MemberCenter) registry.Topics {
+		Created: func(data *types.MemberCenter) registry.Topics {
 			return []string{
 				"member_center.create",
 				fmt.Sprintf("member_center.create.%s", data.ID),
@@ -92,7 +49,7 @@ func MemberCenterManager(service *horizon.HorizonService) *registry.Registry[Mem
 				fmt.Sprintf("member_center.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberCenter) registry.Topics {
+		Updated: func(data *types.MemberCenter) registry.Topics {
 			return []string{
 				"member_center.update",
 				fmt.Sprintf("member_center.update.%s", data.ID),
@@ -100,7 +57,7 @@ func MemberCenterManager(service *horizon.HorizonService) *registry.Registry[Mem
 				fmt.Sprintf("member_center.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberCenter) registry.Topics {
+		Deleted: func(data *types.MemberCenter) registry.Topics {
 			return []string{
 				"member_center.delete",
 				fmt.Sprintf("member_center.delete.%s", data.ID),
@@ -111,9 +68,10 @@ func MemberCenterManager(service *horizon.HorizonService) *registry.Registry[Mem
 	})
 }
 
-func memberCenterSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func memberCenterSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB,
+	userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	memberCenter := []*MemberCenter{
+	memberCenter := []*types.MemberCenter{
 		{
 			Name:           "Main Wellness Center",
 			Description:    "Provides health and wellness programs.",
@@ -155,8 +113,9 @@ func memberCenterSeed(context context.Context, service *horizon.HorizonService, 
 	return nil
 }
 
-func MemberCenterCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberCenter, error) {
-	return MemberCenterManager(service).Find(context, &MemberCenter{
+func MemberCenterCurrentBranch(context context.Context,
+	service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberCenter, error) {
+	return MemberCenterManager(service).Find(context, &types.MemberCenter{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -8,73 +8,16 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	GeneralLedgerAccountsGrouping struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger_accounts_grouping"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger_accounts_grouping"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Debit       float64 `gorm:"type:decimal"`
-		Credit      float64 `gorm:"type:decimal"`
-		Name        string  `gorm:"type:varchar(50);not null"`
-		Description string  `gorm:"type:text;not null"`
-		FromCode    float64 `gorm:"type:decimal;default:0"`
-		ToCode      float64 `gorm:"type:decimal;default:0"`
-
-		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerAccountsGroupingID" json:"general_ledger_definition,omitempty"`
-	}
-
-	GeneralLedgerAccountsGroupingResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Debit          float64               `json:"debit"`
-		Credit         float64               `json:"credit"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-		FromCode       float64               `json:"from_code"`
-		ToCode         float64               `json:"to_code"`
-
-		GeneralLedgerDefinitionEntries []*GeneralLedgerDefinitionResponse `json:"general_ledger_definition,omitempty"`
-	}
-
-	GeneralLedgerAccountsGroupingRequest struct {
-		Debit       float64 `json:"debit" validate:"omitempty,gt=0"`
-		Credit      float64 `json:"credit" validate:"omitempty,gt=0"`
-		Name        string  `json:"name" validate:"required,min=1,max=50"`
-		Description string  `json:"description" validate:"required"`
-		FromCode    float64 `json:"from_code,omitempty"`
-		ToCode      float64 `json:"to_code,omitempty"`
-	}
-)
-
-func GeneralLedgerAccountsGroupingManager(service *horizon.HorizonService) *registry.Registry[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest] {
-	return registry.NewRegistry(registry.RegistryParams[GeneralLedgerAccountsGrouping, GeneralLedgerAccountsGroupingResponse, GeneralLedgerAccountsGroupingRequest]{
+func GeneralLedgerAccountsGroupingManager(service *horizon.HorizonService) *registry.Registry[
+	types.GeneralLedgerAccountsGrouping, types.GeneralLedgerAccountsGroupingResponse, types.GeneralLedgerAccountsGroupingRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
+		types.GeneralLedgerAccountsGrouping, types.GeneralLedgerAccountsGroupingResponse, types.GeneralLedgerAccountsGroupingRequest]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
 		},
@@ -82,14 +25,14 @@ func GeneralLedgerAccountsGroupingManager(service *horizon.HorizonService) *regi
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *GeneralLedgerAccountsGrouping) *GeneralLedgerAccountsGroupingResponse {
+		Resource: func(data *types.GeneralLedgerAccountsGrouping) *types.GeneralLedgerAccountsGroupingResponse {
 			if data == nil {
 				return nil
 			}
 			sort.Slice(data.GeneralLedgerDefinitionEntries, func(i, j int) bool {
 				return data.GeneralLedgerDefinitionEntries[i].Index < data.GeneralLedgerDefinitionEntries[j].Index
 			})
-			return &GeneralLedgerAccountsGroupingResponse{
+			return &types.GeneralLedgerAccountsGroupingResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -111,7 +54,7 @@ func GeneralLedgerAccountsGroupingManager(service *horizon.HorizonService) *regi
 				GeneralLedgerDefinitionEntries: GeneralLedgerDefinitionManager(service).ToModels(data.GeneralLedgerDefinitionEntries),
 			}
 		},
-		Created: func(data *GeneralLedgerAccountsGrouping) registry.Topics {
+		Created: func(data *types.GeneralLedgerAccountsGrouping) registry.Topics {
 			return []string{
 				"general_ledger_accounts_grouping.create",
 				fmt.Sprintf("general_ledger_accounts_grouping.create.%s", data.ID),
@@ -119,7 +62,7 @@ func GeneralLedgerAccountsGroupingManager(service *horizon.HorizonService) *regi
 				fmt.Sprintf("general_ledger_accounts_grouping.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *GeneralLedgerAccountsGrouping) registry.Topics {
+		Updated: func(data *types.GeneralLedgerAccountsGrouping) registry.Topics {
 			return []string{
 				"general_ledger_accounts_grouping.update",
 				fmt.Sprintf("general_ledger_accounts_grouping.update.%s", data.ID),
@@ -127,7 +70,7 @@ func GeneralLedgerAccountsGroupingManager(service *horizon.HorizonService) *regi
 				fmt.Sprintf("general_ledger_accounts_grouping.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *GeneralLedgerAccountsGrouping) registry.Topics {
+		Deleted: func(data *types.GeneralLedgerAccountsGrouping) registry.Topics {
 			return []string{
 				"general_ledger_accounts_grouping.delete",
 				fmt.Sprintf("general_ledger_accounts_grouping.delete.%s", data.ID),
@@ -140,7 +83,7 @@ func GeneralLedgerAccountsGroupingManager(service *horizon.HorizonService) *regi
 
 func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	generalLedgerAccountsGrouping := []*GeneralLedgerAccountsGrouping{
+	generalLedgerAccountsGrouping := []*types.GeneralLedgerAccountsGrouping{
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -204,11 +147,11 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 			return eris.Wrapf(err, "failed to seed general ledger accounts grouping %s", groupingData.Name)
 		}
 
-		var definitions []*GeneralLedgerDefinition
+		var definitions []*types.GeneralLedgerDefinition
 
 		switch i {
 		case 0: // Assets
-			currentAssetsParent := &GeneralLedgerDefinition{
+			currentAssetsParent := &types.GeneralLedgerDefinition{
 				CreatedAt:                       now,
 				UpdatedAt:                       now,
 				CreatedByID:                     userID,
@@ -230,7 +173,7 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", currentAssetsParent.Name)
 			}
 
-			definitions = []*GeneralLedgerDefinition{
+			definitions = []*types.GeneralLedgerDefinition{
 				{
 					CreatedAt:                       now,
 					UpdatedAt:                       now,
@@ -323,7 +266,7 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 				},
 			}
 		case 1: // Liabilities, Equity & Reserves
-			liabilitiesParent := &GeneralLedgerDefinition{
+			liabilitiesParent := &types.GeneralLedgerDefinition{
 				CreatedAt:                       now,
 				UpdatedAt:                       now,
 				CreatedByID:                     userID,
@@ -342,7 +285,7 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 				GeneralLedgerDefinitionEntryID:  nil,
 			}
 
-			equityParent := &GeneralLedgerDefinition{
+			equityParent := &types.GeneralLedgerDefinition{
 				CreatedAt:                       now,
 				UpdatedAt:                       now,
 				CreatedByID:                     userID,
@@ -368,7 +311,7 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", equityParent.Name)
 			}
 
-			definitions = []*GeneralLedgerDefinition{
+			definitions = []*types.GeneralLedgerDefinition{
 				{
 					CreatedAt:                       now,
 					UpdatedAt:                       now,
@@ -444,7 +387,7 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 			}
 
 		case 2: // Income
-			definitions = []*GeneralLedgerDefinition{
+			definitions = []*types.GeneralLedgerDefinition{
 				{
 					CreatedAt:                       now,
 					UpdatedAt:                       now,
@@ -501,7 +444,7 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 				},
 			}
 		case 3:
-			operatingExpensesParent := &GeneralLedgerDefinition{
+			operatingExpensesParent := &types.GeneralLedgerDefinition{
 				CreatedAt:                       now,
 				UpdatedAt:                       now,
 				CreatedByID:                     userID,
@@ -522,7 +465,7 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 			if err := GeneralLedgerDefinitionManager(service).CreateWithTx(context, tx, operatingExpensesParent); err != nil {
 				return eris.Wrapf(err, "failed to seed general ledger definition %s", operatingExpensesParent.Name)
 			}
-			definitions = []*GeneralLedgerDefinition{
+			definitions = []*types.GeneralLedgerDefinition{
 				{
 					CreatedAt:                       now,
 					UpdatedAt:                       now,
@@ -607,8 +550,8 @@ func generalLedgerAccountsGroupingSeed(context context.Context, service *horizon
 	return nil
 }
 
-func GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
-	return GeneralLedgerAccountsGroupingManager(service).Find(context, &GeneralLedgerAccountsGrouping{
+func GeneralLedgerAccountsGroupingCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.GeneralLedgerAccountsGrouping, error) {
+	return GeneralLedgerAccountsGroupingManager(service).Find(context, &types.GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -7,58 +7,16 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	LoanPurpose struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_purpose"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_purpose"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Description string `gorm:"type:text"`
-		Icon        string `gorm:"type:varchar(255)"`
-	}
-
-	LoanPurposeResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Description    string                `json:"description"`
-		Icon           string                `json:"icon"`
-	}
-
-	LoanPurposeRequest struct {
-		Description string `json:"description,omitempty"`
-		Icon        string `json:"icon,omitempty"`
-	}
-)
-
-func LoanPurposeManager(service *horizon.HorizonService) *registry.Registry[LoanPurpose, LoanPurposeResponse, LoanPurposeRequest] {
+func LoanPurposeManager(service *horizon.HorizonService) *registry.Registry[
+	types.LoanPurpose, types.LoanPurposeResponse, types.LoanPurposeRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		LoanPurpose, LoanPurposeResponse, LoanPurposeRequest,
+		types.LoanPurpose, types.LoanPurposeResponse, types.LoanPurposeRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -67,11 +25,11 @@ func LoanPurposeManager(service *horizon.HorizonService) *registry.Registry[Loan
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *LoanPurpose) *LoanPurposeResponse {
+		Resource: func(data *types.LoanPurpose) *types.LoanPurposeResponse {
 			if data == nil {
 				return nil
 			}
-			return &LoanPurposeResponse{
+			return &types.LoanPurposeResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -88,7 +46,7 @@ func LoanPurposeManager(service *horizon.HorizonService) *registry.Registry[Loan
 			}
 		},
 
-		Created: func(data *LoanPurpose) registry.Topics {
+		Created: func(data *types.LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.create",
 				fmt.Sprintf("loan_purpose.create.%s", data.ID),
@@ -96,7 +54,7 @@ func LoanPurposeManager(service *horizon.HorizonService) *registry.Registry[Loan
 				fmt.Sprintf("loan_purpose.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanPurpose) registry.Topics {
+		Updated: func(data *types.LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.update",
 				fmt.Sprintf("loan_purpose.update.%s", data.ID),
@@ -104,7 +62,7 @@ func LoanPurposeManager(service *horizon.HorizonService) *registry.Registry[Loan
 				fmt.Sprintf("loan_purpose.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanPurpose) registry.Topics {
+		Deleted: func(data *types.LoanPurpose) registry.Topics {
 			return []string{
 				"loan_purpose.delete",
 				fmt.Sprintf("loan_purpose.delete.%s", data.ID),
@@ -115,9 +73,10 @@ func LoanPurposeManager(service *horizon.HorizonService) *registry.Registry[Loan
 	})
 }
 
-func loanPurposeSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func loanPurposeSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB,
+	userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	loanPurposes := []*LoanPurpose{
+	loanPurposes := []*types.LoanPurpose{
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -263,8 +222,9 @@ func loanPurposeSeed(context context.Context, service *horizon.HorizonService, t
 	return nil
 }
 
-func LoanPurposeCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanPurpose, error) {
-	return LoanPurposeManager(service).Find(context, &LoanPurpose{
+func LoanPurposeCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.LoanPurpose, error) {
+	return LoanPurposeManager(service).Find(context, &types.LoanPurpose{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

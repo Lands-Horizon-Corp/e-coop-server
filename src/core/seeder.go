@@ -2,11 +2,17 @@ package core
 
 import (
 	"context"
+	crand "crypto/rand"
 	"fmt"
+	"io/fs"
+	"math/big"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
@@ -26,21 +32,80 @@ var cities = []City{
 	{11.2400, 125.0055},
 }
 
+func createImageMedia(ctx context.Context, service *horizon.HorizonService, imagePaths []string, imageType string) (*types.Media, error) {
+	if len(imagePaths) == 0 {
+		return nil, eris.New("no image files available for seeding")
+	}
+	maxInt := big.NewInt(int64(len(imagePaths)))
+	nBig, err := crand.Int(crand.Reader, maxInt)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to generate secure random index for image selection")
+	}
+	randomIndex := int(nBig.Int64())
+	imagePath := imagePaths[randomIndex]
+
+	storage, err := service.Storage.UploadFromPath(ctx, imagePath, func(_ int64, _ int64, _ *horizon.Storage) {})
+	if err != nil {
+		return nil, eris.Wrapf(err, "failed to upload image from path %s for %s", imagePath, imageType)
+	}
+	media := &types.Media{
+		FileName:   storage.FileName,
+		FileType:   storage.FileType,
+		FileSize:   storage.FileSize,
+		StorageKey: storage.StorageKey,
+		BucketName: storage.BucketName,
+		Status:     "completed",
+		Progress:   100,
+		CreatedAt:  time.Now().UTC(),
+		UpdatedAt:  time.Now().UTC(),
+	}
+
+	if err := MediaManager(service).Create(ctx, media); err != nil {
+		return nil, eris.Wrap(err, "failed to create media record")
+	}
+	return media, nil
+}
+
 func Seed(ctx context.Context, service *horizon.HorizonService, multiplier int32) error {
 	if multiplier <= 0 {
 		return nil
 	}
-	images, err := loadImagePaths()
+	imagePaths := []string{}
+	imagesDir := "seeder/images"
+	supportedExtensions := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+		".webp": true,
+	}
+	err := filepath.WalkDir(imagesDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			ext := strings.ToLower(filepath.Ext(path))
+			if supportedExtensions[ext] {
+				imagePaths = append(imagePaths, path)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return eris.Wrap(err, "failed to scan images directory")
+	}
+	if len(imagePaths) == 0 {
+		return eris.New("no image files found in seeder/images directory")
+	}
 	if err != nil {
 		return eris.Wrap(err, "failed to load image paths for seeding")
 	}
 	if err := GlobalSeeder(ctx, service); err != nil {
 		return err
 	}
-	if err := SeedUsers(ctx, service, images, multiplier); err != nil {
+	if err := SeedUsers(ctx, service, imagePaths, multiplier); err != nil {
 		return err
 	}
-	if err := SeedOrganization(ctx, service, images, multiplier); err != nil {
+	if err := SeedOrganization(ctx, service, imagePaths, multiplier); err != nil {
 		return err
 	}
 	if err := SeedEmployees(ctx, service, multiplier); err != nil {
@@ -82,7 +147,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 			if err != nil {
 				return eris.Wrap(err, "failed to create organization media")
 			}
-			organization := &Organization{
+			organization := &types.Organization{
 				CreatedAt:                           time.Now().UTC(),
 				CreatedByID:                         user.ID,
 				UpdatedAt:                           time.Now().UTC(),
@@ -118,7 +183,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 				return err
 			}
 			for _, category := range categories {
-				if err := OrganizationCategoryManager(service).Create(ctx, &OrganizationCategory{
+				if err := OrganizationCategoryManager(service).Create(ctx, &types.OrganizationCategory{
 					CreatedAt:      time.Now().UTC(),
 					UpdatedAt:      time.Now().UTC(),
 					OrganizationID: &organization.ID,
@@ -143,7 +208,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 				c := cities[service.Faker.IntBetween(0, len(cities)-1)]
 				Latitude := c.Lat + (float64(service.Faker.IntBetween(-50, 50)) / 1000.0)
 				Longitude := c.Lng + (float64(service.Faker.IntBetween(-50, 50)) / 1000.0)
-				branch := &Branch{
+				branch := &types.Branch{
 					CreatedAt:               time.Now().UTC(),
 					CreatedByID:             user.ID,
 					UpdatedAt:               time.Now().UTC(),
@@ -168,7 +233,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 				if err := BranchManager(service).Create(ctx, branch); err != nil {
 					return err
 				}
-				branchSetting := &BranchSetting{
+				branchSetting := &types.BranchSetting{
 					CreatedAt: time.Now().UTC(),
 					UpdatedAt: time.Now().UTC(),
 					BranchID:  branch.ID,
@@ -194,7 +259,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 					return err
 				}
 
-				ownerOrganization := &UserOrganization{
+				ownerOrganization := &types.UserOrganization{
 					CreatedAt:              time.Now().UTC(),
 					CreatedByID:            user.ID,
 					UpdatedAt:              time.Now().UTC(),
@@ -202,7 +267,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 					BranchID:               &branch.ID,
 					OrganizationID:         organization.ID,
 					UserID:                 user.ID,
-					UserType:               UserOrganizationTypeOwner,
+					UserType:               types.UserOrganizationTypeOwner,
 					Description:            service.Faker.Lorem().Sentence(5),
 					ApplicationDescription: service.Faker.Lorem().Sentence(3),
 					ApplicationStatus:      "accepted",
@@ -210,7 +275,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 					PermissionName:         "Employee",
 					PermissionDescription:  "Organization owner with full permissions",
 					Permissions:            []string{"read", "write", "manage", "delete", "admin"},
-					Status:                 UserOrganizationStatusOffline,
+					Status:                 types.UserOrganizationStatusOffline,
 					LastOnlineAt:           time.Now().UTC(),
 				}
 
@@ -227,11 +292,11 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 				}
 				numInvites := int(multiplier) * 1
 				for m := range numInvites {
-					userType := UserOrganizationTypeMember
+					userType := types.UserOrganizationTypeMember
 					if m%2 == 0 {
-						userType = UserOrganizationTypeEmployee
+						userType = types.UserOrganizationTypeEmployee
 					}
-					invitationCode := &InvitationCode{
+					invitationCode := &types.InvitationCode{
 						CreatedAt:      time.Now().UTC(),
 						CreatedByID:    user.ID,
 						UpdatedAt:      time.Now().UTC(),
@@ -271,14 +336,14 @@ func SeedEmployees(ctx context.Context, service *horizon.HorizonService, multipl
 	}
 
 	for _, org := range organizations {
-		branches, err := BranchManager(service).Find(ctx, &Branch{
+		branches, err := BranchManager(service).Find(ctx, &types.Branch{
 			OrganizationID: org.ID,
 		})
 		if err != nil {
 			continue
 		}
 
-		potentialEmployees := make([]*User, 0)
+		potentialEmployees := make([]*types.User, 0)
 		for _, user := range users {
 			if user.ID != org.CreatedByID {
 				potentialEmployees = append(potentialEmployees, user)
@@ -312,7 +377,7 @@ func SeedEmployees(ctx context.Context, service *horizon.HorizonService, multipl
 				selectedUser := potentialEmployees[employeeIndex%len(potentialEmployees)]
 				employeeIndex++
 
-				existingAssociation, err := UserOrganizationManager(service).Count(ctx, &UserOrganization{
+				existingAssociation, err := UserOrganizationManager(service).Count(ctx, &types.UserOrganization{
 					UserID:         selectedUser.ID,
 					OrganizationID: org.ID,
 					BranchID:       &branch.ID,
@@ -330,7 +395,7 @@ func SeedEmployees(ctx context.Context, service *horizon.HorizonService, multipl
 					return err
 				}
 
-				employeeOrg := &UserOrganization{
+				employeeOrg := &types.UserOrganization{
 					CreatedAt:              time.Now().UTC(),
 					CreatedByID:            org.CreatedByID, // Created by the organization owner
 					UpdatedAt:              time.Now().UTC(),
@@ -338,7 +403,7 @@ func SeedEmployees(ctx context.Context, service *horizon.HorizonService, multipl
 					BranchID:               &branch.ID,
 					OrganizationID:         org.ID,
 					UserID:                 selectedUser.ID,
-					UserType:               UserOrganizationTypeEmployee,
+					UserType:               types.UserOrganizationTypeEmployee,
 					Description:            service.Faker.Lorem().Sentence(5),
 					ApplicationDescription: service.Faker.Lorem().Sentence(3),
 					ApplicationStatus:      "accepted",
@@ -346,7 +411,7 @@ func SeedEmployees(ctx context.Context, service *horizon.HorizonService, multipl
 					PermissionName:         "Employee",
 					PermissionDescription:  "Branch employee with standard operational permissions",
 					Permissions:            []string{"read", "create", "update"},
-					Status:                 UserOrganizationStatusOffline,
+					Status:                 types.UserOrganizationStatusOffline,
 					LastOnlineAt:           time.Now().UTC(),
 				}
 
@@ -396,7 +461,7 @@ func SeedUsers(ctx context.Context, service *horizon.HorizonService, imagePaths 
 			email = service.Faker.Internet().Email()
 		}
 
-		user := &User{
+		user := &types.User{
 			MediaID:           &userSharedMedia.ID,
 			Email:             email,
 			Password:          hashedPassword,
@@ -446,7 +511,7 @@ func SeedMemberProfiles(ctx context.Context, service *horizon.HorizonService, mu
 
 	for _, org := range organizations {
 
-		branches, err := BranchManager(service).Find(ctx, &Branch{
+		branches, err := BranchManager(service).Find(ctx, &types.Branch{
 			OrganizationID: org.ID,
 		})
 		if err != nil {
@@ -468,7 +533,7 @@ func SeedMemberProfiles(ctx context.Context, service *horizon.HorizonService, mu
 
 				passbook := fmt.Sprintf("PB-%s-%04d", branch.Name[:min(3, len(branch.Name))], i+1)
 
-				memberProfile := &MemberProfile{
+				memberProfile := &types.MemberProfile{
 					CreatedAt:             time.Now().UTC(),
 					CreatedByID:           &org.CreatedByID,
 					UpdatedAt:             time.Now().UTC(),
@@ -481,7 +546,7 @@ func SeedMemberProfiles(ctx context.Context, service *horizon.HorizonService, mu
 					LastName:              lastName,
 					FullName:              fullName,
 					BirthDate:             &birthDate,
-					Status:                MemberStatusPending,
+					Status:                types.MemberStatusPending,
 					Description:           service.Faker.Lorem().Paragraph(2),
 					Notes:                 service.Faker.Lorem().Paragraph(1),
 					ContactNumber:         fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999)),
@@ -500,7 +565,7 @@ func SeedMemberProfiles(ctx context.Context, service *horizon.HorizonService, mu
 					continue
 				}
 
-				memberAddress := &MemberAddress{
+				memberAddress := &types.MemberAddress{
 					CreatedAt:       time.Now().UTC(),
 					UpdatedAt:       time.Now().UTC(),
 					CreatedByID:     &org.CreatedByID,

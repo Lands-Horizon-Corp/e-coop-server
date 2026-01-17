@@ -1,8 +1,10 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/numi18n/numi18n"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -61,3 +63,40 @@ type (
 		Timezone       string `json:"timezone,omitempty" validate:"omitempty,max=50"`
 	}
 )
+
+func (c *Currency) ToFormat(value float64) string {
+	if c == nil {
+		return fmt.Sprintf("%.2f", value)
+	}
+	options := &numi18n.NumI18NOptions{
+		Currency:       c.CurrencyCode,
+		ISO3166Alpha2:  c.ISO3166Alpha2,
+		ISO3166Alpha3:  c.ISO3166Alpha3,
+		ISO3166Numeric: c.ISO3166Numeric,
+		Locale:         c.Locale,
+		WordDetails: &numi18n.WordDetails{
+			Currency: true,
+			Decimal:  true,
+		},
+	}
+	return options.ToFormat(value)
+}
+
+func (c *Currency) ToWords(amount float64) string {
+	if c == nil {
+		return fmt.Sprintf("%.2f", amount)
+	}
+	options := &numi18n.NumI18NOptions{
+		Currency:       c.CurrencyCode,
+		ISO3166Alpha2:  c.ISO3166Alpha2,
+		ISO3166Alpha3:  c.ISO3166Alpha3,
+		ISO3166Numeric: c.ISO3166Numeric,
+		Locale:         c.Locale,
+		WordDetails: &numi18n.WordDetails{
+			Currency:   true,
+			Decimal:    true,
+			Capitalize: true,
+		},
+	}
+	return options.ToWords(amount)
+}

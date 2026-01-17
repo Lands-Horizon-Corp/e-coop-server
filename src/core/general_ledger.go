@@ -8,241 +8,15 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
-type GeneralLedgerSource string
-
-const (
-	GeneralLedgerSourceWithdraw           GeneralLedgerSource = "withdraw"
-	GeneralLedgerSourceDeposit            GeneralLedgerSource = "deposit"
-	GeneralLedgerSourcePayment            GeneralLedgerSource = "payment"
-	GeneralLedgerSourceAdjustment         GeneralLedgerSource = "adjustment"
-	GeneralLedgerSourceJournalVoucher     GeneralLedgerSource = "journal voucher"
-	GeneralLedgerSourceCheckVoucher       GeneralLedgerSource = "check voucher"
-	GeneralLedgerSourceLoan               GeneralLedgerSource = "loan"
-	GeneralLedgerSourceSavingsInterest    GeneralLedgerSource = "savings interest"
-	GeneralLedgerSourceMutualContribution GeneralLedgerSource = "mutual contribution"
-	GeneralLedgerSourcDisbursement        GeneralLedgerSource = "disbursement"
-	GeneralLedgerSourcBlotter             GeneralLedgerSource = "blotter"
-)
-
-type (
-	GeneralLedger struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now();index" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id,omitempty"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger;index:idx_org_branch_account_member;index:idx_transaction_batch_entry" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-
-		BranchID uuid.UUID `gorm:"type:uuid;not null;index:idx_organization_branch_general_ledger;index:idx_org_branch_account_member;index:idx_transaction_batch_entry" json:"branch_id"`
-		Branch   *Branch   `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		AccountID *uuid.UUID `gorm:"type:uuid;index:idx_org_branch_account_member" json:"account_id,omitempty"`
-		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
-
-		TransactionID *uuid.UUID   `gorm:"type:uuid" json:"transaction_id,omitempty"`
-		Transaction   *Transaction `gorm:"foreignKey:TransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction,omitempty"`
-
-		TransactionBatchID *uuid.UUID        `gorm:"type:uuid;index:idx_transaction_batch_entry" json:"transaction_batch_id,omitempty"`
-		TransactionBatch   *TransactionBatch `gorm:"foreignKey:TransactionBatchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"transaction_batch,omitempty"`
-
-		EmployeeUserID *uuid.UUID `gorm:"type:uuid" json:"employee_user_id,omitempty"`
-		EmployeeUser   *User      `gorm:"foreignKey:EmployeeUserID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"employee_user,omitempty"`
-
-		MemberProfileID *uuid.UUID     `gorm:"type:uuid;index:idx_org_branch_account_member" json:"member_profile_id,omitempty"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		MemberJointAccountID *uuid.UUID          `gorm:"type:uuid" json:"member_joint_account_id,omitempty"`
-		MemberJointAccount   *MemberJointAccount `gorm:"foreignKey:MemberJointAccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_joint_account,omitempty"`
-
-		TransactionReferenceNumber string `gorm:"type:varchar(50)" json:"transaction_reference_number"`
-		ReferenceNumber            string `gorm:"type:varchar(50)" json:"reference_number"`
-
-		PaymentTypeID *uuid.UUID   `gorm:"type:uuid" json:"payment_type_id,omitempty"`
-		PaymentType   *PaymentType `gorm:"foreignKey:PaymentTypeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"payment_type,omitempty"`
-
-		Source GeneralLedgerSource `gorm:"type:varchar(20)" json:"source"`
-
-		JournalVoucherID *uuid.UUID `gorm:"type:uuid" json:"journal_voucher_id,omitempty"`
-
-		AdjustmentEntryID *uuid.UUID       `gorm:"type:uuid" json:"adjustment_entry_id,omitempty"`
-		AdjustmentEntry   *AdjustmentEntry `gorm:"foreignKey:AdjustmentEntryID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"adjustment_entry,omitempty"`
-
-		LoanTransactionID *uuid.UUID       `gorm:"type:uuid" json:"loan_transaction_id,omitempty"`
-		LoanTransaction   *LoanTransaction `gorm:"foreignKey:LoanTransactionID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"loan_transaction,omitempty"`
-
-		TypeOfPaymentType TypeOfPaymentType `gorm:"type:varchar(20)" json:"type_of_payment_type,omitempty"`
-
-		Credit  float64 `gorm:"type:decimal" json:"credit"`
-		Debit   float64 `gorm:"type:decimal" json:"debit"`
-		Balance float64 `gorm:"type:decimal" json:"balance"`
-
-		SignatureMediaID *uuid.UUID `gorm:"type:uuid" json:"signature_media_id,omitempty"`
-		SignatureMedia   *Media     `gorm:"foreignKey:SignatureMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"signature_media,omitempty"`
-
-		EntryDate time.Time `gorm:"type:timestamp;not null;default:now()" json:"entry_date"`
-
-		BankID *uuid.UUID `gorm:"type:uuid" json:"bank_id,omitempty"`
-		Bank   *Bank      `gorm:"foreignKey:BankID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"bank,omitempty"`
-
-		ProofOfPaymentMediaID *uuid.UUID `gorm:"type:uuid" json:"proof_of_payment_media_id,omitempty"`
-		ProofOfPaymentMedia   *Media     `gorm:"foreignKey:ProofOfPaymentMediaID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"proof_of_payment_media,omitempty"`
-
-		CurrencyID *uuid.UUID `gorm:"type:uuid" json:"currency_id,omitempty"`
-		Currency   *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
-
-		BankReferenceNumber string `gorm:"type:varchar(50)" json:"bank_reference_number"`
-		Description         string `gorm:"type:text" json:"description"`
-		PrintNumber         int    `gorm:"default:0" json:"print_number"`
-	}
-
-	GeneralLedgerResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-
-		AccountID            *uuid.UUID                  `json:"account_id,omitempty"`
-		Account              *AccountResponse            `json:"account,omitempty"`
-		TransactionID        *uuid.UUID                  `json:"transaction_id,omitempty"`
-		Transaction          *TransactionResponse        `json:"transaction,omitempty"`
-		TransactionBatchID   *uuid.UUID                  `json:"transaction_batch_id,omitempty"`
-		TransactionBatch     *TransactionBatchResponse   `json:"transaction_batch,omitempty"`
-		EmployeeUserID       *uuid.UUID                  `json:"employee_user_id,omitempty"`
-		EmployeeUser         *UserResponse               `json:"employee_user,omitempty"`
-		MemberProfileID      *uuid.UUID                  `json:"member_profile_id,omitempty"`
-		MemberProfile        *MemberProfileResponse      `json:"member_profile,omitempty"`
-		MemberJointAccountID *uuid.UUID                  `json:"member_joint_account_id,omitempty"`
-		MemberJointAccount   *MemberJointAccountResponse `json:"member_joint_account,omitempty"`
-
-		TransactionReferenceNumber string `json:"transaction_reference_number"`
-		ReferenceNumber            string `json:"reference_number"`
-
-		PaymentTypeID *uuid.UUID           `json:"payment_type_id,omitempty"`
-		PaymentType   *PaymentTypeResponse `json:"payment_type,omitempty"`
-
-		Source            GeneralLedgerSource      `json:"source"`
-		JournalVoucherID  *uuid.UUID               `json:"journal_voucher_id,omitempty"`
-		AdjustmentEntryID *uuid.UUID               `json:"adjustment_entry_id,omitempty"`
-		AdjustmentEntry   *AdjustmentEntryResponse `json:"adjustment_entry,omitempty"`
-		LoanTransactionID *uuid.UUID               `json:"loan_transaction_id,omitempty"`
-		LoanTransaction   *LoanTransactionResponse `json:"loan_transaction,omitempty"`
-		TypeOfPaymentType TypeOfPaymentType        `json:"type_of_payment_type"`
-
-		Credit  float64 `json:"credit"`
-		Debit   float64 `json:"debit"`
-		Balance float64 `json:"balance"`
-
-		SignatureMediaID *uuid.UUID     `json:"signature_media_id,omitempty"`
-		SignatureMedia   *MediaResponse `json:"signature_media,omitempty"`
-
-		EntryDate string `json:"entry_date,omitempty"`
-
-		BankID *uuid.UUID    `json:"bank_id,omitempty"`
-		Bank   *BankResponse `json:"bank,omitempty"`
-
-		ProofOfPaymentMediaID *uuid.UUID     `json:"proof_of_payment_media_id,omitempty"`
-		ProofOfPaymentMedia   *MediaResponse `json:"proof_of_payment_media,omitempty"`
-
-		CurrencyID *uuid.UUID        `json:"currency_id,omitempty"`
-		Currency   *CurrencyResponse `json:"currency,omitempty"`
-
-		BankReferenceNumber string `json:"bank_reference_number,omitempty"`
-
-		Description string `json:"description,omitempty"`
-		PrintNumber int    `json:"print_number"`
-
-		AccountHistoryID *uuid.UUID `json:"account_history_id"`
-	}
-
-	GeneralLedgerRequest struct {
-		OrganizationID             uuid.UUID           `json:"organization_id" validate:"required"`
-		BranchID                   uuid.UUID           `json:"branch_id" validate:"required"`
-		AccountID                  *uuid.UUID          `json:"account_id,omitempty"`
-		TransactionID              *uuid.UUID          `json:"transaction_id,omitempty"`
-		TransactionBatchID         *uuid.UUID          `json:"transaction_batch_id,omitempty"`
-		EmployeeUserID             *uuid.UUID          `json:"employee_user_id,omitempty"`
-		MemberProfileID            *uuid.UUID          `json:"member_profile_id,omitempty"`
-		MemberJointAccountID       *uuid.UUID          `json:"member_joint_account_id,omitempty"`
-		TransactionReferenceNumber string              `json:"transaction_reference_number,omitempty"`
-		ReferenceNumber            string              `json:"reference_number,omitempty"`
-		PaymentTypeID              *uuid.UUID          `json:"payment_type_id,omitempty"`
-		Source                     GeneralLedgerSource `json:"source,omitempty"`
-		JournalVoucherID           *uuid.UUID          `json:"journal_voucher_id,omitempty"`
-		AdjustmentEntryID          *uuid.UUID          `json:"adjustment_entry_id,omitempty"`
-		LoanTransactionID          *uuid.UUID          `json:"loan_transaction_id,omitempty"`
-
-		TypeOfPaymentType     TypeOfPaymentType `json:"type_of_payment_type,omitempty"`
-		Credit                float64           `json:"credit,omitempty"`
-		Debit                 float64           `json:"debit,omitempty"`
-		SignatureMediaID      *uuid.UUID        `json:"signature_media_id,omitempty"`
-		EntryDate             *time.Time        `json:"entry_date,omitempty"`
-		BankID                *uuid.UUID        `json:"bank_id,omitempty"`
-		ProofOfPaymentMediaID *uuid.UUID        `json:"proof_of_payment_media_id,omitempty"`
-		CurrencyID            *uuid.UUID        `json:"currency_id,omitempty"`
-		BankReferenceNumber   string            `json:"bank_reference_number,omitempty"`
-		Description           string            `json:"description,omitempty"`
-	}
-
-	PaymentRequest struct {
-		Amount                float64    `json:"amount" validate:"required,ne=0"`
-		SignatureMediaID      *uuid.UUID `json:"signature_media_id,omitempty"`
-		ProofOfPaymentMediaID *uuid.UUID `json:"proof_of_payment_media_id,omitempty"`
-		BankID                *uuid.UUID `json:"bank_id,omitempty"`
-		BankReferenceNumber   string     `json:"bank_reference_number,omitempty"`
-		EntryDate             *time.Time `json:"entry_date,omitempty"`
-		AccountID             *uuid.UUID `json:"account_id,omitempty"`
-		PaymentTypeID         *uuid.UUID `json:"payment_type_id,omitempty"`
-		Description           string     `json:"description,omitempty" validate:"max=255"`
-		LoanTransactionID     *uuid.UUID `json:"loan_transaction_id,omitempty"`
-	}
-
-	PaymentQuickRequest struct {
-		Amount                float64    `json:"amount" validate:"required,ne=0"`
-		SignatureMediaID      *uuid.UUID `json:"signature_media_id,omitempty"`
-		ProofOfPaymentMediaID *uuid.UUID `json:"proof_of_payment_media_id,omitempty"`
-		BankID                *uuid.UUID `json:"bank_id,omitempty"`
-		BankReferenceNumber   string     `json:"bank_reference_number,omitempty"`
-		EntryDate             *time.Time `json:"entry_date,omitempty"`
-		AccountID             *uuid.UUID `json:"account_id,omitempty"`
-		PaymentTypeID         *uuid.UUID `json:"payment_type_id,omitempty"`
-		Description           string     `json:"description,omitempty" validate:"max=255"`
-
-		MemberProfileID      *uuid.UUID `json:"member_profile_id,omitempty"`
-		MemberJointAccountID *uuid.UUID `json:"member_joint_account_id,omitempty"`
-		ReferenceNumber      string     `json:"reference_number,omitempty"`
-		ORAutoGenerated      bool       `json:"or_auto_generated,omitempty"`
-		LoanTransactionID    *uuid.UUID `json:"loan_transaction_id,omitempty"`
-	}
-
-	MemberGeneralLedgerTotal struct {
-		Balance     float64 `json:"balance"`
-		TotalDebit  float64 `json:"total_debit"`
-		TotalCredit float64 `json:"total_credit"`
-	}
-)
-
-func GeneralLedgerManager(service *horizon.HorizonService) *registry.Registry[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest] {
-	return registry.NewRegistry(registry.RegistryParams[GeneralLedger, GeneralLedgerResponse, GeneralLedgerRequest]{
+func GeneralLedgerManager(service *horizon.HorizonService) *registry.Registry[types.GeneralLedger, types.GeneralLedgerResponse, types.GeneralLedgerRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.GeneralLedger, types.GeneralLedgerResponse, types.GeneralLedgerRequest]{
 		Preloads: []string{
 			"Account",
 			"Account.Currency",
@@ -264,7 +38,7 @@ func GeneralLedgerManager(service *horizon.HorizonService) *registry.Registry[Ge
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *GeneralLedger) *GeneralLedgerResponse {
+		Resource: func(data *types.GeneralLedger) *types.GeneralLedgerResponse {
 			if data == nil {
 				return nil
 			}
@@ -282,7 +56,7 @@ func GeneralLedgerManager(service *horizon.HorizonService) *registry.Registry[Ge
 			if err != nil {
 				accountHistoryID = nil
 			}
-			return &GeneralLedgerResponse{
+			return &types.GeneralLedgerResponse{
 				ID:                         data.ID,
 				EntryDate:                  data.EntryDate.Format(time.RFC3339),
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
@@ -335,20 +109,20 @@ func GeneralLedgerManager(service *horizon.HorizonService) *registry.Registry[Ge
 				AccountHistoryID:      accountHistoryID,
 				Balance:               data.Balance}
 		},
-		Created: func(data *GeneralLedger) registry.Topics {
+		Created: func(data *types.GeneralLedger) registry.Topics {
 			return []string{}
 		},
-		Updated: func(data *GeneralLedger) registry.Topics {
+		Updated: func(data *types.GeneralLedger) registry.Topics {
 			return []string{}
 		},
-		Deleted: func(data *GeneralLedger) registry.Topics {
+		Deleted: func(data *types.GeneralLedger) registry.Topics {
 			return []string{}
 		},
 	})
 }
 
 func CreateGeneralLedgerEntry(
-	context context.Context, service *horizon.HorizonService, tx *gorm.DB, data *GeneralLedger,
+	context context.Context, service *horizon.HorizonService, tx *gorm.DB, data *types.GeneralLedger,
 ) error {
 	if data == nil {
 		return eris.New("CreateGeneralLedgerEntry: data is nil")
@@ -359,7 +133,7 @@ func CreateGeneralLedgerEntry(
 		{Field: "branch_id", Op: query.ModeEqual, Value: data.BranchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: data.AccountID},
 	}
-	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
+	if data.Account != nil && data.Account.Type != types.AccountTypeOther && data.MemberProfileID != nil {
 		filters = append(filters, query.ArrFilterSQL{
 			Field: "member_profile_id", Op: query.ModeEqual, Value: data.MemberProfileID,
 		})
@@ -388,9 +162,9 @@ func CreateGeneralLedgerEntry(
 		balanceChange = debitDecimal.Sub(creditDecimal)
 	} else {
 		switch data.Account.GeneralLedgerType {
-		case GLTypeAssets, GLTypeExpenses:
+		case types.GLTypeAssets, types.GLTypeExpenses:
 			balanceChange = debitDecimal.Sub(creditDecimal)
-		case GLTypeLiabilities, GLTypeEquity, GLTypeRevenue:
+		case types.GLTypeLiabilities, types.GLTypeEquity, types.GLTypeRevenue:
 			balanceChange = creditDecimal.Sub(debitDecimal)
 		default:
 			balanceChange = debitDecimal.Sub(creditDecimal)
@@ -404,13 +178,13 @@ func CreateGeneralLedgerEntry(
 		return eris.Wrap(err, "failed to create general ledger entry")
 	}
 
-	if data.Account != nil && data.Account.Type != AccountTypeOther && data.MemberProfileID != nil {
+	if data.Account != nil && data.Account.Type != types.AccountTypeOther && data.MemberProfileID != nil {
 		_, err = MemberAccountingLedgerUpdateOrCreate(
 			context,
 			service,
 			tx,
 			data.Balance,
-			MemberAccountingLedgerUpdateOrCreateParams{
+			types.MemberAccountingLedgerUpdateOrCreateParams{
 				MemberProfileID: *data.MemberProfileID,
 				AccountID:       *data.AccountID,
 				OrganizationID:  data.OrganizationID,
@@ -445,7 +219,7 @@ func GeneralLedgerPrintMaxNumber(
 	}
 	return int(res), nil
 }
-func GeneralLedgerCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]*GeneralLedger, error) {
+func GeneralLedgerCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -454,7 +228,7 @@ func GeneralLedgerCurrentBranch(context context.Context, service *horizon.Horizo
 	return GeneralLedgerManager(service).ArrFind(context, filters, nil)
 }
 
-func GeneralLedgerCurrentMemberAccount(context context.Context, service *horizon.HorizonService, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*GeneralLedger, error) {
+func GeneralLedgerCurrentMemberAccount(context context.Context, service *horizon.HorizonService, memberProfileID, accountID, organizationID, branchID uuid.UUID) (*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -469,14 +243,14 @@ func GeneralLedgerExcludeCashonHand(
 	ctx context.Context, service *horizon.HorizonService,
 	transactionID, organizationID,
 	branchID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "transaction_id", Op: query.ModeEqual, Value: transactionID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 	}
 
-	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{BranchID: branchID})
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &types.BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -495,8 +269,8 @@ func GeneralLedgerExcludeCashonHand(
 func GeneralLedgerExcludeCashonHandWithType(
 	ctx context.Context, service *horizon.HorizonService,
 	transactionID, organizationID, branchID uuid.UUID,
-	paymentType *TypeOfPaymentType,
-) ([]*GeneralLedger, error) {
+	paymentType *types.TypeOfPaymentType,
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "transaction_id", Op: query.ModeEqual, Value: transactionID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -511,7 +285,7 @@ func GeneralLedgerExcludeCashonHandWithType(
 		})
 	}
 
-	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{BranchID: branchID})
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &types.BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -530,8 +304,8 @@ func GeneralLedgerExcludeCashonHandWithType(
 func GeneralLedgerExcludeCashonHandWithSource(
 	ctx context.Context, service *horizon.HorizonService,
 	transactionID, organizationID, branchID uuid.UUID,
-	source *GeneralLedgerSource,
-) ([]*GeneralLedger, error) {
+	source *types.GeneralLedgerSource,
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "transaction_id", Op: query.ModeEqual, Value: transactionID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -544,7 +318,7 @@ func GeneralLedgerExcludeCashonHandWithSource(
 			Value: *source,
 		})
 	}
-	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{BranchID: branchID})
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &types.BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -561,9 +335,9 @@ func GeneralLedgerExcludeCashonHandWithSource(
 func GeneralLedgerExcludeCashonHandWithFilters(
 	ctx context.Context, service *horizon.HorizonService,
 	transactionID, organizationID, branchID uuid.UUID,
-	paymentType *TypeOfPaymentType,
-	source *GeneralLedgerSource,
-) ([]*GeneralLedger, error) {
+	paymentType *types.TypeOfPaymentType,
+	source *types.GeneralLedgerSource,
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "transaction_id", Op: query.ModeEqual, Value: transactionID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -586,7 +360,7 @@ func GeneralLedgerExcludeCashonHandWithFilters(
 		})
 	}
 
-	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{BranchID: branchID})
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &types.BranchSetting{BranchID: branchID})
 	if err != nil {
 		return nil, err
 	}
@@ -602,8 +376,8 @@ func GeneralLedgerExcludeCashonHandWithFilters(
 	return GeneralLedgerManager(service).ArrFind(ctx, filters, nil)
 }
 
-func GeneralLedgerAlignments(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*GeneralLedgerAccountsGrouping, error) {
-	glGroupings, err := GeneralLedgerAccountsGroupingManager(service).Find(context, &GeneralLedgerAccountsGrouping{
+func GeneralLedgerAlignments(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.GeneralLedgerAccountsGrouping, error) {
+	glGroupings, err := GeneralLedgerAccountsGroupingManager(service).Find(context, &types.GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -613,7 +387,7 @@ func GeneralLedgerAlignments(context context.Context, service *horizon.HorizonSe
 
 	for _, grouping := range glGroupings {
 		if grouping != nil {
-			grouping.GeneralLedgerDefinitionEntries = []*GeneralLedgerDefinition{}
+			grouping.GeneralLedgerDefinitionEntries = []*types.GeneralLedgerDefinition{}
 			entries, err := GeneralLedgerDefinitionManager(service).ArrFind(context,
 				[]query.ArrFilterSQL{
 					{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -628,7 +402,7 @@ func GeneralLedgerAlignments(context context.Context, service *horizon.HorizonSe
 				return nil, eris.Wrap(err, "failed to get general ledger definition entries")
 			}
 
-			var filteredEntries []*GeneralLedgerDefinition
+			var filteredEntries []*types.GeneralLedgerDefinition
 			for _, entry := range entries {
 				if entry.GeneralLedgerDefinitionEntryID == nil {
 					filteredEntries = append(filteredEntries, entry)
@@ -644,7 +418,7 @@ func GeneralLedgerAlignments(context context.Context, service *horizon.HorizonSe
 func GeneralLedgerCurrentMemberAccountEntries(
 	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -662,7 +436,7 @@ func GeneralLedgerCurrentMemberAccountEntries(
 func GeneralLedgerMemberAccountTotal(
 	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, accountID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -679,7 +453,7 @@ func GeneralLedgerMemberAccountTotal(
 func GeneralLedgerMemberProfileEntries(
 	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -695,8 +469,8 @@ func GeneralLedgerMemberProfileEntries(
 func GeneralLedgerMemberProfileEntriesByPaymentType(
 	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
-	paymentType TypeOfPaymentType,
-) ([]*GeneralLedger, error) {
+	paymentType types.TypeOfPaymentType,
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -713,8 +487,8 @@ func GeneralLedgerMemberProfileEntriesByPaymentType(
 func GeneralLedgerMemberProfileEntriesBySource(
 	ctx context.Context, service *horizon.HorizonService,
 	memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID,
-	source GeneralLedgerSource,
-) ([]*GeneralLedger, error) {
+	source types.GeneralLedgerSource,
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -731,7 +505,7 @@ func GeneralLedgerMemberProfileEntriesBySource(
 func GeneralLedgerByLoanTransaction(
 	ctx context.Context, service *horizon.HorizonService,
 	loanTransactionID, organizationID, branchID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "loan_transaction_id", Op: query.ModeEqual, Value: loanTransactionID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -747,15 +521,15 @@ func GeneralLedgerByLoanTransaction(
 	if err != nil {
 		return nil, err
 	}
-	result := []*GeneralLedger{}
+	result := []*types.GeneralLedger{}
 	for _, entry := range entries {
 		if entry.Account.CashAndCashEquivalence {
 			continue
 		}
-		if !(entry.Account.Type == AccountTypeLoan ||
-			entry.Account.Type == AccountTypeFines ||
-			entry.Account.Type == AccountTypeInterest ||
-			entry.Account.Type == AccountTypeSVFLedger) {
+		if !(entry.Account.Type == types.AccountTypeLoan ||
+			entry.Account.Type == types.AccountTypeFines ||
+			entry.Account.Type == types.AccountTypeInterest ||
+			entry.Account.Type == types.AccountTypeSVFLedger) {
 			continue
 		}
 		result = append(result, entry)
@@ -769,7 +543,7 @@ func GetGeneralLedgerOfMemberByEndOfDay(
 	accountID, memberProfileID,
 	organizationID,
 	branchID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 	fromStartOfDay := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, from.Location()).UTC()
 	toEndOfDay := time.Date(to.Year(), to.Month(), to.Day(), 23, 59, 59, 999999999, to.Location()).UTC()
 	filters := []query.ArrFilterSQL{
@@ -807,7 +581,7 @@ func GetDailyEndingBalances(
 		return nil, err
 	}
 
-	entriesByDate := make(map[string]*GeneralLedger)
+	entriesByDate := make(map[string]*types.GeneralLedger)
 	for _, entry := range entries {
 		if entry == nil {
 			continue
@@ -861,7 +635,7 @@ func DailyBookingCollection(
 	date time.Time,
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, time.UTC)
@@ -881,9 +655,9 @@ func DailyBookingCollection(
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*GeneralLedger, 0)
+	result := make([]*types.GeneralLedger, 0)
 	for _, item := range allData {
-		if item.Source == GeneralLedgerSourcePayment || item.Source == GeneralLedgerSourceDeposit {
+		if item.Source == types.GeneralLedgerSourcePayment || item.Source == types.GeneralLedgerSourceDeposit {
 			result = append(result, item)
 		}
 	}
@@ -895,7 +669,7 @@ func DailyDisbursementCollection(
 	date time.Time,
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, time.UTC)
@@ -915,11 +689,11 @@ func DailyDisbursementCollection(
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*GeneralLedger, 0)
+	result := make([]*types.GeneralLedger, 0)
 	for _, item := range allData {
-		if item.Source == GeneralLedgerSourceWithdraw ||
-			item.Source == GeneralLedgerSourceCheckVoucher ||
-			item.Source == GeneralLedgerSourceLoan {
+		if item.Source == types.GeneralLedgerSourceWithdraw ||
+			item.Source == types.GeneralLedgerSourceCheckVoucher ||
+			item.Source == types.GeneralLedgerSourceLoan {
 			result = append(result, item)
 		}
 	}
@@ -932,7 +706,7 @@ func DailyJournalCollection(
 	date time.Time,
 	organizationID uuid.UUID,
 	branchID uuid.UUID,
-) ([]*GeneralLedger, error) {
+) ([]*types.GeneralLedger, error) {
 
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
 	endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 999999999, time.UTC)
@@ -952,10 +726,10 @@ func DailyJournalCollection(
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*GeneralLedger, 0)
+	result := make([]*types.GeneralLedger, 0)
 	for _, item := range allData {
-		if item.Source == GeneralLedgerSourceJournalVoucher ||
-			item.Source == GeneralLedgerSourceAdjustment {
+		if item.Source == types.GeneralLedgerSourceJournalVoucher ||
+			item.Source == types.GeneralLedgerSourceAdjustment {
 			result = append(result, item)
 		}
 	}

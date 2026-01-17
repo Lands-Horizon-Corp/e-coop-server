@@ -85,7 +85,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bills and coins ID"})
 		}
-		billAndCoins, err := core.BillAndCoinsManager(service).GetByIDRaw(context, *billAndCoinsID)
+		billAndCoins, err := core.BillAndCoinsManager(service).GetByIDRaw(context, *types.BillAndCoinsID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bills and coins record not found"})
 		}
@@ -193,7 +193,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		billAndCoins, err := core.BillAndCoinsManager(service).GetByID(context, *billAndCoinsID)
+		billAndCoins, err := core.BillAndCoinsManager(service).GetByID(context, *types.BillAndCoinsID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -240,7 +240,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bills and coins ID"})
 		}
-		billAndCoins, err := core.BillAndCoinsManager(service).GetByID(context, *billAndCoinsID)
+		billAndCoins, err := core.BillAndCoinsManager(service).GetByID(context, *types.BillAndCoinsID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -249,7 +249,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bills and coins record not found"})
 		}
-		if err := core.BillAndCoinsManager(service).Delete(context, *billAndCoinsID); err != nil {
+		if err := core.BillAndCoinsManager(service).Delete(context, *types.BillAndCoinsID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bills and coins delete failed (/bills-and-coins/:bills_and_coins_id), db error: " + err.Error(),

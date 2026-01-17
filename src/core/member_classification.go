@@ -7,70 +7,26 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	MemberClassification struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_classification"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_classification"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Name        string `gorm:"type:varchar(255);not null"`
-		Icon        string `gorm:"type:varchar(255)"`
-		Description string `gorm:"type:text"`
-	}
-
-	MemberClassificationResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Name           string                `json:"name"`
-		Icon           string                `json:"icon"`
-		Description    string                `json:"description"`
-	}
-
-	MemberClassificationRequest struct {
-		Name        string `json:"name" validate:"required,min=1,max=255"`
-		Icon        string `json:"icon,omitempty"`
-		Description string `json:"description,omitempty"`
-	}
-)
-
-func MemberClassificationManager(service *horizon.HorizonService) *registry.Registry[MemberClassification, MemberClassificationResponse, MemberClassificationRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberClassification, MemberClassificationResponse, MemberClassificationRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
+func MemberClassificationManager(service *horizon.HorizonService) *registry.Registry[
+	types.MemberClassification, types.MemberClassificationResponse, types.MemberClassificationRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
+		types.MemberClassification, types.MemberClassificationResponse, types.MemberClassificationRequest]{
+		Preloads: []string{"CreatedBy", "UpdatedBy", },
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberClassification) *MemberClassificationResponse {
+		Resource: func(data *types.MemberClassification) *types.MemberClassificationResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberClassificationResponse{
+			return &types.MemberClassificationResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -88,7 +44,7 @@ func MemberClassificationManager(service *horizon.HorizonService) *registry.Regi
 			}
 		},
 
-		Created: func(data *MemberClassification) registry.Topics {
+		Created: func(data *types.MemberClassification) registry.Topics {
 			return []string{
 				"member_classification.create",
 				fmt.Sprintf("member_classification.create.%s", data.ID),
@@ -96,7 +52,7 @@ func MemberClassificationManager(service *horizon.HorizonService) *registry.Regi
 				fmt.Sprintf("member_classification.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberClassification) registry.Topics {
+		Updated: func(data *types.MemberClassification) registry.Topics {
 			return []string{
 				"member_classification.update",
 				fmt.Sprintf("member_classification.update.%s", data.ID),
@@ -104,7 +60,7 @@ func MemberClassificationManager(service *horizon.HorizonService) *registry.Regi
 				fmt.Sprintf("member_classification.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberClassification) registry.Topics {
+		Deleted: func(data *types.MemberClassification) registry.Topics {
 			return []string{
 				"member_classification.delete",
 				fmt.Sprintf("member_classification.delete.%s", data.ID),
@@ -115,9 +71,10 @@ func MemberClassificationManager(service *horizon.HorizonService) *registry.Regi
 	})
 }
 
-func memberClassificationSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func memberClassificationSeed(context context.Context,
+	service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	memberClassifications := []*MemberClassification{
+	memberClassifications := []*types.MemberClassification{
 		{
 
 			CreatedAt:      now,
@@ -175,8 +132,9 @@ func memberClassificationSeed(context context.Context, service *horizon.HorizonS
 	return nil
 }
 
-func MemberClassificationCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberClassification, error) {
-	return MemberClassificationManager(service).Find(context, &MemberClassification{
+func MemberClassificationCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberClassification, error) {
+	return MemberClassificationManager(service).Find(context, &types.MemberClassification{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

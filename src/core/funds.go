@@ -7,78 +7,22 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	Funds struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_funds" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_funds" json:"branch_id"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		AccountID *uuid.UUID `gorm:"type:uuid" json:"account_id"`
-		Account   *Account   `gorm:"foreignKey:AccountID;constraint:OnDelete:SET NULL;" json:"account,omitempty"`
-
-		Type        string  `gorm:"type:varchar(255)" json:"type"`
-		Description string  `gorm:"type:text" json:"description"`
-		Icon        *string `gorm:"type:varchar(255)" json:"icon,omitempty"`
-		GLBooks     string  `gorm:"type:varchar(255)" json:"gl_books"`
-	}
-
-	FundsResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		AccountID      *uuid.UUID            `json:"account_id,omitempty"`
-		Account        *AccountResponse      `json:"account,omitempty"`
-		Type           string                `json:"type"`
-		Description    string                `json:"description"`
-		Icon           *string               `json:"icon,omitempty"`
-		GLBooks        string                `json:"gl_books"`
-	}
-
-	FundsRequest struct {
-		AccountID   *uuid.UUID `json:"account_id,omitempty"`
-		Type        string     `json:"type" validate:"required,min=1,max=255"`
-		Description string     `json:"description,omitempty"`
-		Icon        *string    `json:"icon,omitempty"`
-		GLBooks     string     `json:"gl_books,omitempty"`
-	}
-)
-
-func FundsManager(service *horizon.HorizonService) *registry.Registry[Funds, FundsResponse, FundsRequest] {
-	return registry.NewRegistry(registry.RegistryParams[Funds, FundsResponse, FundsRequest]{
+func FundsManager(service *horizon.HorizonService) *registry.Registry[types.Funds, types.FundsResponse, types.FundsRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.Funds, types.FundsResponse, types.FundsRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Account"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *Funds) *FundsResponse {
+		Resource: func(data *types.Funds) *types.FundsResponse {
 			if data == nil {
 				return nil
 			}
-			return &FundsResponse{
+			return &types.FundsResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -98,7 +42,7 @@ func FundsManager(service *horizon.HorizonService) *registry.Registry[Funds, Fun
 				GLBooks:        data.GLBooks,
 			}
 		},
-		Created: func(data *Funds) registry.Topics {
+		Created: func(data *types.Funds) registry.Topics {
 			return []string{
 				"funds.create",
 				fmt.Sprintf("funds.create.%s", data.ID),
@@ -106,7 +50,7 @@ func FundsManager(service *horizon.HorizonService) *registry.Registry[Funds, Fun
 				fmt.Sprintf("funds.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Funds) registry.Topics {
+		Updated: func(data *types.Funds) registry.Topics {
 			return []string{
 				"funds.update",
 				fmt.Sprintf("funds.update.%s", data.ID),
@@ -114,7 +58,7 @@ func FundsManager(service *horizon.HorizonService) *registry.Registry[Funds, Fun
 				fmt.Sprintf("funds.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Funds) registry.Topics {
+		Deleted: func(data *types.Funds) registry.Topics {
 			return []string{
 				"funds.delete",
 				fmt.Sprintf("funds.delete.%s", data.ID),
@@ -125,8 +69,9 @@ func FundsManager(service *horizon.HorizonService) *registry.Registry[Funds, Fun
 	})
 }
 
-func FundsCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Funds, error) {
-	return FundsManager(service).Find(context, &Funds{
+func FundsCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.Funds, error) {
+	return FundsManager(service).Find(context, &types.Funds{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

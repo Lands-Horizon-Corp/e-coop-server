@@ -10,114 +10,16 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	MemberAccountingLedger struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_accounting_ledger"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_accounting_ledger"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-		AccountID       uuid.UUID      `gorm:"type:uuid;not null"`
-		Account         *Account       `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"account,omitempty"`
-
-		Count               int        `gorm:"type:int"`
-		Balance             float64    `gorm:"type:decimal"`
-		Interest            float64    `gorm:"type:decimal"`
-		Fines               float64    `gorm:"type:decimal"`
-		Due                 float64    `gorm:"type:decimal"`
-		CarriedForwardDue   float64    `gorm:"type:decimal"`
-		StoredValueFacility float64    `gorm:"type:decimal"`
-		PrincipalDue        float64    `gorm:"type:decimal"`
-		LastPay             *time.Time `gorm:"type:timestamp"`
-	}
-
-	MemberAccountingLedgerResponse struct {
-		ID                  uuid.UUID              `json:"id"`
-		CreatedAt           string                 `json:"created_at"`
-		CreatedByID         uuid.UUID              `json:"created_by_id"`
-		CreatedBy           *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt           string                 `json:"updated_at"`
-		UpdatedByID         uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy           *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID      uuid.UUID              `json:"organization_id"`
-		Organization        *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID            uuid.UUID              `json:"branch_id"`
-		Branch              *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID     uuid.UUID              `json:"member_profile_id"`
-		MemberProfile       *MemberProfileResponse `json:"member_profile,omitempty"`
-		AccountID           uuid.UUID              `json:"account_id"`
-		Account             *AccountResponse       `json:"account,omitempty"`
-		Count               int                    `json:"count"`
-		Balance             float64                `json:"balance"`
-		Interest            float64                `json:"interest"`
-		Fines               float64                `json:"fines"`
-		Due                 float64                `json:"due"`
-		CarriedForwardDue   float64                `json:"carried_forward_due"`
-		StoredValueFacility float64                `json:"stored_value_facility"`
-		PrincipalDue        float64                `json:"principal_due"`
-		LastPay             *string                `json:"last_pay,omitempty"`
-	}
-
-	MemberAccountingLedgerRequest struct {
-		OrganizationID      uuid.UUID  `json:"organization_id" validate:"required"`
-		BranchID            uuid.UUID  `json:"branch_id" validate:"required"`
-		MemberProfileID     uuid.UUID  `json:"member_profile_id" validate:"required"`
-		AccountID           uuid.UUID  `json:"account_id" validate:"required"`
-		Count               int        `json:"count,omitempty"`
-		Balance             float64    `json:"balance,omitempty"`
-		Interest            float64    `json:"interest,omitempty"`
-		Fines               float64    `json:"fines,omitempty"`
-		Due                 float64    `json:"due,omitempty"`
-		CarriedForwardDue   float64    `json:"carried_forward_due,omitempty"`
-		StoredValueFacility float64    `json:"stored_value_facility,omitempty"`
-		PrincipalDue        float64    `json:"principal_due,omitempty"`
-		LastPay             *time.Time `json:"last_pay,omitempty"`
-	}
-
-	MemberAccountingLedgerUpdateOrCreateParams struct {
-		MemberProfileID uuid.UUID `validate:"required"`
-		AccountID       uuid.UUID `validate:"required"`
-		OrganizationID  uuid.UUID `validate:"required"`
-		BranchID        uuid.UUID `validate:"required"`
-		UserID          uuid.UUID `validate:"required"`
-		DebitAmount     float64
-		CreditAmount    float64
-		LastPayTime     time.Time `validate:"required"`
-	}
-
-	MemberAccountingLedgerAccountSummary struct {
-		Balance     float64 `json:"balance"`
-		TotalDebit  float64 `json:"total_debit"`
-		TotalCredit float64 `json:"total_credit"`
-	}
-
-	MemberAccountingLedgerBrowseReference struct {
-		MemberAccountingLedger *MemberAccountingLedger
-		BrowseReference        *BrowseReference
-	}
-)
-
-func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Registry[MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest] {
+func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Registry[
+	types.MemberAccountingLedger, types.MemberAccountingLedgerResponse, types.MemberAccountingLedgerRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		MemberAccountingLedger, MemberAccountingLedgerResponse, MemberAccountingLedgerRequest,
+		types.MemberAccountingLedger, types.MemberAccountingLedgerResponse, types.MemberAccountingLedgerRequest,
 	]{
 		Preloads: []string{
 			"MemberProfile",
@@ -127,7 +29,7 @@ func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Re
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberAccountingLedger) *MemberAccountingLedgerResponse {
+		Resource: func(data *types.MemberAccountingLedger) *types.MemberAccountingLedgerResponse {
 			if data == nil {
 				return nil
 			}
@@ -136,7 +38,7 @@ func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Re
 				s := data.LastPay.Format(time.RFC3339)
 				lastPay = &s
 			}
-			return &MemberAccountingLedgerResponse{
+			return &types.MemberAccountingLedgerResponse{
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
@@ -164,7 +66,7 @@ func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Re
 			}
 		},
 
-		Created: func(data *MemberAccountingLedger) registry.Topics {
+		Created: func(data *types.MemberAccountingLedger) registry.Topics {
 			return []string{
 				"member_accounting_ledger.create",
 				fmt.Sprintf("member_accounting_ledger.create.%s", data.ID),
@@ -173,7 +75,7 @@ func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Re
 				fmt.Sprintf("member_accounting_ledger.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Updated: func(data *MemberAccountingLedger) registry.Topics {
+		Updated: func(data *types.MemberAccountingLedger) registry.Topics {
 			return []string{
 				"member_accounting_ledger.update",
 				fmt.Sprintf("member_accounting_ledger.update.%s", data.ID),
@@ -182,7 +84,7 @@ func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Re
 				fmt.Sprintf("member_accounting_ledger.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Deleted: func(data *MemberAccountingLedger) registry.Topics {
+		Deleted: func(data *types.MemberAccountingLedger) registry.Topics {
 			return []string{
 				"member_accounting_ledger.delete",
 				fmt.Sprintf("member_accounting_ledger.delete.%s", data.ID),
@@ -194,14 +96,16 @@ func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Re
 	})
 }
 
-func MemberAccountingLedgerCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberAccountingLedger, error) {
-	return MemberAccountingLedgerManager(service).Find(context, &MemberAccountingLedger{
+func MemberAccountingLedgerCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberAccountingLedger, error) {
+	return MemberAccountingLedgerManager(service).Find(context, &types.MemberAccountingLedger{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func MemberAccountingLedgerMemberProfileEntries(ctx context.Context, service *horizon.HorizonService, memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
+func MemberAccountingLedgerMemberProfileEntries(ctx context.Context,
+	service *horizon.HorizonService, memberProfileID, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*types.MemberAccountingLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
@@ -212,7 +116,8 @@ func MemberAccountingLedgerMemberProfileEntries(ctx context.Context, service *ho
 	return MemberAccountingLedgerManager(service).ArrFind(ctx, filters, nil)
 }
 
-func MemberAccountingLedgerBranchEntries(ctx context.Context, service *horizon.HorizonService, organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*MemberAccountingLedger, error) {
+func MemberAccountingLedgerBranchEntries(ctx context.Context, service *horizon.HorizonService,
+	organizationID, branchID, cashOnHandAccountID uuid.UUID) ([]*types.MemberAccountingLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -229,7 +134,7 @@ func MemberAccountingLedgerFindForUpdate(
 	accountID,
 	organizationID,
 	branchID uuid.UUID,
-) (*MemberAccountingLedger, error) {
+) (*types.MemberAccountingLedger, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "member_profile_id", Op: query.ModeEqual, Value: memberProfileID},
 		{Field: "account_id", Op: query.ModeEqual, Value: accountID},
@@ -254,8 +159,8 @@ func MemberAccountingLedgerUpdateOrCreate(
 	service *horizon.HorizonService,
 	tx *gorm.DB,
 	balance float64,
-	params MemberAccountingLedgerUpdateOrCreateParams,
-) (*MemberAccountingLedger, error) {
+	params types.MemberAccountingLedgerUpdateOrCreateParams,
+) (*types.MemberAccountingLedger, error) {
 	if (params.DebitAmount == 0 && params.CreditAmount == 0) || (params.DebitAmount != 0 && params.CreditAmount != 0) {
 		return nil, eris.New("exactly one of debit or credit must be non-zero")
 	}
@@ -273,7 +178,7 @@ func MemberAccountingLedgerUpdateOrCreate(
 
 	if ledger == nil || ledger.ID == uuid.Nil {
 
-		ledger = &MemberAccountingLedger{
+		ledger = &types.MemberAccountingLedger{
 			CreatedAt:           time.Now().UTC(),
 			CreatedByID:         params.UserID,
 			UpdatedAt:           time.Now().UTC(),
@@ -326,8 +231,8 @@ func MemberAccountingLedgerFilterByCriteria(
 	accountID,
 	memberTypeID *uuid.UUID,
 	includeClosedAccounts bool,
-) ([]*MemberAccountingLedger, error) {
-	result := []*MemberAccountingLedger{}
+) ([]*types.MemberAccountingLedger, error) {
+	result := []*types.MemberAccountingLedger{}
 	memberAccountingLedger, err := MemberAccountingLedgerManager(service).ArrFind(ctx, []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -348,8 +253,9 @@ func MemberAccountingLedgerFilterByCriteria(
 	return result, nil
 }
 
-func MemberAccountingLedgerByBrowseReference(ctx context.Context, service *horizon.HorizonService, includeClosedAccounts bool, data []*BrowseReference) ([]*MemberAccountingLedgerBrowseReference, error) {
-	memberAccountingLedger := []*MemberAccountingLedgerBrowseReference{}
+func MemberAccountingLedgerByBrowseReference(ctx context.Context, service *horizon.HorizonService,
+	includeClosedAccounts bool, data []*types.BrowseReference) ([]*types.MemberAccountingLedgerBrowseReference, error) {
+	memberAccountingLedger := []*types.MemberAccountingLedgerBrowseReference{}
 	for _, browseRef := range data {
 		ledgers, err := MemberAccountingLedgerFilterByCriteria(
 			ctx, service, browseRef.OrganizationID, browseRef.BranchID,
@@ -360,7 +266,7 @@ func MemberAccountingLedgerByBrowseReference(ctx context.Context, service *horiz
 		}
 
 		for _, ledger := range ledgers {
-			memberAccountingLedger = append(memberAccountingLedger, &MemberAccountingLedgerBrowseReference{
+			memberAccountingLedger = append(memberAccountingLedger, &types.MemberAccountingLedgerBrowseReference{
 				MemberAccountingLedger: ledger,
 				BrowseReference:        browseRef,
 			})

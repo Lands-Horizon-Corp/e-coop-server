@@ -7,88 +7,15 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type TagCategory string
-
-const (
-	TagCategoryStatus          TagCategory = "status"
-	TagCategoryAlert           TagCategory = "alert"
-	TagCategoryPriority        TagCategory = "priority"
-	TagCategoryTransactionType TagCategory = "transaction type"
-	TagCategoryAccountType     TagCategory = "account type"
-	TagCategorySpecial         TagCategory = "special"
-	TagCategoryCalculation     TagCategory = "calculation"
-	TagCategoryCooperative     TagCategory = "cooperative"
-	TagCategoryLoan            TagCategory = "loan"
-	TagCategoryCommunity       TagCategory = "community"
-	TagCategoryInsurance       TagCategory = "insurance"
-	TagCategoryGovernance      TagCategory = "governance"
-	TagCategoryReserves        TagCategory = "reserves"
-	TagCategoryDigital         TagCategory = "digital"
-	TagCategoryMembership      TagCategory = "membership"
-	TagCategorySecurity        TagCategory = "security"
-)
-
-type (
-	TagTemplate struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_tag_template"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_tag_template"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Name        string      `gorm:"type:varchar(50)"`
-		Description string      `gorm:"type:text"`
-		Category    TagCategory `gorm:"type:varchar(50)"`
-		Color       string      `gorm:"type:varchar(20)"`
-		Icon        string      `gorm:"type:varchar(20)"`
-	}
-
-	TagTemplateResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-		Category       TagCategory           `json:"category"`
-		Color          string                `json:"color"`
-		Icon           string                `json:"icon"`
-	}
-
-	TagTemplateRequest struct {
-		Name        string      `json:"name" validate:"required,min=1,max=50"`
-		Description string      `json:"description,omitempty"`
-		Category    TagCategory `json:"category,omitempty"`
-		Color       string      `json:"color,omitempty"`
-		Icon        string      `json:"icon,omitempty"`
-	}
-)
-
-func TagTemplateManager(service *horizon.HorizonService) *registry.Registry[TagTemplate, TagTemplateResponse, TagTemplateRequest] {
+func TagTemplateManager(service *horizon.HorizonService) *registry.Registry[types.TagTemplate, types.TagTemplateResponse, types.TagTemplateRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		TagTemplate, TagTemplateResponse, TagTemplateRequest,
+		types.TagTemplate, types.TagTemplateResponse, types.TagTemplateRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -97,11 +24,11 @@ func TagTemplateManager(service *horizon.HorizonService) *registry.Registry[TagT
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *TagTemplate) *TagTemplateResponse {
+		Resource: func(data *types.TagTemplate) *types.TagTemplateResponse {
 			if data == nil {
 				return nil
 			}
-			return &TagTemplateResponse{
+			return &types.TagTemplateResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -121,7 +48,7 @@ func TagTemplateManager(service *horizon.HorizonService) *registry.Registry[TagT
 			}
 		},
 
-		Created: func(data *TagTemplate) registry.Topics {
+		Created: func(data *types.TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.create",
 				fmt.Sprintf("tag_template.create.%s", data.ID),
@@ -129,7 +56,7 @@ func TagTemplateManager(service *horizon.HorizonService) *registry.Registry[TagT
 				fmt.Sprintf("tag_template.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *TagTemplate) registry.Topics {
+		Updated: func(data *types.TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.update",
 				fmt.Sprintf("tag_template.update.%s", data.ID),
@@ -137,7 +64,7 @@ func TagTemplateManager(service *horizon.HorizonService) *registry.Registry[TagT
 				fmt.Sprintf("tag_template.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *TagTemplate) registry.Topics {
+		Deleted: func(data *types.TagTemplate) registry.Topics {
 			return []string{
 				"tag_template.delete",
 				fmt.Sprintf("tag_template.delete.%s", data.ID),
@@ -150,7 +77,7 @@ func TagTemplateManager(service *horizon.HorizonService) *registry.Registry[TagT
 
 func tagTemplateSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	tagTemplates := []*TagTemplate{
+	tagTemplates := []*types.TagTemplate{
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -160,7 +87,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Pending",
 			Description:    "Transaction or record is pending approval or processing",
-			Category:       TagCategoryStatus,
+			Category:       types.TagCategoryStatus,
 			Color:          "#F59E0B", // Yellow
 			Icon:           "Clock",
 		},
@@ -173,7 +100,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Approved",
 			Description:    "Transaction or record has been approved",
-			Category:       TagCategoryStatus,
+			Category:       types.TagCategoryStatus,
 			Color:          "#10B981", // Green
 			Icon:           "Badge Check",
 		},
@@ -186,7 +113,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Rejected",
 			Description:    "Transaction or record has been rejected",
-			Category:       TagCategoryStatus,
+			Category:       types.TagCategoryStatus,
 			Color:          "#EF4444", // Red
 			Icon:           "Badge Minus",
 		},
@@ -199,7 +126,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Aborted",
 			Description:    "Transaction or record was aborted during processing",
-			Category:       TagCategoryStatus,
+			Category:       types.TagCategoryStatus,
 			Color:          "#DC2626", // Dark Red
 			Icon:           "Stop",
 		},
@@ -212,7 +139,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Completed",
 			Description:    "Transaction or record has been completed successfully",
-			Category:       TagCategoryStatus,
+			Category:       types.TagCategoryStatus,
 			Color:          "#059669", // Dark Green
 			Icon:           "Check Fill",
 		},
@@ -225,7 +152,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "In Progress",
 			Description:    "Transaction or record is currently being processed",
-			Category:       TagCategoryStatus,
+			Category:       types.TagCategoryStatus,
 			Color:          "#3B82F6", // Blue
 			Icon:           "Loading Spinner",
 		},
@@ -238,7 +165,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Warning",
 			Description:    "Transaction or record requires attention or has warnings",
-			Category:       TagCategoryAlert,
+			Category:       types.TagCategoryAlert,
 			Color:          "#F59E0B", // Yellow/Orange
 			Icon:           "Warning",
 		},
@@ -251,7 +178,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "High Priority",
 			Description:    "High priority transaction or record requiring urgent attention",
-			Category:       TagCategoryPriority,
+			Category:       types.TagCategoryPriority,
 			Color:          "#DC2626", // Red
 			Icon:           "Badge Exclamation",
 		},
@@ -264,7 +191,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Medium Priority",
 			Description:    "Medium priority transaction or record",
-			Category:       TagCategoryPriority,
+			Category:       types.TagCategoryPriority,
 			Color:          "#F59E0B", // Orange
 			Icon:           "Badge Question",
 		},
@@ -277,7 +204,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Low Priority",
 			Description:    "Low priority transaction or record",
-			Category:       TagCategoryPriority,
+			Category:       types.TagCategoryPriority,
 			Color:          "#6B7280", // Gray
 			Icon:           "Info",
 		},
@@ -290,7 +217,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Cash Transaction",
 			Description:    "Transaction involving cash payments or receipts",
-			Category:       TagCategoryTransactionType,
+			Category:       types.TagCategoryTransactionType,
 			Color:          "#10B981", // Green
 			Icon:           "Money Stack",
 		},
@@ -303,7 +230,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Bank Transfer",
 			Description:    "Transaction processed through bank transfer",
-			Category:       TagCategoryTransactionType,
+			Category:       types.TagCategoryTransactionType,
 			Color:          "#3B82F6", // Blue
 			Icon:           "Bank",
 		},
@@ -316,7 +243,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Credit Card",
 			Description:    "Transaction processed via credit card",
-			Category:       TagCategoryTransactionType,
+			Category:       types.TagCategoryTransactionType,
 			Color:          "#8B5CF6", // Purple
 			Icon:           "Credit Card",
 		},
@@ -329,7 +256,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Online Payment",
 			Description:    "Transaction processed through online payment systems",
-			Category:       TagCategoryTransactionType,
+			Category:       types.TagCategoryTransactionType,
 			Color:          "#06B6D4", // Cyan
 			Icon:           "Online Payment",
 		},
@@ -342,7 +269,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Asset",
 			Description:    "Account classified as an asset",
-			Category:       TagCategoryAccountType,
+			Category:       types.TagCategoryAccountType,
 			Color:          "#10B981", // Green
 			Icon:           "Money Bag",
 		},
@@ -355,7 +282,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Liability",
 			Description:    "Account classified as a liability",
-			Category:       TagCategoryAccountType,
+			Category:       types.TagCategoryAccountType,
 			Color:          "#EF4444", // Red
 			Icon:           "Credit Card",
 		},
@@ -368,7 +295,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Equity",
 			Description:    "Account classified as equity",
-			Category:       TagCategoryAccountType,
+			Category:       types.TagCategoryAccountType,
 			Color:          "#8B5CF6", // Purple
 			Icon:           "Pie Chart",
 		},
@@ -381,7 +308,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Revenue",
 			Description:    "Account classified as revenue or income",
-			Category:       TagCategoryAccountType,
+			Category:       types.TagCategoryAccountType,
 			Color:          "#059669", // Dark Green
 			Icon:           "Trend Up",
 		},
@@ -394,7 +321,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Expense",
 			Description:    "Account classified as an expense",
-			Category:       TagCategoryAccountType,
+			Category:       types.TagCategoryAccountType,
 			Color:          "#DC2626", // Dark Red
 			Icon:           "Trend Down",
 		},
@@ -407,7 +334,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Recurring",
 			Description:    "Recurring transaction or scheduled entry",
-			Category:       TagCategorySpecial,
+			Category:       types.TagCategorySpecial,
 			Color:          "#06B6D4", // Cyan
 			Icon:           "Refresh",
 		},
@@ -420,7 +347,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Adjustment",
 			Description:    "Adjustment entry for corrections or modifications",
-			Category:       TagCategorySpecial,
+			Category:       types.TagCategorySpecial,
 			Color:          "#F59E0B", // Orange
 			Icon:           "Adjust",
 		},
@@ -433,7 +360,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Year End",
 			Description:    "Year-end closing or adjustment entries",
-			Category:       TagCategorySpecial,
+			Category:       types.TagCategorySpecial,
 			Color:          "#6366F1", // Indigo
 			Icon:           "Calendar",
 		},
@@ -446,7 +373,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Audit",
 			Description:    "Entry related to audit requirements or adjustments",
-			Category:       TagCategorySpecial,
+			Category:       types.TagCategorySpecial,
 			Color:          "#7C2D12", // Brown
 			Icon:           "Shield Check",
 		},
@@ -459,7 +386,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Tax Related",
 			Description:    "Transaction or entry related to tax calculations or payments",
-			Category:       TagCategorySpecial,
+			Category:       types.TagCategorySpecial,
 			Color:          "#991B1B", // Dark Red
 			Icon:           "Receipt",
 		},
@@ -472,7 +399,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Loan Related",
 			Description:    "Transaction or entry related to loan processing or payments",
-			Category:       TagCategoryLoan,
+			Category:       types.TagCategoryLoan,
 			Color:          "#7C2D12", // Brown
 			Icon:           "Hand Coins",
 		},
@@ -485,7 +412,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Interest",
 			Description:    "Transaction involving interest calculations or payments",
-			Category:       TagCategoryCalculation,
+			Category:       types.TagCategoryCalculation,
 			Color:          "#0891B2", // Dark Cyan
 			Icon:           "Percent",
 		},
@@ -498,7 +425,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Fee",
 			Description:    "Transaction involving service fees or charges",
-			Category:       TagCategoryCalculation,
+			Category:       types.TagCategoryCalculation,
 			Color:          "#BE185D", // Pink
 			Icon:           "Price Tag",
 		},
@@ -511,7 +438,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Member Savings",
 			Description:    "Savings account transactions for cooperative members",
-			Category:       TagCategoryCooperative,
+			Category:       types.TagCategoryCooperative,
 			Color:          "#16A34A", // Green
 			Icon:           "Savings",
 		},
@@ -524,7 +451,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Share Capital",
 			Description:    "Share capital contributions and transactions",
-			Category:       TagCategoryCooperative,
+			Category:       types.TagCategoryCooperative,
 			Color:          "#0F766E", // Teal
 			Icon:           "Pie Chart",
 		},
@@ -537,7 +464,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Dividend Distribution",
 			Description:    "Distribution of dividends to cooperative members",
-			Category:       TagCategoryCooperative,
+			Category:       types.TagCategoryCooperative,
 			Color:          "#059669", // Emerald
 			Icon:           "Hand Coins",
 		},
@@ -550,7 +477,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Patronage Refund",
 			Description:    "Patronage refunds based on member usage",
-			Category:       TagCategoryCooperative,
+			Category:       types.TagCategoryCooperative,
 			Color:          "#0D9488", // Teal
 			Icon:           "Money Trend",
 		},
@@ -563,7 +490,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Membership Fee",
 			Description:    "Membership fees and registration costs",
-			Category:       TagCategoryCooperative,
+			Category:       types.TagCategoryCooperative,
 			Color:          "#7C2D12", // Brown
 			Icon:           "User Tag",
 		},
@@ -576,7 +503,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Member Loan",
 			Description:    "Loans provided to cooperative members",
-			Category:       TagCategoryLoan,
+			Category:       types.TagCategoryLoan,
 			Color:          "#B45309", // Amber
 			Icon:           "Hand Deposit",
 		},
@@ -589,7 +516,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Agricultural Loan",
 			Description:    "Specialized loans for agricultural purposes",
-			Category:       TagCategoryLoan,
+			Category:       types.TagCategoryLoan,
 			Color:          "#65A30D", // Lime
 			Icon:           "Plant Growth",
 		},
@@ -602,7 +529,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Microfinance",
 			Description:    "Small loans for micro-enterprises and small businesses",
-			Category:       TagCategoryLoan,
+			Category:       types.TagCategoryLoan,
 			Color:          "#CA8A04", // Yellow
 			Icon:           "Money Bag",
 		},
@@ -615,7 +542,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Emergency Loan",
 			Description:    "Emergency loans for urgent member needs",
-			Category:       TagCategoryLoan,
+			Category:       types.TagCategoryLoan,
 			Color:          "#DC2626", // Red
 			Icon:           "Shield",
 		},
@@ -628,7 +555,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Educational Loan",
 			Description:    "Loans for educational expenses and tuition",
-			Category:       TagCategoryLoan,
+			Category:       types.TagCategoryLoan,
 			Color:          "#2563EB", // Blue
 			Icon:           "School",
 		},
@@ -641,7 +568,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Housing Loan",
 			Description:    "Loans for housing and real estate purchases",
-			Category:       TagCategoryLoan,
+			Category:       types.TagCategoryLoan,
 			Color:          "#7C3AED", // Violet
 			Icon:           "House",
 		},
@@ -654,7 +581,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Community Fund",
 			Description:    "Contributions to community development funds",
-			Category:       TagCategoryCommunity,
+			Category:       types.TagCategoryCommunity,
 			Color:          "#0891B2", // Cyan
 			Icon:           "People Group",
 		},
@@ -667,7 +594,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Social Responsibility",
 			Description:    "Corporate social responsibility initiatives",
-			Category:       TagCategoryCommunity,
+			Category:       types.TagCategoryCommunity,
 			Color:          "#059669", // Emerald
 			Icon:           "Hand Shake Heart",
 		},
@@ -680,7 +607,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Charity Donation",
 			Description:    "Charitable donations and community support",
-			Category:       TagCategoryCommunity,
+			Category:       types.TagCategoryCommunity,
 			Color:          "#DB2777", // Pink
 			Icon:           "Hands Helping",
 		},
@@ -693,7 +620,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Educational Support",
 			Description:    "Educational assistance and scholarship programs",
-			Category:       TagCategoryCommunity,
+			Category:       types.TagCategoryCommunity,
 			Color:          "#2563EB", // Blue
 			Icon:           "Graduation Cap",
 		},
@@ -706,7 +633,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Health Insurance",
 			Description:    "Health insurance contributions and claims",
-			Category:       TagCategoryInsurance,
+			Category:       types.TagCategoryInsurance,
 			Color:          "#DC2626", // Red
 			Icon:           "Shield Check",
 		},
@@ -719,7 +646,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Life Insurance",
 			Description:    "Life insurance premiums and benefits",
-			Category:       TagCategoryInsurance,
+			Category:       types.TagCategoryInsurance,
 			Color:          "#7C2D12", // Brown
 			Icon:           "Shield",
 		},
@@ -732,7 +659,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Crop Insurance",
 			Description:    "Agricultural crop insurance for farmers",
-			Category:       TagCategoryInsurance,
+			Category:       types.TagCategoryInsurance,
 			Color:          "#65A30D", // Lime
 			Icon:           "Plant Growth",
 		},
@@ -745,7 +672,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Board Resolution",
 			Description:    "Transactions requiring board resolution approval",
-			Category:       TagCategoryGovernance,
+			Category:       types.TagCategoryGovernance,
 			Color:          "#6366F1", // Indigo
 			Icon:           "Users 3",
 		},
@@ -758,7 +685,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "AGM Related",
 			Description:    "Annual General Meeting related transactions",
-			Category:       TagCategoryGovernance,
+			Category:       types.TagCategoryGovernance,
 			Color:          "#7C3AED", // Violet
 			Icon:           "Calendar Check",
 		},
@@ -771,7 +698,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Regulatory Compliance",
 			Description:    "Compliance with regulatory requirements",
-			Category:       TagCategoryGovernance,
+			Category:       types.TagCategoryGovernance,
 			Color:          "#991B1B", // Red
 			Icon:           "Shield Exclamation",
 		},
@@ -784,7 +711,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Reserve Fund",
 			Description:    "Transactions related to reserve fund allocations",
-			Category:       TagCategoryReserves,
+			Category:       types.TagCategoryReserves,
 			Color:          "#0F766E", // Teal
 			Icon:           "Wallet",
 		},
@@ -797,7 +724,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Capital Reserve",
 			Description:    "Capital reserve fund transactions",
-			Category:       TagCategoryReserves,
+			Category:       types.TagCategoryReserves,
 			Color:          "#059669", // Emerald
 			Icon:           "Money Stack",
 		},
@@ -810,7 +737,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Bad Debt Provision",
 			Description:    "Provision for bad debts and loan losses",
-			Category:       TagCategoryReserves,
+			Category:       types.TagCategoryReserves,
 			Color:          "#DC2626", // Red
 			Icon:           "Warning Circle",
 		},
@@ -823,7 +750,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Mobile Banking",
 			Description:    "Transactions processed through mobile banking",
-			Category:       TagCategoryDigital,
+			Category:       types.TagCategoryDigital,
 			Color:          "#0891B2", // Cyan
 			Icon:           "Smartphone",
 		},
@@ -836,7 +763,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Online Banking",
 			Description:    "Internet banking transactions and services",
-			Category:       TagCategoryDigital,
+			Category:       types.TagCategoryDigital,
 			Color:          "#2563EB", // Blue
 			Icon:           "Globe",
 		},
@@ -849,7 +776,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "ATM Transaction",
 			Description:    "Automated Teller Machine transactions",
-			Category:       TagCategoryDigital,
+			Category:       types.TagCategoryDigital,
 			Color:          "#7C3AED", // Violet
 			Icon:           "Monitor",
 		},
@@ -862,7 +789,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "QR Payment",
 			Description:    "QR code based payment transactions",
-			Category:       TagCategoryDigital,
+			Category:       types.TagCategoryDigital,
 			Color:          "#059669", // Emerald
 			Icon:           "QR Code",
 		},
@@ -875,7 +802,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "New Member",
 			Description:    "New member registration and onboarding",
-			Category:       TagCategoryMembership,
+			Category:       types.TagCategoryMembership,
 			Color:          "#16A34A", // Green
 			Icon:           "User Plus",
 		},
@@ -888,7 +815,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Member Withdrawal",
 			Description:    "Member withdrawal from cooperative",
-			Category:       TagCategoryMembership,
+			Category:       types.TagCategoryMembership,
 			Color:          "#DC2626", // Red
 			Icon:           "Exit Door",
 		},
@@ -901,7 +828,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Death Benefit",
 			Description:    "Death benefits and insurance claims",
-			Category:       TagCategoryInsurance,
+			Category:       types.TagCategoryInsurance,
 			Color:          "#374151", // Gray
 			Icon:           "Shield Fill",
 		},
@@ -914,7 +841,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Loan Collateral",
 			Description:    "Collateral security for loan transactions",
-			Category:       TagCategorySecurity,
+			Category:       types.TagCategorySecurity,
 			Color:          "#92400E", // Yellow
 			Icon:           "Shield Lock",
 		},
@@ -927,7 +854,7 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 			BranchID:       branchID,
 			Name:           "Guarantee",
 			Description:    "Guarantee and surety related transactions",
-			Category:       TagCategorySecurity,
+			Category:       types.TagCategorySecurity,
 			Color:          "#0F766E", // Teal
 			Icon:           "User Shield",
 		},
@@ -941,8 +868,9 @@ func tagTemplateSeed(context context.Context, service *horizon.HorizonService, t
 	return nil
 }
 
-func TagTemplateCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*TagTemplate, error) {
-	return TagTemplateManager(service).Find(context, &TagTemplate{
+func TagTemplateCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID,
+	branchID uuid.UUID) ([]*types.TagTemplate, error) {
+	return TagTemplateManager(service).Find(context, &types.TagTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

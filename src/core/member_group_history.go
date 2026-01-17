@@ -7,71 +7,23 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MemberGroupHistory struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_group_history"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_group_history"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		MemberGroupID uuid.UUID    `gorm:"type:uuid;not null"`
-		MemberGroup   *MemberGroup `gorm:"foreignKey:MemberGroupID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_group,omitempty"`
-	}
-
-	MemberGroupHistoryResponse struct {
-		ID              uuid.UUID              `json:"id"`
-		CreatedAt       string                 `json:"created_at"`
-		CreatedByID     uuid.UUID              `json:"created_by_id"`
-		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt       string                 `json:"updated_at"`
-		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID  uuid.UUID              `json:"organization_id"`
-		Organization    *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID        uuid.UUID              `json:"branch_id"`
-		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID uuid.UUID              `json:"member_profile_id"`
-		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
-		MemberGroupID   uuid.UUID              `json:"member_group_id"`
-		MemberGroup     *MemberGroupResponse   `json:"member_group,omitempty"`
-	}
-
-	MemberGroupHistoryRequest struct {
-		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
-		MemberGroupID   uuid.UUID `json:"member_group_id" validate:"required"`
-	}
-)
-
-func MemberGroupHistoryManager(service *horizon.HorizonService) *registry.Registry[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberGroupHistory, MemberGroupHistoryResponse, MemberGroupHistoryRequest]{
+func MemberGroupHistoryManager(service *horizon.HorizonService) *registry.Registry[
+	types.MemberGroupHistory, types.MemberGroupHistoryResponse, types.MemberGroupHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.MemberGroupHistory, types.MemberGroupHistoryResponse, types.MemberGroupHistoryRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile", "MemberGroup"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberGroupHistory) *MemberGroupHistoryResponse {
+		Resource: func(data *types.MemberGroupHistory) *types.MemberGroupHistoryResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberGroupHistoryResponse{
+			return &types.MemberGroupHistoryResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -90,7 +42,7 @@ func MemberGroupHistoryManager(service *horizon.HorizonService) *registry.Regist
 			}
 		},
 
-		Created: func(data *MemberGroupHistory) registry.Topics {
+		Created: func(data *types.MemberGroupHistory) registry.Topics {
 			return []string{
 				"member_group_history.create",
 				fmt.Sprintf("member_group_history.create.%s", data.ID),
@@ -99,7 +51,7 @@ func MemberGroupHistoryManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("member_group_history.create.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Updated: func(data *MemberGroupHistory) registry.Topics {
+		Updated: func(data *types.MemberGroupHistory) registry.Topics {
 			return []string{
 				"member_group_history.update",
 				fmt.Sprintf("member_group_history.update.%s", data.ID),
@@ -108,7 +60,7 @@ func MemberGroupHistoryManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("member_group_history.update.member_profile.%s", data.MemberProfileID),
 			}
 		},
-		Deleted: func(data *MemberGroupHistory) registry.Topics {
+		Deleted: func(data *types.MemberGroupHistory) registry.Topics {
 			return []string{
 				"member_group_history.delete",
 				fmt.Sprintf("member_group_history.delete.%s", data.ID),
@@ -120,15 +72,17 @@ func MemberGroupHistoryManager(service *horizon.HorizonService) *registry.Regist
 	})
 }
 
-func MemberGroupHistoryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberGroupHistory, error) {
-	return MemberGroupHistoryManager(service).Find(context, &MemberGroupHistory{
+func MemberGroupHistoryCurrentBranch(context context.Context,
+	service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberGroupHistory, error) {
+	return MemberGroupHistoryManager(service).Find(context, &types.MemberGroupHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func MemberGroupHistoryMemberProfileID(context context.Context, service *horizon.HorizonService, memberProfileID, organizationID, branchID uuid.UUID) ([]*MemberGroupHistory, error) {
-	return MemberGroupHistoryManager(service).Find(context, &MemberGroupHistory{
+func MemberGroupHistoryMemberProfileID(context context.Context, service *horizon.HorizonService,
+	memberProfileID, organizationID, branchID uuid.UUID) ([]*types.MemberGroupHistory, error) {
+	return MemberGroupHistoryManager(service).Find(context, &types.MemberGroupHistory{
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 		MemberProfileID: memberProfileID,

@@ -6,57 +6,21 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 )
 
-type (
-	Feedback struct {
-		ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-
-		CreatedAt time.Time      `gorm:"not null;default:now()"`
-		UpdatedAt time.Time      `gorm:"not null;default:now()"`
-		DeletedAt gorm.DeletedAt `gorm:"index"`
-
-		Email        string     `gorm:"type:varchar(255)"`
-		Description  string     `gorm:"type:text"`
-		FeedbackType string     `gorm:"type:varchar(50);not null;default:'general'"`
-		MediaID      *uuid.UUID `gorm:"type:uuid"`
-		Media        *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
-	}
-
-	FeedbackResponse struct {
-		ID           uuid.UUID      `json:"id"`
-		Email        string         `json:"email"`
-		Description  string         `json:"description"`
-		FeedbackType string         `json:"feedback_type"`
-		MediaID      *uuid.UUID     `json:"media_id"`
-		Media        *MediaResponse `json:"media,omitempty"`
-		CreatedAt    string         `json:"createdAt"`
-		UpdatedAt    string         `json:"updatedAt"`
-	}
-
-	FeedbackRequest struct {
-		ID           *uuid.UUID `json:"id,omitempty"`
-		Email        string     `json:"email"        validate:"required,email"`
-		Description  string     `json:"description"  validate:"required,min=5,max=2000"`
-		FeedbackType string     `json:"feedback_type" validate:"required,oneof=general bug feature"`
-		MediaID      *uuid.UUID `json:"media_id,omitempty"`
-	}
-)
-
-func FeedbackManager(service *horizon.HorizonService) *registry.Registry[Feedback, FeedbackResponse, FeedbackRequest] {
-	return registry.NewRegistry(registry.RegistryParams[Feedback, FeedbackResponse, FeedbackRequest]{
+func FeedbackManager(service *horizon.HorizonService) *registry.Registry[types.Feedback, types.FeedbackResponse, types.FeedbackRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.Feedback, types.FeedbackResponse, types.FeedbackRequest]{
 		Preloads: []string{"Media"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *Feedback) *FeedbackResponse {
+		Resource: func(data *types.Feedback) *types.FeedbackResponse {
 			if data == nil {
 				return nil
 			}
-			return &FeedbackResponse{
+			return &types.FeedbackResponse{
 				ID:           data.ID,
 				Email:        data.Email,
 				Description:  data.Description,
@@ -67,19 +31,19 @@ func FeedbackManager(service *horizon.HorizonService) *registry.Registry[Feedbac
 				UpdatedAt:    data.UpdatedAt.Format(time.RFC3339),
 			}
 		},
-		Created: func(data *Feedback) registry.Topics {
+		Created: func(data *types.Feedback) registry.Topics {
 			return []string{
 				"feedback.create",
 				fmt.Sprintf("feedback.create.%s", data.ID),
 			}
 		},
-		Updated: func(data *Feedback) registry.Topics {
+		Updated: func(data *types.Feedback) registry.Topics {
 			return []string{
 				"feedback.update",
 				fmt.Sprintf("feedback.update.%s", data.ID),
 			}
 		},
-		Deleted: func(data *Feedback) registry.Topics {
+		Deleted: func(data *types.Feedback) registry.Topics {
 			return []string{
 				"feedback.delete",
 				fmt.Sprintf("feedback.delete.%s", data.ID),

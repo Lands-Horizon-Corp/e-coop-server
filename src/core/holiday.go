@@ -7,70 +7,15 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	Holiday struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_holidays"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_holidays"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-		CurrencyID     uuid.UUID     `gorm:"type:uuid;not null"`
-		Currency       *Currency     `gorm:"foreignKey:CurrencyID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"currency,omitempty"`
-
-		EntryDate   time.Time `gorm:"not null"`
-		Name        string    `gorm:"type:varchar(255)"`
-		Description string    `gorm:"type:text"`
-	}
-
-	HolidayResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		CurrencyID     uuid.UUID             `json:"currency_id"`
-		Currency       *CurrencyResponse     `json:"currency,omitempty"`
-		EntryDate      string                `json:"entry_date"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-	}
-
-	HolidayRequest struct {
-		EntryDate   time.Time `json:"entry_date" validate:"required"`
-		Name        string    `json:"name" validate:"required,min=1,max=255"`
-		Description string    `json:"description,omitempty"`
-		CurrencyID  uuid.UUID `json:"currency_id" validate:"required"`
-	}
-	HoldayYearAvaiable struct {
-		Year  int `json:"year"`
-		Count int `json:"count"`
-	}
-)
-
-func HolidayManager(service *horizon.HorizonService) *registry.Registry[Holiday, HolidayResponse, HolidayRequest] {
+func HolidayManager(service *horizon.HorizonService) *registry.Registry[types.Holiday, types.HolidayResponse, types.HolidayRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		Holiday, HolidayResponse, HolidayRequest,
+		types.Holiday, types.HolidayResponse, types.HolidayRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Currency",
@@ -79,11 +24,11 @@ func HolidayManager(service *horizon.HorizonService) *registry.Registry[Holiday,
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *Holiday) *HolidayResponse {
+		Resource: func(data *types.Holiday) *types.HolidayResponse {
 			if data == nil {
 				return nil
 			}
-			return &HolidayResponse{
+			return &types.HolidayResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -102,7 +47,7 @@ func HolidayManager(service *horizon.HorizonService) *registry.Registry[Holiday,
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Holiday) registry.Topics {
+		Created: func(data *types.Holiday) registry.Topics {
 			return []string{
 				"holiday.create",
 				fmt.Sprintf("holiday.create.%s", data.ID),
@@ -110,7 +55,7 @@ func HolidayManager(service *horizon.HorizonService) *registry.Registry[Holiday,
 				fmt.Sprintf("holiday.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Holiday) registry.Topics {
+		Updated: func(data *types.Holiday) registry.Topics {
 			return []string{
 				"holiday.update",
 				fmt.Sprintf("holiday.update.%s", data.ID),
@@ -118,7 +63,7 @@ func HolidayManager(service *horizon.HorizonService) *registry.Registry[Holiday,
 				fmt.Sprintf("holiday.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Holiday) registry.Topics {
+		Deleted: func(data *types.Holiday) registry.Topics {
 			return []string{
 				"holiday.delete",
 				fmt.Sprintf("holiday.delete.%s", data.ID),
@@ -142,11 +87,11 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 	}
 
 	for _, currency := range currencies {
-		var holidays []*Holiday
+		var holidays []*types.Holiday
 
 		switch currency.ISO3166Alpha3 {
 		case "USA": // United States
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 15, 0, 0, 0, 0, time.UTC), Name: "Martin Luther King Jr. Day", Description: "Birthday of Martin Luther King Jr."},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 19, 0, 0, 0, 0, time.UTC), Name: "Presidents' Day", Description: "Washington's Birthday"},
@@ -163,7 +108,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
 		case "DEU": // Germany (Euro representative)
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
@@ -175,7 +120,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "St. Stephen's Day", Description: "Second day of Christmas"},
 			}
 		case "JPN": // Japan
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Ganjitsu - First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "Bank Holiday", Description: "New Year Bank Holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 3, 0, 0, 0, 0, time.UTC), Name: "Bank Holiday", Description: "New Year Bank Holiday"},
@@ -197,7 +142,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 31, 0, 0, 0, 0, time.UTC), Name: "New Year's Eve", Description: "Last day of the year"},
 			}
 		case "GBR": // United Kingdom
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
@@ -208,7 +153,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 26, 0, 0, 0, 0, time.UTC), Name: "Boxing Day", Description: "Day after Christmas"},
 			}
 		case "AUS": // Australia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 26, 0, 0, 0, 0, time.UTC), Name: "Australia Day", Description: "National day of Australia"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -219,7 +164,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "CAN": // Canada
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 19, 0, 0, 0, 0, time.UTC), Name: "Family Day", Description: "Third Monday in February"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -234,7 +179,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "CHE": // Switzerland
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "Berchtold's Day", Description: "Swiss holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -247,7 +192,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "CHN": // China
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year's Eve", Description: "Spring Festival Eve"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 11, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Spring Festival - First day"},
@@ -263,7 +208,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "SWE": // Sweden
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -281,7 +226,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "NZL": // New Zealand
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "Day after New Year's Day", Description: "Second day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 6, 0, 0, 0, 0, time.UTC), Name: "Waitangi Day", Description: "National day of New Zealand"},
@@ -295,7 +240,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "PHL": // Philippines
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 25, 0, 0, 0, 0, time.UTC), Name: "EDSA People Power Revolution Anniversary", Description: "Commemorates the peaceful revolution in 1986"},
@@ -318,7 +263,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "IND": // India
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 26, 0, 0, 0, 0, time.UTC), Name: "Republic Day", Description: "Commemorates adoption of the Constitution"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 13, 0, 0, 0, 0, time.UTC), Name: "Holi", Description: "Festival of colors"},
@@ -333,7 +278,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "KOR": // South Korea
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Seollal", Description: "Korean New Year - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 11, 0, 0, 0, 0, time.UTC), Name: "Seollal", Description: "Korean New Year - Second day"},
@@ -352,7 +297,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "THA": // Thailand
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 26, 0, 0, 0, 0, time.UTC), Name: "Makha Bucha Day", Description: "Buddhist holy day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 6, 0, 0, 0, 0, time.UTC), Name: "Chakri Day", Description: "Founding of Chakri Dynasty"},
@@ -375,7 +320,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "SGP": // Singapore
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 11, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year - Second day"},
@@ -388,7 +333,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "HKG": // Hong Kong
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year's Day", Description: "Lunar New Year - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 11, 0, 0, 0, 0, time.UTC), Name: "Second day of Chinese New Year", Description: "Lunar New Year - Second day"},
@@ -408,7 +353,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "MYS": // Malaysia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 25, 0, 0, 0, 0, time.UTC), Name: "Thaipusam", Description: "Tamil Hindu festival"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 1, 0, 0, 0, 0, time.UTC), Name: "Federal Territory Day", Description: "Formation of Federal Territory"},
@@ -429,7 +374,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "IDN": // Indonesia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 11, 0, 0, 0, 0, time.UTC), Name: "Nyepi", Description: "Balinese Day of Silence"},
@@ -442,7 +387,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "VNM": // Vietnam
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 9, 0, 0, 0, 0, time.UTC), Name: "Tet Holiday", Description: "Vietnamese New Year - Eve"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Tet Holiday", Description: "Vietnamese New Year - First day"},
@@ -457,7 +402,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "TWN": // Taiwan
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 9, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year's Eve", Description: "Lunar New Year's Eve"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Spring Festival", Description: "Chinese New Year - First day"},
@@ -471,7 +416,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "BRN": // Brunei
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 10, 0, 0, 0, 0, time.UTC), Name: "Chinese New Year", Description: "Lunar New Year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 23, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "Independence from Britain"},
@@ -482,7 +427,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "SAU": // Saudi Arabia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 22, 0, 0, 0, 0, time.UTC), Name: "Founding Day", Description: "Founding of the First Saudi State"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 11, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - Second day"},
@@ -496,7 +441,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "ARE": // United Arab Emirates
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Lailat al Miraj", Description: "Night Journey of Prophet Muhammad"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -514,7 +459,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "ISR": // Israel
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 13, 0, 0, 0, 0, time.UTC), Name: "Passover", Description: "Pesach - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 19, 0, 0, 0, 0, time.UTC), Name: "Passover", Description: "Pesach - Last day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 26, 0, 0, 0, 0, time.UTC), Name: "Holocaust Remembrance Day", Description: "Yom HaShoah"},
@@ -530,7 +475,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "ZAF": // South Africa
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 21, 0, 0, 0, 0, time.UTC), Name: "Human Rights Day", Description: "Commemorates Sharpeville massacre"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -546,7 +491,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "EGY": // Egypt
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 25, 0, 0, 0, 0, time.UTC), Name: "Revolution Day", Description: "January 25 Revolution"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Lailat al Miraj", Description: "Night Journey of Prophet Muhammad"},
@@ -564,7 +509,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "TUR": // Turkey
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "Ramazan Bayramı - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 11, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "Ramazan Bayramı - Second day"},
@@ -582,7 +527,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "SEN": // Senegal (West African CFA Franc representative)
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 4, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Senegal Independence (representative)"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan"},
@@ -594,7 +539,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "CMR": // Cameroon (Central African CFA Franc representative)
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Cameroon Independence (representative)"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan"},
@@ -607,7 +552,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "MUS": // Mauritius
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year Holiday", Description: "Second day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 1, 0, 0, 0, 0, time.UTC), Name: "Abolition of Slavery", Description: "End of slavery in Mauritius"},
@@ -623,7 +568,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "MDV": // Maldives
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 11, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - Second day"},
@@ -637,7 +582,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "NOR": // Norway
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -653,7 +598,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "DNK": // Denmark
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -670,7 +615,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "POL": // Poland
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
@@ -687,7 +632,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "CZE": // Czech Republic
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
@@ -704,7 +649,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "HUN": // Hungary
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 15, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "1848 Revolution and War of Independence"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
@@ -720,7 +665,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "RUS": // Russia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year Holidays", Description: "Second day of New Year holidays"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Orthodox Christmas", Description: "Russian Orthodox Christmas"},
@@ -733,7 +678,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "HRV": // Croatia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
@@ -751,7 +696,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "BRA": // Brazil
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Carnival Monday", Description: "First day of Carnival"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 13, 0, 0, 0, 0, time.UTC), Name: "Carnival Tuesday", Description: "Second day of Carnival"},
@@ -767,7 +712,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "MEX": // Mexico
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 5, 0, 0, 0, 0, time.UTC), Name: "Constitution Day", Description: "Mexican Constitution of 1917"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 21, 0, 0, 0, 0, time.UTC), Name: "Benito Juárez's Birthday", Description: "Birthday of Benito Juárez"},
@@ -781,7 +726,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "ARG": // Argentina
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Carnival Monday", Description: "First day of Carnival"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 13, 0, 0, 0, 0, time.UTC), Name: "Carnival Tuesday", Description: "Second day of Carnival"},
@@ -800,7 +745,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "CHL": // Chile
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 30, 0, 0, 0, 0, time.UTC), Name: "Holy Saturday", Description: "Christian holiday"},
@@ -819,7 +764,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "COL": // Colombia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 8, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 25, 0, 0, 0, 0, time.UTC), Name: "Saint Joseph's Day", Description: "Christian holiday"},
@@ -841,7 +786,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "PER": // Peru
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -858,7 +803,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "URY": // Uruguay
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Carnival Monday", Description: "First day of Carnival"},
@@ -877,7 +822,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "DOM": // Dominican Republic
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 21, 0, 0, 0, 0, time.UTC), Name: "Our Lady of Altagracia", Description: "Patron saint of Dominican Republic"},
@@ -893,7 +838,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "PRY": // Paraguay
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 1, 0, 0, 0, 0, time.UTC), Name: "Heroes' Day", Description: "Day of Heroes of the Fatherland"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 28, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Christian holiday"},
@@ -908,7 +853,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "BOL": // Bolivia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 22, 0, 0, 0, 0, time.UTC), Name: "Plurinational State Day", Description: "Foundation of the Plurinational State"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Carnival Monday", Description: "First day of Carnival"},
@@ -923,7 +868,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "VEN": // Venezuela
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Carnival Monday", Description: "First day of Carnival"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 13, 0, 0, 0, 0, time.UTC), Name: "Carnival Tuesday", Description: "Second day of Carnival"},
@@ -940,7 +885,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "PAK": // Pakistan
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 5, 0, 0, 0, 0, time.UTC), Name: "Kashmir Solidarity Day", Description: "Support for Kashmir"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 23, 0, 0, 0, 0, time.UTC), Name: "Pakistan Day", Description: "Pakistan Resolution Day"},
@@ -957,7 +902,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "BGD": // Bangladesh
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 21, 0, 0, 0, 0, time.UTC), Name: "International Mother Language Day", Description: "Language Movement Day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 17, 0, 0, 0, 0, time.UTC), Name: "Sheikh Mujibur Rahman's Birthday", Description: "Father of the Nation"},
@@ -975,7 +920,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "LKA": // Sri Lanka
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 4, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Sri Lankan Independence from Britain"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -990,7 +935,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "NPL": // Nepal
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 11, 0, 0, 0, 0, time.UTC), Name: "Prithvi Jayanti", Description: "National Unity Day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 19, 0, 0, 0, 0, time.UTC), Name: "Democracy Day", Description: "End of autocracy"},
@@ -1006,7 +951,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "MMR": // Myanmar
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 4, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Myanmar Independence from Britain"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 12, 0, 0, 0, 0, time.UTC), Name: "Union Day", Description: "Panglong Agreement"},
@@ -1024,7 +969,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "KHM": // Cambodia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Victory Day", Description: "Victory over Khmer Rouge"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 8, 0, 0, 0, 0, time.UTC), Name: "International Women's Day", Description: "Women's rights and achievements"},
@@ -1043,7 +988,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "LAO": // Laos
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 20, 0, 0, 0, 0, time.UTC), Name: "Army Day", Description: "Pathet Lao Day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 8, 0, 0, 0, 0, time.UTC), Name: "International Women's Day", Description: "Women's rights and achievements"},
@@ -1059,7 +1004,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "NGA": // Nigeria
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 31, 0, 0, 0, 0, time.UTC), Name: "Easter Sunday", Description: "Christian holiday"},
@@ -1075,7 +1020,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "KEN": // Kenya
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 1, 0, 0, 0, 0, time.UTC), Name: "Easter Monday", Description: "Day after Easter Sunday"},
@@ -1092,7 +1037,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "GHA": // Ghana
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 6, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Ghanaian Independence from Britain"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Christian holiday"},
@@ -1108,7 +1053,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "MAR": // Morocco
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 11, 0, 0, 0, 0, time.UTC), Name: "Independence Manifesto Day", Description: "Independence movement commemoration"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -1127,7 +1072,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "TUN": // Tunisia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 14, 0, 0, 0, 0, time.UTC), Name: "Revolution Day", Description: "Tunisian Revolution anniversary"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 20, 0, 0, 0, 0, time.UTC), Name: "Independence Day", Description: "Tunisian Independence from France"},
@@ -1145,7 +1090,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "ETH": // Ethiopia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Ethiopian Christmas", Description: "Orthodox Christmas - Genna"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 19, 0, 0, 0, 0, time.UTC), Name: "Timkat", Description: "Ethiopian Orthodox Epiphany"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 2, 0, 0, 0, 0, time.UTC), Name: "Battle of Adwa", Description: "Victory over Italian invasion"},
@@ -1161,7 +1106,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "DZA": // Algeria
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 12, 0, 0, 0, 0, time.UTC), Name: "Amazigh New Year", Description: "Berber New Year - Yennayer"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -1176,7 +1121,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "UKR": // Ukraine
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Orthodox Christmas", Description: "Orthodox Christmas celebration"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 8, 0, 0, 0, 0, time.UTC), Name: "International Women's Day", Description: "Celebration of women"},
@@ -1190,7 +1135,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "ROU": // Romania
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Second day of New Year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 6, 0, 0, 0, 0, time.UTC), Name: "Epiphany", Description: "Orthodox Epiphany"},
@@ -1208,7 +1153,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "BGR": // Bulgaria
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 3, 0, 0, 0, 0, time.UTC), Name: "Liberation Day", Description: "Liberation from Ottoman rule"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 26, 0, 0, 0, 0, time.UTC), Name: "Orthodox Good Friday", Description: "Orthodox Good Friday"},
@@ -1225,7 +1170,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "SRB": // Serbia
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Second day of New Year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Orthodox Christmas", Description: "Orthodox Christmas celebration"},
@@ -1239,7 +1184,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "ISL": // Iceland
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Maundy Thursday", Description: "Thursday before Easter"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 30, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
@@ -1259,7 +1204,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "BLR": // Belarus
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Second day of New Year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Orthodox Christmas", Description: "Orthodox Christmas celebration"},
@@ -1273,7 +1218,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "FJI": // Fiji
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 30, 0, 0, 0, 0, time.UTC), Name: "Easter Saturday", Description: "Saturday before Easter"},
@@ -1287,7 +1232,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "PNG": // Papua New Guinea
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 30, 0, 0, 0, 0, time.UTC), Name: "Easter Saturday", Description: "Saturday before Easter"},
@@ -1300,7 +1245,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "JAM": // Jamaica
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 14, 0, 0, 0, 0, time.UTC), Name: "Ash Wednesday", Description: "Beginning of Lent"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
@@ -1314,7 +1259,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "CRI": // Costa Rica
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 19, 0, 0, 0, 0, time.UTC), Name: "St. Joseph's Day", Description: "Patron saint of Costa Rica"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
@@ -1328,7 +1273,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "GTM": // Guatemala
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 29, 0, 0, 0, 0, time.UTC), Name: "Good Friday", Description: "Friday before Easter"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 3, 30, 0, 0, 0, 0, time.UTC), Name: "Easter Saturday", Description: "Saturday before Easter"},
@@ -1343,7 +1288,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "KWT": // Kuwait
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 25, 0, 0, 0, 0, time.UTC), Name: "National Day", Description: "Kuwaiti National Day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 2, 26, 0, 0, 0, 0, time.UTC), Name: "Liberation Day", Description: "Liberation from Iraqi occupation"},
@@ -1358,7 +1303,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "QAT": // Qatar
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 11, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - Second day"},
@@ -1372,7 +1317,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "OMN": // Oman
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 11, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - Second day"},
@@ -1388,7 +1333,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "BHR": // Bahrain
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 11, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - Second day"},
@@ -1404,7 +1349,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "JOR": // Jordan
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 30, 0, 0, 0, 0, time.UTC), Name: "King Abdullah II Birthday", Description: "King's Birthday"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 4, 10, 0, 0, 0, 0, time.UTC), Name: "Eid al-Fitr", Description: "End of Ramadan - First day"},
@@ -1419,7 +1364,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		case "KAZ": // Kazakhstan
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 2, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "Second day of New Year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 7, 0, 0, 0, 0, time.UTC), Name: "Orthodox Christmas", Description: "Orthodox Christmas celebration"},
@@ -1438,7 +1383,7 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 			}
 
 		default:
-			holidays = []*Holiday{
+			holidays = []*types.Holiday{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC), Name: "New Year's Day", Description: "First day of the year"},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, EntryDate: time.Date(year, 12, 25, 0, 0, 0, 0, time.UTC), Name: "Christmas Day", Description: "Celebration of the birth of Jesus Christ"},
 			}
@@ -1455,8 +1400,9 @@ func holidaySeed(context context.Context, service *horizon.HorizonService, tx *g
 	return nil
 }
 
-func HolidayCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Holiday, error) {
-	return HolidayManager(service).Find(context, &Holiday{
+func HolidayCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.Holiday, error) {
+	return HolidayManager(service).Find(context, &types.Holiday{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -7,57 +7,14 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	LoanGuaranteedFund struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_guaranteed_fund"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_loan_guaranteed_fund"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		SchemeNumber   int     `gorm:"not null;unique"`
-		IncreasingRate float64 `gorm:"type:decimal;not null"`
-	}
-
-	LoanGuaranteedFundResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		SchemeNumber   int                   `json:"scheme_number"`
-		IncreasingRate float64               `json:"increasing_rate"`
-	}
-
-	LoanGuaranteedFundRequest struct {
-		SchemeNumber   int     `json:"scheme_number" validate:"required"`
-		IncreasingRate float64 `json:"increasing_rate" validate:"required"`
-	}
-)
-
-func LoanGuaranteedFundManager(service *horizon.HorizonService) *registry.Registry[LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest] {
+func LoanGuaranteedFundManager(service *horizon.HorizonService) *registry.Registry[
+	types.LoanGuaranteedFund, types.LoanGuaranteedFundResponse, types.LoanGuaranteedFundRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		LoanGuaranteedFund, LoanGuaranteedFundResponse, LoanGuaranteedFundRequest,
+		types.LoanGuaranteedFund, types.LoanGuaranteedFundResponse, types.LoanGuaranteedFundRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -66,11 +23,11 @@ func LoanGuaranteedFundManager(service *horizon.HorizonService) *registry.Regist
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *LoanGuaranteedFund) *LoanGuaranteedFundResponse {
+		Resource: func(data *types.LoanGuaranteedFund) *types.LoanGuaranteedFundResponse {
 			if data == nil {
 				return nil
 			}
-			return &LoanGuaranteedFundResponse{
+			return &types.LoanGuaranteedFundResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -87,7 +44,7 @@ func LoanGuaranteedFundManager(service *horizon.HorizonService) *registry.Regist
 			}
 		},
 
-		Created: func(data *LoanGuaranteedFund) registry.Topics {
+		Created: func(data *types.LoanGuaranteedFund) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund.create",
 				fmt.Sprintf("loan_guaranteed_fund.create.%s", data.ID),
@@ -95,7 +52,7 @@ func LoanGuaranteedFundManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("loan_guaranteed_fund.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *LoanGuaranteedFund) registry.Topics {
+		Updated: func(data *types.LoanGuaranteedFund) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund.update",
 				fmt.Sprintf("loan_guaranteed_fund.update.%s", data.ID),
@@ -103,7 +60,7 @@ func LoanGuaranteedFundManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("loan_guaranteed_fund.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *LoanGuaranteedFund) registry.Topics {
+		Deleted: func(data *types.LoanGuaranteedFund) registry.Topics {
 			return []string{
 				"loan_guaranteed_fund.delete",
 				fmt.Sprintf("loan_guaranteed_fund.delete.%s", data.ID),
@@ -114,8 +71,9 @@ func LoanGuaranteedFundManager(service *horizon.HorizonService) *registry.Regist
 	})
 }
 
-func LoanGuaranteedFundCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*LoanGuaranteedFund, error) {
-	return LoanGuaranteedFundManager(service).Find(context, &LoanGuaranteedFund{
+func LoanGuaranteedFundCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.LoanGuaranteedFund, error) {
+	return LoanGuaranteedFundManager(service).Find(context, &types.LoanGuaranteedFund{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

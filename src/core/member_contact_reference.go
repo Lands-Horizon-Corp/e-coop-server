@@ -7,75 +7,24 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MemberContactReference struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_contact_reference"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_contact_reference"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		Name          string `gorm:"type:varchar(255)"`
-		Description   string `gorm:"type:text"`
-		ContactNumber string `gorm:"type:varchar(30)"`
-	}
-
-	MemberContactReferenceResponse struct {
-		ID              uuid.UUID              `json:"id"`
-		CreatedAt       string                 `json:"created_at"`
-		CreatedByID     uuid.UUID              `json:"created_by_id"`
-		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt       string                 `json:"updated_at"`
-		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID  uuid.UUID              `json:"organization_id"`
-		Organization    *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID        uuid.UUID              `json:"branch_id"`
-		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID uuid.UUID              `json:"member_profile_id"`
-		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
-		Name            string                 `json:"name"`
-		Description     string                 `json:"description"`
-		ContactNumber   string                 `json:"contact_number"`
-	}
-
-	MemberContactReferenceRequest struct {
-		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
-		Name            string    `json:"name" validate:"required,min=1,max=255"`
-		Description     string    `json:"description,omitempty"`
-		ContactNumber   string    `json:"contact_number,omitempty" validate:"omitempty,max=30"`
-	}
-)
-
-func MemberContactReferenceManager(service *horizon.HorizonService) *registry.Registry[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberContactReference, MemberContactReferenceResponse, MemberContactReferenceRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
+func MemberContactReferenceManager(service *horizon.HorizonService) *registry.Registry[
+	types.MemberContactReference, types.MemberContactReferenceResponse, types.MemberContactReferenceRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
+		types.MemberContactReference, types.MemberContactReferenceResponse, types.MemberContactReferenceRequest]{
+		Preloads: []string{"MemberProfile"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberContactReference) *MemberContactReferenceResponse {
+		Resource: func(data *types.MemberContactReference) *types.MemberContactReferenceResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberContactReferenceResponse{
+			return &types.MemberContactReferenceResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -95,7 +44,7 @@ func MemberContactReferenceManager(service *horizon.HorizonService) *registry.Re
 			}
 		},
 
-		Created: func(data *MemberContactReference) registry.Topics {
+		Created: func(data *types.MemberContactReference) registry.Topics {
 			return []string{
 				"member_contact_reference.create",
 				fmt.Sprintf("member_contact_reference.create.%s", data.ID),
@@ -103,7 +52,7 @@ func MemberContactReferenceManager(service *horizon.HorizonService) *registry.Re
 				fmt.Sprintf("member_contact_reference.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberContactReference) registry.Topics {
+		Updated: func(data *types.MemberContactReference) registry.Topics {
 			return []string{
 				"member_contact_reference.update",
 				fmt.Sprintf("member_contact_reference.update.%s", data.ID),
@@ -111,7 +60,7 @@ func MemberContactReferenceManager(service *horizon.HorizonService) *registry.Re
 				fmt.Sprintf("member_contact_reference.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberContactReference) registry.Topics {
+		Deleted: func(data *types.MemberContactReference) registry.Topics {
 			return []string{
 				"member_contact_reference.delete",
 				fmt.Sprintf("member_contact_reference.delete.%s", data.ID),
@@ -122,8 +71,9 @@ func MemberContactReferenceManager(service *horizon.HorizonService) *registry.Re
 	})
 }
 
-func MemberContactReferenceCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberContactReference, error) {
-	return MemberContactReferenceManager(service).Find(context, &MemberContactReference{
+func MemberContactReferenceCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberContactReference, error) {
+	return MemberContactReferenceManager(service).Find(context, &types.MemberContactReference{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

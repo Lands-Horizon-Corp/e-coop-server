@@ -7,84 +7,25 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	JournalVoucherTag struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_journal_voucher_tag"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_journal_voucher_tag"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		JournalVoucherID *uuid.UUID      `gorm:"type:uuid"`
-		JournalVoucher   *JournalVoucher `gorm:"foreignKey:JournalVoucherID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"journal_voucher,omitempty"`
-
-		Name        string `gorm:"type:varchar(50)"`
-		Description string `gorm:"type:text"`
-		Category    string `gorm:"type:varchar(50)"`
-		Color       string `gorm:"type:varchar(20)"`
-		Icon        string `gorm:"type:varchar(20)"`
-	}
-
-	JournalVoucherTagResponse struct {
-		ID               uuid.UUID             `json:"id"`
-		CreatedAt        string                `json:"created_at"`
-		CreatedByID      uuid.UUID             `json:"created_by_id"`
-		CreatedBy        *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt        string                `json:"updated_at"`
-		UpdatedByID      uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy        *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID   uuid.UUID             `json:"organization_id"`
-		Organization     *OrganizationResponse `json:"organization,omitempty"`
-		BranchID         uuid.UUID             `json:"branch_id"`
-		Branch           *BranchResponse       `json:"branch,omitempty"`
-		JournalVoucherID *uuid.UUID            `json:"journal_voucher_id,omitempty"`
-		Name             string                `json:"name"`
-		Description      string                `json:"description"`
-		Category         string                `json:"category"`
-		Color            string                `json:"color"`
-		Icon             string                `json:"icon"`
-	}
-
-	JournalVoucherTagRequest struct {
-		JournalVoucherID *uuid.UUID `json:"journal_voucher_id,omitempty"`
-		Name             string     `json:"name,omitempty"`
-		Description      string     `json:"description,omitempty"`
-		Category         string     `json:"category,omitempty"`
-		Color            string     `json:"color,omitempty"`
-		Icon             string     `json:"icon,omitempty"`
-	}
-)
-
-func JournalVoucherTagManager(service *horizon.HorizonService) *registry.Registry[JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest] {
+func JournalVoucherTagManager(service *horizon.HorizonService) *registry.Registry[
+	types.JournalVoucherTag, types.JournalVoucherTagResponse, types.JournalVoucherTagRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		JournalVoucherTag, JournalVoucherTagResponse, JournalVoucherTagRequest,
+		types.JournalVoucherTag, types.JournalVoucherTagResponse, types.JournalVoucherTagRequest,
 	]{
-		Preloads: []string{
-			"CreatedBy", "UpdatedBy",
-		},
+		Preloads: []string{},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *JournalVoucherTag) *JournalVoucherTagResponse {
+		Resource: func(data *types.JournalVoucherTag) *types.JournalVoucherTagResponse {
 			if data == nil {
 				return nil
 			}
-			return &JournalVoucherTagResponse{
+			return &types.JournalVoucherTagResponse{
 				ID:               data.ID,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:      data.CreatedByID,
@@ -105,7 +46,7 @@ func JournalVoucherTagManager(service *horizon.HorizonService) *registry.Registr
 			}
 		},
 
-		Created: func(data *JournalVoucherTag) registry.Topics {
+		Created: func(data *types.JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.create",
 				fmt.Sprintf("journal_voucher_tag.create.%s", data.ID),
@@ -113,7 +54,7 @@ func JournalVoucherTagManager(service *horizon.HorizonService) *registry.Registr
 				fmt.Sprintf("journal_voucher_tag.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *JournalVoucherTag) registry.Topics {
+		Updated: func(data *types.JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.update",
 				fmt.Sprintf("journal_voucher_tag.update.%s", data.ID),
@@ -121,7 +62,7 @@ func JournalVoucherTagManager(service *horizon.HorizonService) *registry.Registr
 				fmt.Sprintf("journal_voucher_tag.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *JournalVoucherTag) registry.Topics {
+		Deleted: func(data *types.JournalVoucherTag) registry.Topics {
 			return []string{
 				"journal_voucher_tag.delete",
 				fmt.Sprintf("journal_voucher_tag.delete.%s", data.ID),
@@ -132,8 +73,9 @@ func JournalVoucherTagManager(service *horizon.HorizonService) *registry.Registr
 	})
 }
 
-func JournalVoucherTagCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*JournalVoucherTag, error) {
-	return JournalVoucherTagManager(service).Find(context, &JournalVoucherTag{
+func JournalVoucherTagCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.JournalVoucherTag, error) {
+	return JournalVoucherTagManager(service).Find(context, &types.JournalVoucherTag{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

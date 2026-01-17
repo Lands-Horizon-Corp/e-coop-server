@@ -7,73 +7,24 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	Company struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_company" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_company" json:"branch_id"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MediaID *uuid.UUID `gorm:"type:uuid" json:"media_id"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
-
-		Name        string `gorm:"type:varchar(255);not null" json:"name"`
-		Description string `gorm:"type:text" json:"description"`
-	}
-
-	CompanyResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
-		Media          *MediaResponse        `json:"media,omitempty"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-	}
-
-	CompanyRequest struct {
-		Name        string     `json:"name" validate:"required,min=1,max=255"`
-		Description string     `json:"description,omitempty"`
-		MediaID     *uuid.UUID `json:"media_id,omitempty"`
-	}
-)
-
-func CompanyManager(service *horizon.HorizonService) *registry.Registry[Company, CompanyResponse, CompanyRequest] {
-	return registry.NewRegistry(registry.RegistryParams[Company, CompanyResponse, CompanyRequest]{
+func CompanyManager(service *horizon.HorizonService) *registry.Registry[types.Company, types.CompanyResponse, types.CompanyRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.Company, types.CompanyResponse, types.CompanyRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *Company) *CompanyResponse {
+		Resource: func(data *types.Company) *types.CompanyResponse {
 			if data == nil {
 				return nil
 			}
-			return &CompanyResponse{
+			return &types.CompanyResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -91,7 +42,7 @@ func CompanyManager(service *horizon.HorizonService) *registry.Registry[Company,
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Company) registry.Topics {
+		Created: func(data *types.Company) registry.Topics {
 			return []string{
 				"company.create",
 				fmt.Sprintf("company.create.%s", data.ID),
@@ -99,7 +50,7 @@ func CompanyManager(service *horizon.HorizonService) *registry.Registry[Company,
 				fmt.Sprintf("company.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Company) registry.Topics {
+		Updated: func(data *types.Company) registry.Topics {
 			return []string{
 				"company.update",
 				fmt.Sprintf("company.update.%s", data.ID),
@@ -107,7 +58,7 @@ func CompanyManager(service *horizon.HorizonService) *registry.Registry[Company,
 				fmt.Sprintf("company.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Company) registry.Topics {
+		Deleted: func(data *types.Company) registry.Topics {
 			return []string{
 				"company.delete",
 				fmt.Sprintf("company.delete.%s", data.ID),
@@ -129,7 +80,7 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "failed to get organization by ID: %s", organizationID)
 	}
 
-	companies := []*Company{
+	companies := []*types.Company{
 		{
 
 			Name:        fmt.Sprintf("%s - %s", organization.Name, branch.Name),
@@ -252,81 +203,81 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 	switch branch.Currency.ISO3166Alpha3 {
 	case "USA": // United States
 		companies = append(companies,
-			&Company{
+			&types.Company{
 
 				Name:        "Pacific Gas and Electric Company (PG&E)",
 				Description: "One of the largest combined natural gas and electric utilities in the United States, serving Northern and Central California.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Duke Energy Corporation",
 				Description: "Major electric power holding company serving customers in the Southeast and Midwest United States.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Consolidated Edison, Inc. (Con Edison)",
 				Description: "Provides electric, gas, and steam service in New York City and Westchester County.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Florida Power & Light Company (FPL)",
 				Description: "The largest electric utility in Florida, providing power to over 5 million customer accounts.",
 			},
 
-			&Company{
+			&types.Company{
 
 				Name:        "American Water Works Company, Inc.",
 				Description: "Largest publicly traded U.S. water and wastewater utility company, serving 14 million people across 24 states.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Aqua America (Essential Utilities)",
 				Description: "Provides water and wastewater services to communities in eight U.S. states.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "California Water Service (Cal Water)",
 				Description: "Provides regulated and reliable water services to California communities.",
 			},
 
-			&Company{
+			&types.Company{
 
 				Name:        "Comcast Xfinity",
 				Description: "One of the largest cable television and internet service providers in the U.S.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "AT&T Internet",
 				Description: "Major internet and telecommunications service provider in the United States.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Verizon Fios",
 				Description: "Fiber-optic internet, TV, and phone service operated by Verizon Communications.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Spectrum (Charter Communications)",
 				Description: "Cable television, internet, and phone provider serving millions across the U.S.",
 			},
 
-			&Company{
+			&types.Company{
 
 				Name:        "Southern California Gas Company (SoCalGas)",
 				Description: "The largest natural gas distribution utility in the United States.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "National Grid USA",
 				Description: "Provides natural gas and electricity distribution services in the Northeastern United States.",
 			},
 
-			&Company{
+			&types.Company{
 
 				Name:        "Waste Management, Inc.",
 				Description: "Leading provider of waste collection, disposal, and recycling services across the U.S.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Republic Services, Inc.",
 				Description: "Environmental services company providing waste collection and recycling solutions nationwide.",
@@ -335,27 +286,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "DEU": // Germany
 		companies = append(companies,
-			&Company{
+			&types.Company{
 
 				Name:        "E.ON SE",
 				Description: "One of Europe's largest electric utility service providers headquartered in Essen, Germany.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Deutsche Telekom AG",
 				Description: "Major telecommunications company providing internet, mobile, and landline services across Europe.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Berliner Wasserbetriebe",
 				Description: "The largest water supply and wastewater disposal company in Germany, serving Berlin and surrounding areas.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Vodafone GmbH",
 				Description: "Leading broadband, cable TV, and mobile communications provider based in Düsseldorf, Germany.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "RWE AG",
 				Description: "Energy company focused on electricity generation, renewable energy, and trading headquartered in Essen.",
@@ -364,27 +315,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "JPN": // Japan
 		companies = append(companies,
-			&Company{
+			&types.Company{
 
 				Name:        "Tokyo Electric Power Company (TEPCO)",
 				Description: "Japan's largest electric utility company providing electricity to the Greater Tokyo Area.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Tokyo Gas Co., Ltd.",
 				Description: "Japan's largest natural gas utility company supplying energy and related services to households and industries in Tokyo.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "NTT Communications Corporation",
 				Description: "Major telecommunications and internet service provider under Nippon Telegraph and Telephone Corporation.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "SoftBank Corp.",
 				Description: "Leading Japanese telecom and internet company providing mobile, broadband, and enterprise network services.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Tokyo Metropolitan Waterworks Bureau",
 				Description: "Official public utility providing clean water supply and wastewater management services in Tokyo.",
@@ -393,27 +344,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "GBR": // United Kingdom
 		companies = append(companies,
-			&Company{
+			&types.Company{
 
 				Name:        "British Gas",
 				Description: "The UK's leading energy and home services provider, supplying gas and electricity to millions of households.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Thames Water",
 				Description: "The largest water and wastewater services company in the UK, serving London and surrounding areas.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "BT Group plc",
 				Description: "Formerly British Telecom, BT is one of the UK's main broadband, landline, and TV service providers.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Virgin Media O2",
 				Description: "A major telecom and internet provider offering broadband, mobile, and digital TV services across the UK.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Scottish Power",
 				Description: "A leading UK energy supplier focusing on renewable electricity generation and green energy solutions.",
@@ -422,32 +373,32 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "AUS": // Australia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 
 				Name:        "Origin Energy",
 				Description: "One of Australia's leading energy companies providing electricity, natural gas, and solar solutions to homes and businesses.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Sydney Water",
 				Description: "Australia’s largest water utility supplying high-quality drinking water, wastewater, and stormwater services across Sydney.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Telstra Corporation Limited",
 				Description: "Australia’s biggest telecommunications and internet service provider offering broadband, mobile, and digital TV services.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "AGL Energy",
 				Description: "Leading Australian electricity and gas retailer generating power through both traditional and renewable energy sources.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Jemena",
 				Description: "Australian energy infrastructure company managing electricity and gas distribution networks across multiple states.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Spotless Group Holdings",
 				Description: "Property management and maintenance service provider offering cleaning, repairs, and facility support for residential and commercial clients.",
@@ -456,32 +407,32 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "CAN": // Canada
 		companies = append(companies,
-			&Company{
+			&types.Company{
 
 				Name:        "Hydro One",
 				Description: "Ontario-based electricity transmission and distribution utility providing power to millions of homes and businesses across Canada.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Enbridge Gas Inc.",
 				Description: "One of Canada’s largest natural gas distributors delivering energy to residential, commercial, and industrial customers nationwide.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Bell Canada",
 				Description: "Leading telecommunications and internet provider offering mobile, broadband, and digital television services throughout Canada.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Rogers Communications",
 				Description: "Major Canadian communications and media company providing internet, cable TV, and mobile services to consumers and businesses.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Toronto Water",
 				Description: "Municipal water service providing clean water supply and wastewater treatment to residents of Toronto and nearby areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "FirstService Corporation",
 				Description: "North American property services and maintenance company providing cleaning, building repair, and residential management solutions.",
 			},
@@ -489,42 +440,42 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "CHE": // Switzerland
 		companies = append(companies,
-			&Company{
+			&types.Company{
 
 				Name:        "Swissgrid AG",
 				Description: "The national electricity transmission system operator responsible for maintaining and managing Switzerland’s power grid.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "BKW Energie AG",
 				Description: "Major Swiss energy company providing electricity, renewable energy solutions, and infrastructure services.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Gaznat SA",
 				Description: "Swiss natural gas supplier managing transportation, storage, and distribution for western Switzerland.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "SIG (Services Industriels de Genève)",
 				Description: "Public utility of Geneva providing water, gas, electricity, and renewable energy services to households and businesses.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Swisscom AG",
 				Description: "Switzerland’s leading telecommunications and internet service provider offering broadband, mobile, and TV services.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Sunrise GmbH",
 				Description: "Major telecom company providing mobile, internet, and digital TV services across Switzerland.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "ISS Facility Services AG",
 				Description: "Swiss-based provider of integrated facility management, cleaning, and building maintenance services.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Bouygues Energies & Services Schweiz AG",
 				Description: "Leading Swiss company specializing in energy, building maintenance, and facility management solutions.",
@@ -533,54 +484,54 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "CHN": // China
 		companies = append(companies,
-			&Company{
+			&types.Company{
 
 				Name:        "State Grid Corporation of China",
 				Description: "The world’s largest electric utility company providing electricity transmission and distribution services across China.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "China Southern Power Grid",
 				Description: "Electric utility supplying and managing power networks in southern provinces such as Guangdong, Guangxi, and Yunnan.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "China Gas Holdings Limited",
 				Description: "Leading natural gas distributor providing piped gas, LPG, and related energy services across Chinese cities.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Beijing Gas Group Co., Ltd.",
 				Description: "Major urban gas supplier providing clean energy and heating services for residential and industrial users in Beijing.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Beijing Waterworks Group",
 				Description: "Public utility responsible for water supply, sewage treatment, and pipeline management in Beijing.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "Shanghai Municipal Waterworks",
 				Description: "Major water utility company providing clean water distribution and wastewater treatment in Shanghai.",
 			},
-			&Company{
+			&types.Company{
 
 				Name:        "China Telecom",
 				Description: "One of the largest telecommunications companies in China offering broadband, mobile, and digital TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "China Unicom",
 				Description: "Telecom operator providing mobile, fixed-line, and internet services to consumers and enterprises across China.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "China Mobile",
 				Description: "The largest mobile and broadband network provider in China offering nationwide communication services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Country Garden Services Holdings",
 				Description: "Top property management and maintenance company offering residential cleaning, repair, and facility services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "China Overseas Property Holdings Limited",
 				Description: "Leading facility management company providing residential and commercial property services throughout China.",
 			},
@@ -588,31 +539,31 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "SWE": // Sweden
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Vattenfall AB",
 				Description: "State-owned energy company supplying electricity, heat, and energy solutions across Sweden and Europe.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "E.ON Sverige AB",
 				Description: "Major energy provider in Sweden offering electricity, heating, and renewable energy services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Göteborg Energi AB",
 				Description: "Energy company providing electricity, district heating, cooling, and natural gas distribution in western Sweden.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Stockholm Vatten och Avfall",
 				Description: "Public utility managing water supply and waste services for the Stockholm region.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Telia Company AB",
 				Description: "Sweden’s largest telecommunications and broadband provider offering internet, mobile, and TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Com Hem (Tele2 AB)",
 				Description: "Leading broadband and cable TV provider serving homes across Sweden.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Coor Service Management AB",
 				Description: "Integrated facilities management company providing cleaning, maintenance, and workplace services.",
 			},
@@ -620,27 +571,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "NZL": // New Zealand
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Genesis Energy Limited",
 				Description: "One of New Zealand's largest electricity and gas suppliers serving homes and businesses nationwide.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Contact Energy Limited",
 				Description: "Major provider of electricity, natural gas, and broadband services across New Zealand.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Watercare Services Limited",
 				Description: "Auckland-based public utility responsible for water supply and wastewater treatment.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Chorus Limited",
 				Description: "New Zealand’s primary telecommunications infrastructure company providing broadband and fiber connections.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Spark New Zealand",
 				Description: "Leading telecommunications company offering internet, mobile, and digital services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Downer New Zealand",
 				Description: "Infrastructure and facilities management company providing maintenance, utilities, and asset management services.",
 			},
@@ -648,35 +599,35 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "PHL": // Philippines
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Manila Electric Company (Meralco)",
 				Description: "Largest electric distribution utility serving Metro Manila and surrounding provinces.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Maynilad Water Services, Inc.",
 				Description: "Provides water and wastewater services to the West Zone of Metro Manila.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Manila Water Company, Inc.",
 				Description: "Provides water distribution and sanitation services to the East Zone of Metro Manila.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PLDT Inc.",
 				Description: "Major telecommunications and internet service provider in the Philippines.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Globe Telecom, Inc.",
 				Description: "Leading mobile and broadband provider offering telecommunications and data services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Converge ICT Solutions, Inc.",
 				Description: "Fiber internet provider known for high-speed residential and business broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "DMCI Power Corporation",
 				Description: "Independent power producer and energy distribution company serving off-grid areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Ayala Property Management Corporation (APMC)",
 				Description: "Provides property and facilities management services for residential and commercial buildings.",
 			},
@@ -684,31 +635,31 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "IND": // India
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Tata Power Company Limited",
 				Description: "One of India's largest integrated power companies providing electricity generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "BSES Rajdhani Power Limited",
 				Description: "Delhi-based power distribution company serving residential and commercial customers.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Indraprastha Gas Limited (IGL)",
 				Description: "Leading natural gas distribution company supplying CNG and PNG in Delhi NCR.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Bharti Airtel Limited",
 				Description: "Telecommunications giant offering mobile, broadband, and digital TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Reliance Jio Infocomm Limited",
 				Description: "Major telecom provider offering 4G/5G mobile and fiber internet services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Hindustan Unilever Facility Services",
 				Description: "Facility and maintenance management company catering to industrial and commercial clients.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Delhi Jal Board",
 				Description: "Government agency responsible for water supply and wastewater treatment in Delhi.",
 			},
@@ -716,31 +667,31 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "KOR": // South Korea
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Korea Electric Power Corporation (KEPCO)",
 				Description: "South Korea’s main electric utility responsible for power generation and distribution nationwide.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Seoul Waterworks Authority",
 				Description: "Public water utility providing clean water and wastewater management in Seoul.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "SK Broadband Co., Ltd.",
 				Description: "Major internet and IPTV provider under SK Group.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "KT Corporation",
 				Description: "Leading telecommunications company offering mobile, internet, and digital services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "LG Uplus Corp.",
 				Description: "Telecommunications company providing mobile, broadband, and enterprise network services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "GS Caltex Corporation",
 				Description: "Oil and gas company also involved in energy supply and petrochemical services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Hanmi Global Inc.",
 				Description: "Facility and project management firm offering maintenance and engineering services.",
 			},
@@ -748,62 +699,62 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "THA": // Thailand
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Metropolitan Electricity Authority (MEA)",
 				Description: "Government agency providing electricity to Bangkok and nearby provinces.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Provincial Electricity Authority (PEA)",
 				Description: "Electric utility distributing power across Thailand’s provinces.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Metropolitan Waterworks Authority (MWA)",
 				Description: "Public utility responsible for clean water supply in Bangkok and surrounding areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "TOT Public Company Limited (National Telecom)",
 				Description: "State-owned telecommunications provider offering internet and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "True Corporation",
 				Description: "Major telecom and broadband provider offering internet, TV, and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PTT Public Company Limited",
 				Description: "Thailand’s national oil and gas company supplying natural gas and energy solutions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Jones Lang LaSalle (Thailand)",
 				Description: "Facilities and property management company providing maintenance and cleaning services.",
 			},
 		)
 	case "SGP": // Singapore
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "SP Group",
 				Description: "Singapore’s national utilities group providing electricity, gas, and sustainable energy solutions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PUB, Singapore’s National Water Agency",
 				Description: "Government agency managing water supply, drainage, and wastewater treatment.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Singtel",
 				Description: "Singapore’s largest telecommunications company offering mobile, internet, and TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "StarHub",
 				Description: "Telecom provider offering broadband, mobile, and entertainment services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "M1 Limited",
 				Description: "Integrated communications provider delivering mobile and fiber broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Keppel Infrastructure",
 				Description: "Company providing energy, utilities, and environmental infrastructure services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "CBM Pte Ltd",
 				Description: "Facilities management company offering maintenance, cleaning, and building services.",
 			},
@@ -811,31 +762,31 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "HKG": // Hong Kong
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "CLP Power Hong Kong Limited",
 				Description: "Major electricity utility supplying power to Kowloon, New Territories, and Lantau.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "The Hongkong Electric Company Limited (HK Electric)",
 				Description: "Electricity provider serving Hong Kong Island and Lamma Island.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Towngas (The Hong Kong and China Gas Company Limited)",
 				Description: "Provides town gas and energy solutions across Hong Kong.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Hong Kong Water Supplies Department",
 				Description: "Government department responsible for water supply and management.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PCCW-HKT",
 				Description: "Integrated telecommunications provider offering broadband, mobile, and media services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "SmarTone",
 				Description: "Mobile network operator providing 4G/5G and internet services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Facility Services Hong Kong",
 				Description: "Company offering property, cleaning, and maintenance services for commercial clients.",
 			},
@@ -843,27 +794,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "MYS": // Malaysia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Tenaga Nasional Berhad (TNB)",
 				Description: "Malaysia’s largest electricity utility company providing power generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Syarikat Air Selangor Sdn Bhd",
 				Description: "State-owned water company responsible for water supply in Selangor and Kuala Lumpur.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Petronas Gas Berhad",
 				Description: "Subsidiary of Petronas providing gas processing and utilities services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "TM (Telekom Malaysia Berhad)",
 				Description: "Malaysia’s leading broadband and telecommunications provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Maxis Berhad",
 				Description: "Telecommunications company offering mobile and internet services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "UEM Edgenta Berhad",
 				Description: "Facilities management and infrastructure maintenance service provider.",
 			},
@@ -871,27 +822,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "IDN": // Indonesia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Perusahaan Listrik Negara (PLN)",
 				Description: "State-owned electricity company responsible for power generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Perusahaan Daerah Air Minum (PDAM)",
 				Description: "Regional government-owned companies supplying water across Indonesia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Pertamina Gas (Pertagas)",
 				Description: "Subsidiary of Pertamina providing gas distribution and infrastructure services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Telkom Indonesia",
 				Description: "Indonesia’s largest telecommunications and broadband provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Indosat Ooredoo Hutchison",
 				Description: "Telecommunications company providing mobile and internet services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Indonesia",
 				Description: "Facilities and maintenance management services provider for industrial and commercial clients.",
 			},
@@ -899,27 +850,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "VNM": // Vietnam
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Vietnam Electricity (EVN)",
 				Description: "State-owned power company managing electricity generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Saigon Water Corporation (SAWACO)",
 				Description: "Major water supply company serving Ho Chi Minh City.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PetroVietnam Gas (PV Gas)",
 				Description: "Vietnam’s leading natural gas and energy provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Viettel Group",
 				Description: "Telecommunications and internet service provider owned by the Ministry of Defense.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "VNPT (Vietnam Posts and Telecommunications Group)",
 				Description: "Government-owned telecom operator offering internet and communication services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "CBRE Vietnam",
 				Description: "Facilities and property management company offering building maintenance services.",
 			},
@@ -927,27 +878,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "TWN": // Taiwan
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Taiwan Power Company (Taipower)",
 				Description: "State-owned company providing electricity generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Taiwan Water Corporation",
 				Description: "National water utility responsible for water supply across Taiwan.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "CPC Corporation",
 				Description: "State-owned petroleum and gas company providing fuel and natural gas services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Chunghwa Telecom Co., Ltd.",
 				Description: "Taiwan’s largest telecom company offering internet, mobile, and data services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Taiwan Mobile Co., Ltd.",
 				Description: "Leading telecom provider offering broadband and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Shin Kong Property Management Co., Ltd.",
 				Description: "Facilities management and maintenance service company.",
 			},
@@ -955,27 +906,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "BRN": // Brunei
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Department of Electrical Services (DES)",
 				Description: "Government agency providing electricity services across Brunei.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Public Works Department (Jabatan Kerja Raya)",
 				Description: "Responsible for water supply and infrastructure maintenance in Brunei.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Brunei Gas Carrier Sdn Bhd (BGC)",
 				Description: "Provides gas transport and related energy services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Imagine Sdn Bhd",
 				Description: "Telecommunications company offering internet and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Datastream Digital (DST)",
 				Description: "Brunei’s major telecom provider for mobile and broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Armada Properties Sdn Bhd",
 				Description: "Property and facilities management company offering maintenance and building services.",
 			},
@@ -983,27 +934,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "SAU": // Saudi Arabia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Saudi Electricity Company (SEC)",
 				Description: "Kingdom’s main electric utility providing generation and distribution services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "National Water Company (NWC)",
 				Description: "Government-owned company managing water supply and wastewater services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Saudi Aramco Gas Operations",
 				Description: "Division of Saudi Aramco responsible for natural gas distribution and processing.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Saudi Telecom Company (stc)",
 				Description: "Leading telecom provider offering mobile, internet, and enterprise solutions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Mobily (Etihad Etisalat)",
 				Description: "Telecom and broadband service provider serving residential and business customers.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Initial Saudi Group",
 				Description: "Facilities management and cleaning services provider across Saudi Arabia.",
 			},
@@ -1011,27 +962,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "ARE": // United Arab Emirates
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Dubai Electricity and Water Authority (DEWA)",
 				Description: "Provides electricity, water, and sustainable energy solutions for Dubai.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Abu Dhabi Distribution Company (ADDC)",
 				Description: "Distributes water and electricity in Abu Dhabi and nearby regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ENOC Group",
 				Description: "Energy company involved in oil, gas, and fuel distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Etisalat by e&",
 				Description: "Major telecom company offering mobile, internet, and digital services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "du (Emirates Integrated Telecommunications Company)",
 				Description: "Telecom operator providing mobile, broadband, and home services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Farnek Services LLC",
 				Description: "Facilities management and building maintenance provider in the UAE.",
 			},
@@ -1039,27 +990,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "ISR": // Israel
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Israel Electric Corporation (IEC)",
 				Description: "Government-owned electric utility responsible for generation and supply.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Mekorot Water Company",
 				Description: "National water company managing water supply and desalination systems.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Tamar Petroleum Ltd.",
 				Description: "Natural gas supplier serving power and industrial sectors.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Bezeq Telecommunications Company Ltd.",
 				Description: "Israel’s leading telecom and internet provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Cellcom Israel Ltd.",
 				Description: "Telecommunications provider offering mobile, internet, and TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "CBRE Israel",
 				Description: "Facilities and property management company providing maintenance services.",
 			},
@@ -1067,27 +1018,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "ZAF": // South Africa
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Eskom Holdings SOC Ltd",
 				Description: "South Africa’s state-owned electricity utility responsible for generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Johannesburg Water (SOC) Ltd",
 				Description: "Municipal-owned company providing water and sanitation services in Johannesburg.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sasol Gas (Pty) Ltd",
 				Description: "Natural gas and energy solutions provider for industrial and domestic customers.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Telkom SA SOC Ltd",
 				Description: "Telecommunications company offering broadband, fixed-line, and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Vodacom Group Ltd",
 				Description: "Leading mobile and internet service provider in South Africa.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Servest Group (Pty) Ltd",
 				Description: "Facilities management company offering cleaning, maintenance, and landscaping services.",
 			},
@@ -1095,27 +1046,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "EGY": // Egypt
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Egyptian Electricity Holding Company (EEHC)",
 				Description: "National company managing electricity generation, transmission, and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Holding Company for Water and Wastewater (HCWW)",
 				Description: "State-owned company responsible for water supply and sanitation services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Town Gas Company",
 				Description: "Provides natural gas distribution for residential and commercial use in Egypt.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Telecom Egypt (WE)",
 				Description: "Main telecommunications and internet service provider in Egypt.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Orange Egypt",
 				Description: "Mobile and broadband company offering telecom and digital services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Arab Contractors (Osman Ahmed Osman & Co.)",
 				Description: "Construction and facilities maintenance company providing building and infrastructure services.",
 			},
@@ -1123,27 +1074,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "TUR": // Turkey
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Turkish Electricity Distribution Corporation (TEDAŞ)",
 				Description: "Government-owned electricity distribution company serving Turkey.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "İSKİ (Istanbul Water and Sewerage Administration)",
 				Description: "Provides water supply and wastewater management for Istanbul.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "BOTAŞ Petroleum Pipeline Corporation",
 				Description: "State-owned natural gas transmission and distribution company.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Türk Telekom",
 				Description: "National telecommunications and internet services provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Vodafone Turkey",
 				Description: "Mobile and internet provider serving millions across Turkey.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Turkey",
 				Description: "Facilities management company offering maintenance, cleaning, and property services.",
 			},
@@ -1151,27 +1102,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "SEN": // Senegal (West African CFA)
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Compagnie Ivoirienne d'Électricité (CIE)",
 				Description: "Electricity company responsible for power generation and distribution in Côte d'Ivoire.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Société Nationale des Eaux du Sénégal (SONES)",
 				Description: "Manages water production and distribution infrastructure in Senegal.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Senelec",
 				Description: "State-owned electricity provider for Senegal.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Orange Côte d’Ivoire",
 				Description: "Telecommunications provider offering mobile, internet, and payment services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "MTN Côte d’Ivoire",
 				Description: "Mobile and broadband network operator in West Africa.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ENGIE Services Afrique de l’Ouest",
 				Description: "Provides maintenance, energy efficiency, and facility management solutions.",
 			},
@@ -1179,27 +1130,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "CMR": // Cameroon (Central African CFA)
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Eneo Cameroon S.A.",
 				Description: "Cameroon’s primary electricity supplier responsible for power generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Camwater (Cameroon Water Utilities Corporation)",
 				Description: "Manages water supply and infrastructure across Cameroon.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Société d’Énergie et d’Eau du Gabon (SEEG)",
 				Description: "Provides water and electricity services throughout Gabon.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "MTN Cameroon",
 				Description: "Mobile and internet service provider across Central Africa.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Orange Cameroun",
 				Description: "Telecom company offering mobile and data services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Veolia Africa",
 				Description: "International company providing water, waste, and energy management services in Africa.",
 			},
@@ -1207,23 +1158,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "MUS": // Mauritius
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Central Electricity Board (CEB)",
 				Description: "National electricity provider managing generation and distribution in Mauritius.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Central Water Authority (CWA)",
 				Description: "Responsible for water supply and distribution across Mauritius.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Mauritius Telecom Ltd",
 				Description: "Leading telecommunications company offering mobile and broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Emtel Ltd",
 				Description: "Mobile network operator providing internet and 4G/5G services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Gamma Civic Ltd",
 				Description: "Facilities, construction, and maintenance services provider in Mauritius.",
 			},
@@ -1231,23 +1182,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "MDV": // Maldives
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "State Electric Company Limited (STELCO)",
 				Description: "Provides electricity generation and distribution services across the Maldives.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Male' Water and Sewerage Company (MWSC)",
 				Description: "Responsible for water supply and wastewater treatment in the Maldives.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Ooredoo Maldives",
 				Description: "Telecommunications company offering mobile, internet, and data services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Dhiraagu Plc",
 				Description: "Maldives’ leading telecom and broadband service provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Urban Development and Construction Pvt Ltd",
 				Description: "Company providing facilities management and maintenance services.",
 			},
@@ -1255,27 +1206,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "NOR": // Norway
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Statkraft AS",
 				Description: "State-owned hydropower company and leading electricity provider in Norway.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Hafslund Eco AS",
 				Description: "Renewable energy company providing electricity and district heating in Oslo region.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Oslo Vann og Avløpsetaten",
 				Description: "Municipal agency responsible for water supply and wastewater treatment in Oslo.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Telenor ASA",
 				Description: "Norway’s largest telecommunications and broadband provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Altibox AS",
 				Description: "Internet and TV service provider offering fiber broadband solutions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Facility Services Norway",
 				Description: "Facilities management company providing cleaning and maintenance services nationwide.",
 			},
@@ -1283,27 +1234,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "DNK": // Denmark
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Ørsted A/S",
 				Description: "Global energy company based in Denmark, focusing on renewable electricity and heating.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "HOFOR A/S",
 				Description: "Greater Copenhagen’s utility company providing water, district heating, and waste management.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Evida A/S",
 				Description: "National natural gas distribution operator in Denmark.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "TDC Net A/S",
 				Description: "Denmark’s primary telecom infrastructure and internet provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "YouSee",
 				Description: "Telecommunications and broadband provider serving households across Denmark.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Danmark A/S",
 				Description: "Facility management and cleaning services provider.",
 			},
@@ -1311,27 +1262,27 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "POL": // Poland
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "PGE Polska Grupa Energetyczna",
 				Description: "Poland’s largest energy company providing electricity generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "MPWiK Warszawa",
 				Description: "Municipal Water and Sewerage Company serving Warsaw and nearby regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PGNiG (Polskie Górnictwo Naftowe i Gazownictwo)",
 				Description: "National natural gas company handling supply and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Orange Polska",
 				Description: "Leading telecommunications and internet provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Play (P4 Sp. z o.o.)",
 				Description: "Telecom operator offering mobile and broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Veolia Energia Polska",
 				Description: "Provides district heating, energy efficiency, and facility management services.",
 			},
@@ -1339,23 +1290,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "CZE": // Czech Republic
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "ČEZ Group",
 				Description: "Leading energy company generating and distributing electricity and heat in the Czech Republic.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Pražská plynárenská",
 				Description: "Major gas supplier providing natural gas distribution and energy services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Pražská vodohospodářská společnost (PVS)",
 				Description: "Company managing Prague’s water supply and sewage systems.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "O2 Czech Republic",
 				Description: "Telecommunication company providing mobile, internet, and broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Veolia Česká republika",
 				Description: "Facilities management and environmental services company handling water, waste, and energy.",
 			},
@@ -1363,23 +1314,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "HUN": // Hungary
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "MVM Group",
 				Description: "Hungary’s main state-owned energy company supplying electricity and gas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Budapesti Elektromos Művek (ELMŰ)",
 				Description: "Electric utility company serving Budapest and surrounding regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Budapest Waterworks (Fővárosi Vízművek)",
 				Description: "Provides potable water and wastewater services in Budapest.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Magyar Telekom",
 				Description: "Hungary’s leading telecommunications provider offering internet, mobile, and TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "B+N Referencia Zrt.",
 				Description: "Facilities management and cleaning services company operating nationwide.",
 			},
@@ -1387,23 +1338,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "RUS": // Russia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Gazprom",
 				Description: "Global energy giant supplying natural gas, electricity, and heat.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Rosseti",
 				Description: "Russian power grid operator managing electricity transmission and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Mosvodokanal",
 				Description: "Major water supply and wastewater management company in Moscow.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Rostelecom",
 				Description: "National telecommunications provider offering internet, mobile, and digital services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Facility Services Russia",
 				Description: "Facilities management company providing cleaning, maintenance, and energy services.",
 			},
@@ -1411,19 +1362,19 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "HRV": // Croatia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "HEP Group (Hrvatska elektroprivreda)",
 				Description: "National energy company providing electricity generation, distribution, and gas supply.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Hrvatske vode",
 				Description: "Manages water resources, flood protection, and water supply infrastructure across Croatia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Hrvatski Telekom",
 				Description: "Leading telecommunications and internet service provider in Croatia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Zagrebački Holding d.o.o.",
 				Description: "Municipal services company managing waste, water, transport, and maintenance services in Zagreb.",
 			},
@@ -1431,23 +1382,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "BRA": // Brazil
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Eletrobras",
 				Description: "Brazil’s largest power utility company responsible for electricity generation and transmission.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sabesp",
 				Description: "Provides water supply and sewage treatment in São Paulo and nearby areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Petrobras",
 				Description: "Integrated energy company dealing in oil, gas, and fuel distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Vivo (Telefônica Brasil)",
 				Description: "Telecom company providing mobile, internet, and TV services nationwide.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Grupo Enel Brasil",
 				Description: "Operates electricity distribution, generation, and maintenance services across multiple states.",
 			},
@@ -1455,23 +1406,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "MEX": // Mexico
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Comisión Federal de Electricidad (CFE)",
 				Description: "Government-owned utility responsible for electricity generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Pemex",
 				Description: "National oil and gas company supplying fuel and energy products.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Agua de México",
 				Description: "Water supply and wastewater services provider across multiple municipalities.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Telmex",
 				Description: "Mexico’s largest internet and telecommunications service provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Facility Services México",
 				Description: "Facilities management firm offering maintenance, cleaning, and building services.",
 			},
@@ -1479,23 +1430,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "ARG": // Argentina
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Edesur",
 				Description: "Electricity distribution company serving Buenos Aires and surrounding areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "AySA (Agua y Saneamientos Argentinos)",
 				Description: "Public company providing water and sanitation services in Greater Buenos Aires.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Metrogas",
 				Description: "Main natural gas distributor in Buenos Aires.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Telecom Argentina",
 				Description: "Telecommunications provider offering mobile, internet, and cable services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Grupo Roggio",
 				Description: "Infrastructure and services firm providing maintenance, transport, and utilities management.",
 			},
@@ -1503,23 +1454,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "CHL": // Chile
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Enel Distribución Chile",
 				Description: "Major electricity distribution company serving Santiago and nearby regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Aguas Andinas",
 				Description: "Water supply and wastewater treatment company for the Santiago metropolitan area.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Metrogas Chile",
 				Description: "Natural gas distribution company for residential and commercial clients.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Movistar Chile",
 				Description: "Telecommunications company offering internet, mobile, and TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sodexo Chile",
 				Description: "Facilities management and maintenance services provider.",
 			},
@@ -1527,19 +1478,19 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "COL": // Colombia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Grupo Energía Bogotá",
 				Description: "Energy company managing electricity and natural gas infrastructure in Colombia and Latin America.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Empresas Públicas de Medellín (EPM)",
 				Description: "Provides water, electricity, gas, and waste management services across Colombia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Claro Colombia",
 				Description: "Telecommunications provider offering broadband, mobile, and TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Veolia Colombia",
 				Description: "Environmental and facilities management services company.",
 			},
@@ -1547,23 +1498,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "PER": // Peru
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Enel Distribución Perú",
 				Description: "Electricity distribution and energy services provider for Lima and surrounding regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sedapal",
 				Description: "Public water and sanitation company serving Lima and Callao.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Petroperú",
 				Description: "State-owned oil and gas company managing fuel distribution and refining.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Movistar Perú",
 				Description: "Leading telecommunications provider offering mobile, internet, and TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Graña y Montero (AENZA)",
 				Description: "Engineering and facilities management company providing maintenance and infrastructure services.",
 			},
@@ -1571,23 +1522,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "URY": // Uruguay
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "UTE (Administración Nacional de Usinas y Trasmisiones Eléctricas)",
 				Description: "State-owned utility responsible for electricity generation and distribution across Uruguay.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "OSE (Obras Sanitarias del Estado)",
 				Description: "National water and sanitation company providing potable water and wastewater treatment.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ANTEL",
 				Description: "Government-owned telecommunications provider offering internet, phone, and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "MontevideoGas",
 				Description: "Natural gas distributor for residential and industrial clients in Montevideo.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Uruguay",
 				Description: "Facilities management and maintenance services company operating nationwide.",
 			},
@@ -1595,23 +1546,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "DOM": // Dominican Republic
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Edesur Dominicana",
 				Description: "Electricity distribution company serving the southern region of the Dominican Republic.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "CAASD (Corporación del Acueducto y Alcantarillado de Santo Domingo)",
 				Description: "Public company managing water supply and wastewater services in Santo Domingo.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Claro Dominicana",
 				Description: "Leading telecommunications provider offering internet, mobile, and cable TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Propagas",
 				Description: "Major distributor of liquefied petroleum gas for homes and businesses.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Grupo SID Facilities",
 				Description: "Integrated maintenance and facility management services provider.",
 			},
@@ -1619,23 +1570,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "PRY": // Paraguay
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "ANDE (Administración Nacional de Electricidad)",
 				Description: "State-owned company responsible for electricity generation and distribution in Paraguay.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ESSAP S.A.",
 				Description: "National water and sanitation service provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Tigo Paraguay",
 				Description: "Telecom company offering internet, mobile, and cable TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Copetrol",
 				Description: "Energy distributor providing fuel, gas, and energy-related services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sodexo Paraguay",
 				Description: "Facilities and maintenance services company for business and industrial sectors.",
 			},
@@ -1643,23 +1594,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "BOL": // Bolivia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "ENDE (Empresa Nacional de Electricidad)",
 				Description: "Bolivia’s national electricity company managing generation, transmission, and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "EPSAS",
 				Description: "Water and sanitation provider serving La Paz and El Alto.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "YPFB (Yacimientos Petrolíferos Fiscales Bolivianos)",
 				Description: "State-owned oil and gas company managing energy production and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "VIVA Bolivia",
 				Description: "Telecommunications company providing internet, mobile, and digital services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "AESA Bolivia",
 				Description: "Facilities management company offering cleaning, maintenance, and infrastructure support.",
 			},
@@ -1667,23 +1618,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "VEN": // Venezuela
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "CORPOELEC",
 				Description: "National electric power corporation overseeing generation and distribution across Venezuela.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "HIDROCAPITAL",
 				Description: "Water utility responsible for supplying water and wastewater treatment in Caracas and nearby areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "CANTV",
 				Description: "National telecommunications provider offering fixed line, internet, and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PDVSA Gas",
 				Description: "Subsidiary of PDVSA managing natural gas production and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "SENIAT Facilities",
 				Description: "Public services and maintenance provider for infrastructure and office spaces.",
 			},
@@ -1691,23 +1642,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "PAK": // Pakistan
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "K-Electric",
 				Description: "Private utility company responsible for electricity generation and distribution in Karachi.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "WAPDA (Water and Power Development Authority)",
 				Description: "Government agency managing water and electricity projects across Pakistan.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "SNGPL (Sui Northern Gas Pipelines Limited)",
 				Description: "Major natural gas supplier in northern Pakistan.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PTCL (Pakistan Telecommunication Company Limited)",
 				Description: "National telecom company providing internet, broadband, and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Servest Pakistan",
 				Description: "Facilities management and maintenance services company operating in major cities.",
 			},
@@ -1715,23 +1666,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "BGD": // Bangladesh
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Dhaka Electric Supply Company (DESCO)",
 				Description: "Electric distribution company serving Dhaka and nearby regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "WASA (Dhaka Water Supply and Sewerage Authority)",
 				Description: "Public utility managing water and sanitation in the capital region.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Titas Gas Transmission and Distribution Company Limited",
 				Description: "Largest gas distribution company in Bangladesh.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Grameenphone",
 				Description: "Leading telecom operator offering mobile and internet services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sodexo Bangladesh",
 				Description: "Facilities management and maintenance services provider for business and institutions.",
 			},
@@ -1739,23 +1690,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "LKA": // Sri Lanka
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Ceylon Electricity Board (CEB)",
 				Description: "Government-owned corporation responsible for electricity generation and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "National Water Supply and Drainage Board (NWSDB)",
 				Description: "Provides water supply and sanitation services throughout Sri Lanka.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Lanka IOC",
 				Description: "Energy company involved in fuel distribution and oil services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Dialog Axiata",
 				Description: "Leading telecommunications provider offering internet, mobile, and digital TV.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Jones Lang LaSalle Sri Lanka",
 				Description: "Facilities and property management services company.",
 			},
@@ -1763,23 +1714,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "NPL": // Nepal
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Nepal Electricity Authority (NEA)",
 				Description: "State-owned utility managing electricity generation and distribution across Nepal.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Kathmandu Upatyaka Khanepani Limited (KUKL)",
 				Description: "Water supply and sanitation provider for the Kathmandu Valley.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Nepal Oil Corporation",
 				Description: "Government-owned company distributing fuel and petroleum products.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Ncell Axiata",
 				Description: "Telecom company providing mobile and internet services nationwide.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Nepal Facilities Management Services",
 				Description: "Company offering building maintenance and support services.",
 			},
@@ -1787,23 +1738,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "MMR": // Myanmar
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Yangon Electricity Supply Corporation (YESC)",
 				Description: "Provides electricity distribution and billing services in Yangon.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Yangon City Development Committee (YCDC)",
 				Description: "Municipal body managing water, sanitation, and waste services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Myanma Oil and Gas Enterprise (MOGE)",
 				Description: "Government enterprise managing oil and gas exploration and supply.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "MPT (Myanmar Posts and Telecommunications)",
 				Description: "Main telecom operator offering internet, mobile, and broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "CBM Facilities Services",
 				Description: "Private company providing maintenance, janitorial, and technical support services.",
 			},
@@ -1811,23 +1762,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "KHM": // Cambodia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Electricité du Cambodge (EDC)",
 				Description: "State-owned company responsible for electricity generation, transmission, and distribution across Cambodia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Phnom Penh Water Supply Authority (PPWSA)",
 				Description: "Public utility providing clean water supply and sanitation services in Phnom Penh.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "TotalEnergies Cambodia",
 				Description: "Energy company supplying fuel, lubricants, and gas products.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Metfone",
 				Description: "Major telecommunications operator offering internet, mobile, and broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sodexo Cambodia",
 				Description: "Facilities management and maintenance services provider for commercial and industrial clients.",
 			},
@@ -1835,23 +1786,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "LAO": // Laos
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Électricité du Laos (EDL)",
 				Description: "National power utility responsible for electricity generation and distribution in Laos.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Vientiane Water Supply State Enterprise",
 				Description: "Provides water supply and sanitation services in Vientiane and nearby regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "PetroTrade Lao Public Company",
 				Description: "Major distributor of fuel and gas across Laos.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Lao Telecom",
 				Description: "Leading telecommunications operator providing internet, mobile, and enterprise network services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "EDL-Gen Services",
 				Description: "Subsidiary offering technical maintenance and energy infrastructure support.",
 			},
@@ -1859,23 +1810,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "NGA": // Nigeria
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Ikeja Electric",
 				Description: "Nigeria’s largest electricity distribution company serving the Lagos area.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Lagos Water Corporation",
 				Description: "Public water supply agency providing treated water to Lagos and nearby areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "TotalEnergies Nigeria",
 				Description: "Oil and gas company supplying fuel, lubricants, and LPG services nationwide.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "MTN Nigeria",
 				Description: "Largest telecom operator offering mobile, data, and broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Alpha Mead Facilities",
 				Description: "Integrated facilities management and maintenance services provider.",
 			},
@@ -1883,23 +1834,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "KEN": // Kenya
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Kenya Power and Lighting Company (KPLC)",
 				Description: "State-owned company managing electricity distribution and billing in Kenya.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Nairobi City Water and Sewerage Company",
 				Description: "Provides water supply and wastewater services in the capital region.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Kenya Pipeline Company (KPC)",
 				Description: "Handles transportation and storage of petroleum products across Kenya.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Safaricom PLC",
 				Description: "Telecom giant offering internet, mobile, and M-Pesa financial services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sodexo Kenya",
 				Description: "Facilities management and maintenance company serving corporate and industrial sectors.",
 			},
@@ -1907,23 +1858,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "GHA": // Ghana
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Electricity Company of Ghana (ECG)",
 				Description: "Main utility responsible for electricity distribution and customer billing.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Ghana Water Company Limited (GWCL)",
 				Description: "Public utility managing water supply and sanitation services across Ghana.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Ghana National Gas Company",
 				Description: "State-owned company managing gas processing and distribution infrastructure.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "MTN Ghana",
 				Description: "Leading telecom provider offering internet, mobile, and digital services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Broll Ghana",
 				Description: "Facilities and property management company providing cleaning and maintenance services.",
 			},
@@ -1931,23 +1882,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "MAR": // Morocco
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "ONEE (Office National de l'Électricité et de l'Eau Potable)",
 				Description: "National company providing electricity and potable water across Morocco.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Lydec",
 				Description: "Private company managing water, electricity, and sanitation services in Casablanca.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Afriquia Gaz",
 				Description: "Leading gas distributor providing LPG and energy solutions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Maroc Telecom",
 				Description: "Major telecommunications company offering mobile, internet, and landline services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Derichebourg Maroc",
 				Description: "Facilities management and industrial maintenance company operating nationwide.",
 			},
@@ -1955,23 +1906,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "TUN": // Tunisia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "STEG (Société Tunisienne de l'Électricité et du Gaz)",
 				Description: "Public utility providing electricity and natural gas services across Tunisia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "SONEDE (Société Nationale d’Exploitation et de Distribution des Eaux)",
 				Description: "National water company managing supply and sanitation.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Tunisie Telecom",
 				Description: "Leading telecom operator offering internet, mobile, and broadband services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Shell Tunisia",
 				Description: "Energy company engaged in gas and petroleum distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Tunisie",
 				Description: "Facilities and workplace management company providing cleaning and maintenance solutions.",
 			},
@@ -1979,23 +1930,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "ETH": // Ethiopia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Ethiopian Electric Utility (EEU)",
 				Description: "Government utility company responsible for electricity distribution and customer services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Addis Ababa Water and Sewerage Authority (AAWSA)",
 				Description: "Provides water and wastewater services in the capital city.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Ethiopian Petroleum Supply Enterprise",
 				Description: "State-owned distributor of petroleum and gas products.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Ethio Telecom",
 				Description: "National telecommunications provider offering internet, mobile, and ICT solutions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sodexo Ethiopia",
 				Description: "Facilities management and building maintenance services company.",
 			},
@@ -2003,23 +1954,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "DZA": // Algeria
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Sonelgaz",
 				Description: "State-owned company overseeing electricity and gas distribution throughout Algeria.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "SEAAL (Société des Eaux et de l’Assainissement d’Alger)",
 				Description: "Water and sanitation company serving Algiers and nearby regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Naftal",
 				Description: "National petroleum and gas distributor providing LPG and fuel products.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Algérie Télécom",
 				Description: "Telecom operator offering internet, broadband, and telephony services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ENGIE Services Algérie",
 				Description: "Facilities and energy management company offering maintenance and engineering services.",
 			},
@@ -2027,23 +1978,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "UKR": // Ukraine
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "DTEK",
 				Description: "Largest private energy company generating and distributing electricity and gas across Ukraine.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Kyivvodokanal",
 				Description: "Municipal water supply and wastewater treatment company serving Kyiv.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Naftogaz of Ukraine",
 				Description: "National oil and gas company managing exploration, transport, and supply.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Kyivstar",
 				Description: "Leading telecom company providing mobile, broadband, and digital services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "ISS Ukraine",
 				Description: "Facilities management and maintenance service provider operating nationwide.",
 			},
@@ -2051,23 +2002,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "ROU": // Romania
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Electrica SA",
 				Description: "Major electricity distribution company serving multiple regions across Romania.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Engie Romania",
 				Description: "Gas and energy supplier providing natural gas, electricity, and energy services nationwide.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Apa Nova București",
 				Description: "Water and sewage utility company serving Bucharest and surrounding areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Digi Romania (RCS & RDS)",
 				Description: "Leading internet, mobile, and cable TV service provider in Romania.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Compania Națională de Administrare a Infrastructurii Rutiere (CNAIR)",
 				Description: "Responsible for road maintenance and infrastructure services.",
 			},
@@ -2075,23 +2026,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "BGR": // Bulgaria
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "CEZ Bulgaria",
 				Description: "Electricity distribution and supply company operating mainly in western Bulgaria.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Overgas Inc.",
 				Description: "Leading private natural gas supplier and distributor in Bulgaria.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Sofiyska Voda AD",
 				Description: "Water and wastewater utility for Sofia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Vivacom",
 				Description: "Telecommunications provider offering broadband internet, mobile, and TV services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "TITAN Zlatna Panega",
 				Description: "Company offering waste management and industrial maintenance services.",
 			},
@@ -2099,23 +2050,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "SRB": // Serbia
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "EPS (Elektroprivreda Srbije)",
 				Description: "State-owned electricity generation and distribution company.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Srbijagas",
 				Description: "Main natural gas distributor and supplier across Serbia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "JKP Beogradski Vodovod i Kanalizacija",
 				Description: "Public utility managing water supply and sewage in Belgrade.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Telekom Srbija (MTS)",
 				Description: "Leading telecommunications and internet provider in Serbia.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "City Service Belgrade",
 				Description: "Facilities and property maintenance management company.",
 			},
@@ -2123,23 +2074,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "ISL": // Iceland
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Landsvirkjun",
 				Description: "National power company generating renewable electricity from hydro, geothermal, and wind.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Veitur Utilities",
 				Description: "Provides electricity, hot water, and cold water services in Reykjavík and surrounding areas.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Orkuveita Reykjavíkur (Reykjavik Energy)",
 				Description: "Utility company providing geothermal heating, electricity, and water services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Síminn",
 				Description: "Iceland’s main telecom and internet provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Íslandsbanki Facility Services",
 				Description: "Building and facility maintenance services across Iceland.",
 			},
@@ -2147,23 +2098,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "BLR": // Belarus
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Belenergo",
 				Description: "National electric power company managing generation and distribution across Belarus.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Beltopgaz",
 				Description: "Main natural gas provider in Belarus.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Minskvodokanal",
 				Description: "Municipal water supply and sewage company for Minsk.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "A1 Telekom Belarus",
 				Description: "Leading mobile and broadband internet provider in Belarus.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Belkommunservice",
 				Description: "Municipal maintenance and waste management company.",
 			},
@@ -2171,23 +2122,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "FJI": // Fiji
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Energy Fiji Limited (EFL)",
 				Description: "Government-owned electricity generation and distribution company.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Water Authority of Fiji",
 				Description: "National provider of water and wastewater services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Fiji Gas",
 				Description: "Main liquefied petroleum gas (LPG) supplier for residential and commercial use.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Vodafone Fiji",
 				Description: "Leading telecommunications and broadband service provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Rentokil Initial Fiji",
 				Description: "Provides cleaning, hygiene, and maintenance services across Fiji.",
 			},
@@ -2195,19 +2146,19 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "PNG": // Papua New Guinea
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "PNG Power Limited",
 				Description: "State-owned utility responsible for electricity generation, transmission, and distribution.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Water PNG Limited",
 				Description: "Public water supply and sanitation company.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Digicel PNG",
 				Description: "Leading telecom provider offering internet and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Ela Motors Maintenance Services",
 				Description: "Facilities and maintenance services provider across Papua New Guinea.",
 			},
@@ -2215,23 +2166,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "JAM": // Jamaica
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Jamaica Public Service Company (JPS)",
 				Description: "Main electricity generation and distribution company in Jamaica.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "National Water Commission (NWC)",
 				Description: "Public utility providing potable water and wastewater services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "GasPro Jamaica",
 				Description: "Distributor of liquefied petroleum gas and energy solutions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "FLOW Jamaica",
 				Description: "Major telecommunications and broadband provider.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "KLEANMIX Jamaica",
 				Description: "Building and facility maintenance service provider.",
 			},
@@ -2239,23 +2190,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "CRI": // Costa Rica
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Instituto Costarricense de Electricidad (ICE)",
 				Description: "National provider of electricity and telecommunications.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "A y A (Acueductos y Alcantarillados)",
 				Description: "Public utility managing water supply and sewer systems.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Gas Tomza Costa Rica",
 				Description: "Major distributor of LPG gas in Costa Rica.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Liberty Costa Rica",
 				Description: "Telecom company offering internet, cable, and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "EULEN Costa Rica",
 				Description: "Facilities management and cleaning services provider.",
 			},
@@ -2263,23 +2214,23 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 
 	case "GTM": // Guatemala
 		companies = append(companies,
-			&Company{
+			&types.Company{
 				Name:        "Energuate",
 				Description: "Electricity distribution company serving most of Guatemala.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "EEGSA (Empresa Eléctrica de Guatemala)",
 				Description: "Electric utility serving the capital and nearby regions.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "EMPAGUA",
 				Description: "Public water supply and sanitation company in Guatemala City.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Claro Guatemala",
 				Description: "Leading telecommunications provider offering internet and mobile services.",
 			},
-			&Company{
+			&types.Company{
 				Name:        "Multiservicios GT",
 				Description: "Maintenance and cleaning services provider for businesses and households.",
 			},
@@ -2306,8 +2257,9 @@ func companySeed(context context.Context, service *horizon.HorizonService, tx *g
 	return nil
 }
 
-func CompanyCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Company, error) {
-	return CompanyManager(service).Find(context, &Company{
+func CompanyCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.Company, error) {
+	return CompanyManager(service).Find(context, &types.Company{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

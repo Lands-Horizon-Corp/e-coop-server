@@ -7,71 +7,17 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	MemberType struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_type"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_type"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Prefix                     string `gorm:"type:varchar(255)"`
-		Name                       string `gorm:"type:varchar(255)"`
-		Description                string `gorm:"type:text"`
-		BrowseReferenceDescription string `gorm:"type:text"`
-
-		BrowseReferences []*BrowseReference `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"browse_references,omitempty"`
-	}
-
-	MemberTypeResponse struct {
-		ID                         uuid.UUID                  `json:"id"`
-		CreatedAt                  string                     `json:"created_at"`
-		CreatedByID                uuid.UUID                  `json:"created_by_id"`
-		CreatedBy                  *UserResponse              `json:"created_by,omitempty"`
-		UpdatedAt                  string                     `json:"updated_at"`
-		UpdatedByID                uuid.UUID                  `json:"updated_by_id"`
-		UpdatedBy                  *UserResponse              `json:"updated_by,omitempty"`
-		OrganizationID             uuid.UUID                  `json:"organization_id"`
-		Organization               *OrganizationResponse      `json:"organization,omitempty"`
-		BranchID                   uuid.UUID                  `json:"branch_id"`
-		Branch                     *BranchResponse            `json:"branch,omitempty"`
-		Prefix                     string                     `json:"prefix"`
-		Name                       string                     `json:"name"`
-		Description                string                     `json:"description"`
-		BrowseReferenceDescription string                     `json:"browse_reference_description"`
-		BrowseReferences           []*BrowseReferenceResponse `json:"browse_references,omitempty"`
-	}
-
-	MemberTypeRequest struct {
-		Prefix                     string `json:"prefix,omitempty"`
-		Name                       string `json:"name,omitempty"`
-		Description                string `json:"description,omitempty"`
-		BrowseReferenceDescription string `json:"browse_reference_description,omitempty"`
-	}
-)
-
-func MemberTypeManager(service *horizon.HorizonService) *registry.Registry[MemberType, MemberTypeResponse, MemberTypeRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberType, MemberTypeResponse, MemberTypeRequest]{
+func MemberTypeManager(service *horizon.HorizonService) *registry.Registry[types.MemberType, types.MemberTypeResponse, types.MemberTypeRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.MemberType, types.MemberTypeResponse, types.MemberTypeRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
-			"Branch",
-			"Organization",
 			"BrowseReferences",
 			"BrowseReferences.Account",
 			"BrowseReferences.MemberType",
@@ -80,11 +26,11 @@ func MemberTypeManager(service *horizon.HorizonService) *registry.Registry[Membe
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberType) *MemberTypeResponse {
+		Resource: func(data *types.MemberType) *types.MemberTypeResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberTypeResponse{
+			return &types.MemberTypeResponse{
 				ID:                         data.ID,
 				CreatedAt:                  data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                data.CreatedByID,
@@ -104,7 +50,7 @@ func MemberTypeManager(service *horizon.HorizonService) *registry.Registry[Membe
 			}
 		},
 
-		Created: func(data *MemberType) registry.Topics {
+		Created: func(data *types.MemberType) registry.Topics {
 			return []string{
 				"member_type.create",
 				fmt.Sprintf("member_type.create.%s", data.ID),
@@ -112,7 +58,7 @@ func MemberTypeManager(service *horizon.HorizonService) *registry.Registry[Membe
 				fmt.Sprintf("member_type.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberType) registry.Topics {
+		Updated: func(data *types.MemberType) registry.Topics {
 			return []string{
 				"member_type.update",
 				fmt.Sprintf("member_type.update.%s", data.ID),
@@ -120,7 +66,7 @@ func MemberTypeManager(service *horizon.HorizonService) *registry.Registry[Membe
 				fmt.Sprintf("member_type.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberType) registry.Topics {
+		Deleted: func(data *types.MemberType) registry.Topics {
 			return []string{
 				"member_type.delete",
 				fmt.Sprintf("member_type.delete.%s", data.ID),
@@ -131,9 +77,10 @@ func MemberTypeManager(service *horizon.HorizonService) *registry.Registry[Membe
 	})
 }
 
-func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID,
+	organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	memberType := []*MemberType{
+	memberType := []*types.MemberType{
 		{
 
 			Name:           "New",
@@ -311,8 +258,9 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 	return nil
 }
 
-func MemberTypeCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberType, error) {
-	return MemberTypeManager(service).Find(context, &MemberType{
+func MemberTypeCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberType, error) {
+	return MemberTypeManager(service).Find(context, &types.MemberType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

@@ -8,68 +8,14 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	InterestRateByDate struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_interest_rate_by_date"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_interest_rate_by_date"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		BrowseReferenceID uuid.UUID        `gorm:"type:uuid;not null;index:idx_browse_reference_date_range"`
-		BrowseReference   *BrowseReference `gorm:"foreignKey:BrowseReferenceID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"browse_reference,omitempty"`
-
-		FromDate     time.Time `gorm:"not null;index:idx_browse_reference_date_range" json:"from_date" validate:"required"`
-		ToDate       time.Time `gorm:"not null;index:idx_browse_reference_date_range" json:"to_date" validate:"required"`
-		InterestRate float64   `gorm:"type:decimal(15,6);not null" json:"interest_rate" validate:"required,min=0"`
-	}
-
-	InterestRateByDateResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-
-		BrowseReferenceID uuid.UUID                `json:"browse_reference_id"`
-		BrowseReference   *BrowseReferenceResponse `json:"browse_reference,omitempty"`
-		FromDate          string                   `json:"from_date"`
-		ToDate            string                   `json:"to_date"`
-		InterestRate      float64                  `json:"interest_rate"`
-	}
-
-	InterestRateByDateRequest struct {
-		ID                *uuid.UUID `json:"id"`
-		BrowseReferenceID uuid.UUID  `json:"browse_reference_id" validate:"required"`
-		FromDate          time.Time  `json:"from_date" validate:"required"`
-		ToDate            time.Time  `json:"to_date" validate:"required,gtefield=FromDate"`
-		InterestRate      float64    `json:"interest_rate" validate:"required,min=0"`
-	}
-)
-
-func InterestRateByDateManager(service *horizon.HorizonService) *registry.Registry[InterestRateByDate, InterestRateByDateResponse, InterestRateByDateRequest] {
+func InterestRateByDateManager(service *horizon.HorizonService) *registry.Registry[
+	types.InterestRateByDate, types.InterestRateByDateResponse, types.InterestRateByDateRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		InterestRateByDate, InterestRateByDateResponse, InterestRateByDateRequest,
+		types.InterestRateByDate, types.InterestRateByDateResponse, types.InterestRateByDateRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Organization", "Branch", "BrowseReference",
@@ -78,11 +24,11 @@ func InterestRateByDateManager(service *horizon.HorizonService) *registry.Regist
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *InterestRateByDate) *InterestRateByDateResponse {
+		Resource: func(data *types.InterestRateByDate) *types.InterestRateByDateResponse {
 			if data == nil {
 				return nil
 			}
-			return &InterestRateByDateResponse{
+			return &types.InterestRateByDateResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -103,7 +49,7 @@ func InterestRateByDateManager(service *horizon.HorizonService) *registry.Regist
 			}
 		},
 
-		Created: func(data *InterestRateByDate) registry.Topics {
+		Created: func(data *types.InterestRateByDate) registry.Topics {
 			return []string{
 				"interest_rate_by_date.create",
 				fmt.Sprintf("interest_rate_by_date.create.%s", data.ID),
@@ -112,7 +58,7 @@ func InterestRateByDateManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("interest_rate_by_date.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestRateByDate) registry.Topics {
+		Updated: func(data *types.InterestRateByDate) registry.Topics {
 			return []string{
 				"interest_rate_by_date.update",
 				fmt.Sprintf("interest_rate_by_date.update.%s", data.ID),
@@ -121,7 +67,7 @@ func InterestRateByDateManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("interest_rate_by_date.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestRateByDate) registry.Topics {
+		Deleted: func(data *types.InterestRateByDate) registry.Topics {
 			return []string{
 				"interest_rate_by_date.delete",
 				fmt.Sprintf("interest_rate_by_date.delete.%s", data.ID),
@@ -133,7 +79,8 @@ func InterestRateByDateManager(service *horizon.HorizonService) *registry.Regist
 	})
 }
 
-func InterestRateByDateForBrowseReference(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID) ([]*InterestRateByDate, error) {
+func InterestRateByDateForBrowseReference(context context.Context,
+	service *horizon.HorizonService, browseReferenceID uuid.UUID) ([]*types.InterestRateByDate, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
@@ -141,7 +88,8 @@ func InterestRateByDateForBrowseReference(context context.Context, service *hori
 	return InterestRateByDateManager(service).ArrFind(context, filters, nil)
 }
 
-func InterestRateByDateForRange(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID, date time.Time) ([]*InterestRateByDate, error) {
+func InterestRateByDateForRange(context context.Context, service *horizon.HorizonService,
+	browseReferenceID uuid.UUID, date time.Time) ([]*types.InterestRateByDate, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 		{Field: "from_date", Op: query.ModeLTE, Value: date},
@@ -151,7 +99,8 @@ func InterestRateByDateForRange(context context.Context, service *horizon.Horizo
 	return InterestRateByDateManager(service).ArrFind(context, filters, nil)
 }
 
-func InterestRateByDateCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByDate, error) {
+func InterestRateByDateCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.InterestRateByDate, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -160,7 +109,8 @@ func InterestRateByDateCurrentBranch(context context.Context, service *horizon.H
 	return InterestRateByDateManager(service).ArrFind(context, filters, nil)
 }
 
-func GetInterestRateForDate(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID, date time.Time) (*InterestRateByDate, error) {
+func GetInterestRateForDate(context context.Context, service *horizon.HorizonService,
+	browseReferenceID uuid.UUID, date time.Time) (*types.InterestRateByDate, error) {
 	rates, err := InterestRateByDateForRange(context, service, browseReferenceID, date)
 	if err != nil {
 		return nil, err

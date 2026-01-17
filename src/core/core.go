@@ -4,199 +4,11 @@ import (
 	"context"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
-
-type (
-	IDSRequest struct {
-		IDs uuid.UUIDs `json:"ids"`
-	}
-
-	QRMemberProfile struct {
-		FirstName       string `json:"first_name"`
-		LastName        string `json:"last_name"`
-		MiddleName      string `json:"middle_name"`
-		FullName        string `json:"full_name"`
-		ContactNumber   string `json:"contact_number"`
-		MemberProfileID string `json:"member_profile_id"`
-		BranchID        string `json:"branch_id"`
-		OrganizationID  string `json:"organization_id"`
-		Email           string `json:"email"`
-	}
-
-	QRInvitationCode struct {
-		OrganizationID string `json:"organization_id"`
-		BranchID       string `json:"branch_id"`
-		UserType       string `json:"user_type"`
-		Code           string `json:"code"`
-		CurrentUse     int    `json:"current_use"`
-		Description    string `json:"description"`
-	}
-
-	QRUser struct {
-		UserID        string `json:"user_id"`
-		Email         string `json:"email"`
-		ContactNumber string `json:"contact_number"`
-		Username      string `json:"user_name"`
-		Name          string `json:"name"`
-		Lastname      string `json:"last_name"`
-		Firstname     string `json:"first_name"`
-		Middlename    string `json:"middle_name"`
-	}
-)
-
-func Models() []any {
-	return []any{
-		AccountCategory{},
-		AccountClassification{},
-		Account{},
-		AccountHistory{},
-		AccountTag{},
-		AdjustmentEntry{},
-		AdjustmentTag{},
-		AutomaticLoanDeduction{},
-		Bank{},
-		BatchFunding{},
-		BillAndCoins{},
-		Branch{},
-		BranchSetting{},
-		BrowseExcludeIncludeAccounts{},
-		BrowseReference{},
-		CancelledCashCheckVoucher{},
-		CashCheckVoucherEntry{},
-		CashCheckVoucher{},
-		CashCheckVoucherTag{},
-		CashCount{},
-		Category{},
-		ChargesRateByRangeOrMinimumAmount{},
-		ChargesRateByTerm{},
-		ChargesRateSchemeAccount{},
-		ChargesRateScheme{},
-		ChargesRateSchemeModeOfPayment{},
-		CheckRemittance{},
-		Collateral{},
-		CollectorsMemberAccountEntry{},
-		ComakerCollateral{},
-		ComakerMemberProfile{},
-		Company{},
-		ComputationSheet{},
-		ContactUs{},
-		Currency{},
-		Disbursement{},
-		DisbursementTransaction{},
-		Feedback{},
-		FinancialStatementAccountsGrouping{},
-		FinancialStatementDefinition{},
-		FinesMaturity{},
-		Footstep{},
-		Funds{},
-		GeneralAccountGroupingNetSurplusNegative{},
-		GeneralAccountGroupingNetSurplusPositive{},
-		GeneralAccountingLedgerTag{},
-		GeneralLedgerAccountsGrouping{},
-		GeneralLedgerDefinition{},
-		GeneralLedger{},
-		GeneratedReport{},
-		GeneratedReportsDownloadUsers{},
-		GeneratedSavingsInterestEntry{},
-		GeneratedSavingsInterest{},
-		GroceryComputationSheet{},
-		GroceryComputationSheetMonthly{},
-		Holiday{},
-		IncludeNegativeAccount{},
-		InterestMaturity{},
-		InterestRateByAmount{},
-		InterestRateByDate{},
-		InterestRateByTerm{},
-		InterestRateByYear{},
-		InterestRatePercentage{},
-		InterestRateScheme{},
-		InvitationCode{},
-		JournalVoucherEntry{},
-		JournalVoucher{},
-		JournalVoucherTag{},
-		LoanAccount{},
-		LoanClearanceAnalysis{},
-		LoanClearanceAnalysisInstitution{},
-		LoanComakerMember{},
-		LoanGuaranteedFund{},
-		LoanGuaranteedFundPerMonth{},
-		LoanPurpose{},
-		LoanStatus{},
-		LoanTag{},
-		LoanTermsAndConditionAmountReceipt{},
-		LoanTermsAndConditionSuggestedPayment{},
-		LoanTransactionEntry{},
-		LoanTransaction{},
-		Media{},
-		MemberAccountingLedger{},
-		MemberAddress{},
-		MemberAsset{},
-		MemberBankCard{},
-		MemberCenter{},
-		MemberCenterHistory{},
-		MemberClassification{},
-		MemberClassificationHistory{},
-		MemberClassificationInterestRate{},
-		MemberCloseRemark{},
-		MemberContactReference{},
-		MemberDamayanExtensionEntry{},
-		MemberDeductionEntry{},
-		MemberDepartment{},
-		MemberDepartmentHistory{},
-		MemberEducationalAttainment{},
-		MemberExpense{},
-		MemberGender{},
-		MemberGenderHistory{},
-		MemberGovernmentBenefit{},
-		MemberGroup{},
-		MemberGroupHistory{},
-		MemberIncome{},
-		MemberJointAccount{},
-		MemberMutualFundHistory{},
-		MemberOccupation{},
-		MemberOccupationHistory{},
-		MemberOtherInformationEntry{},
-		MemberProfileArchive{},
-		MemberProfile{},
-		MemberProfileMedia{},
-		MemberRelativeAccount{},
-		MemberType{},
-		MemberTypeHistory{},
-		MemberVerification{},
-		MutualFundAdditionalMembers{},
-		MutualFundEntry{},
-		MutualFund{},
-		MutualFundTable{},
-		Notification{},
-		OnlineRemittance{},
-		OrganizationCategory{},
-		OrganizationDailyUsage{},
-		Organization{},
-		OrganizationMedia{},
-		PaymentType{},
-		PermissionTemplate{},
-		PostDatedCheck{},
-		SubscriptionPlan{},
-		TagTemplate{},
-		TimeDepositComputation{},
-		TimeDepositComputationPreMature{},
-		TimeDepositType{},
-		Timesheet{},
-		TransactionBatch{},
-		Transaction{},
-		TransactionTag{},
-		UnbalancedAccount{},
-		User{},
-		UserOrganization{},
-		UserRating{},
-		VoucherPayTo{},
-		AccountTransaction{},
-		AccountTransactionEntry{},
-	}
-}
 
 func GlobalSeeder(ctx context.Context, service *horizon.HorizonService) error {
 	if err := currencySeed(ctx, service); err != nil {
@@ -288,28 +100,28 @@ func OrganizationSeeder(context context.Context, service *horizon.HorizonService
 }
 
 func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, organizationID uuid.UUID, branchID uuid.UUID) error {
-	invitationCodes, err := InvitationCodeManager(service).Find(ctx, &InvitationCode{
+	invitationCodes, err := InvitationCodeManager(service).Find(ctx, &types.InvitationCode{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get invitation codes")
 	}
-	banks, err := BankManager(service).Find(ctx, &Bank{
+	banks, err := BankManager(service).Find(ctx, &types.Bank{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get banks")
 	}
-	billAndCoins, err := BillAndCoinsManager(service).Find(ctx, &BillAndCoins{
+	billAndCoins, err := BillAndCoinsManager(service).Find(ctx, &types.BillAndCoins{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 	if err != nil {
 		return eris.Wrapf(err, "failed to get bill and coins")
 	}
-	holidays, err := HolidayManager(service).Find(ctx, &Holiday{
+	holidays, err := HolidayManager(service).Find(ctx, &types.Holiday{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -337,7 +149,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	memberTypes, err := MemberTypeManager(service).Find(ctx, &MemberType{
+	memberTypes, err := MemberTypeManager(service).Find(ctx, &types.MemberType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -350,7 +162,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	memberOccupations, err := MemberOccupationManager(service).Find(ctx, &MemberOccupation{
+	memberOccupations, err := MemberOccupationManager(service).Find(ctx, &types.MemberOccupation{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -363,7 +175,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	memberGroups, err := MemberGroupManager(service).Find(ctx, &MemberGroup{
+	memberGroups, err := MemberGroupManager(service).Find(ctx, &types.MemberGroup{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -376,7 +188,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	memberGenders, err := MemberGenderManager(service).Find(ctx, &MemberGender{
+	memberGenders, err := MemberGenderManager(service).Find(ctx, &types.MemberGender{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -389,7 +201,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	memberCenters, err := MemberCenterManager(service).Find(ctx, &MemberCenter{
+	memberCenters, err := MemberCenterManager(service).Find(ctx, &types.MemberCenter{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -402,7 +214,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	memberClassifications, err := MemberClassificationManager(service).Find(ctx, &MemberClassification{
+	memberClassifications, err := MemberClassificationManager(service).Find(ctx, &types.MemberClassification{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -415,7 +227,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	generalLedgerDefinitions, err := GeneralLedgerDefinitionManager(service).Find(ctx, &GeneralLedgerDefinition{
+	generalLedgerDefinitions, err := GeneralLedgerDefinitionManager(service).Find(ctx, &types.GeneralLedgerDefinition{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -428,7 +240,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	generalLedgerAccountsGroupings, err := GeneralLedgerAccountsGroupingManager(service).Find(ctx, &GeneralLedgerAccountsGrouping{
+	generalLedgerAccountsGroupings, err := GeneralLedgerAccountsGroupingManager(service).Find(ctx, &types.GeneralLedgerAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -441,7 +253,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	FinancialStatementAccountsGroupings, err := FinancialStatementAccountsGroupingManager(service).Find(ctx, &FinancialStatementAccountsGrouping{
+	FinancialStatementAccountsGroupings, err := FinancialStatementAccountsGroupingManager(service).Find(ctx, &types.FinancialStatementAccountsGrouping{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -453,7 +265,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 			return eris.Wrapf(err, "failed to destroy financial statement accounts grouping %s", data.Name)
 		}
 	}
-	paymentTypes, err := PaymentTypeManager(service).Find(ctx, &PaymentType{
+	paymentTypes, err := PaymentTypeManager(service).Find(ctx, &types.PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -465,7 +277,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 			return eris.Wrapf(err, "failed to destroy payment type %s", data.Name)
 		}
 	}
-	disbursements, err := DisbursementManager(service).Find(ctx, &Disbursement{
+	disbursements, err := DisbursementManager(service).Find(ctx, &types.Disbursement{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -477,7 +289,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 			return eris.Wrapf(err, "failed to destroy disbursement %s", data.Name)
 		}
 	}
-	collaterals, err := CollateralManager(service).Find(ctx, &Collateral{
+	collaterals, err := CollateralManager(service).Find(ctx, &types.Collateral{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -490,7 +302,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	accounts, err := AccountManager(service).Find(ctx, &Account{
+	accounts, err := AccountManager(service).Find(ctx, &types.Account{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -503,7 +315,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	loanPurposes, err := LoanPurposeManager(service).Find(ctx, &LoanPurpose{
+	loanPurposes, err := LoanPurposeManager(service).Find(ctx, &types.LoanPurpose{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -516,7 +328,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	accountCategories, err := AccountCategoryManager(service).Find(ctx, &AccountCategory{
+	accountCategories, err := AccountCategoryManager(service).Find(ctx, &types.AccountCategory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -529,7 +341,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	tagTemplates, err := TagTemplateManager(service).Find(ctx, &TagTemplate{
+	tagTemplates, err := TagTemplateManager(service).Find(ctx, &types.TagTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -542,7 +354,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	loanStatuses, err := LoanStatusManager(service).Find(ctx, &LoanStatus{
+	loanStatuses, err := LoanStatusManager(service).Find(ctx, &types.LoanStatus{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -555,7 +367,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	memberProfiles, err := MemberProfileManager(service).Find(ctx, &MemberProfile{
+	memberProfiles, err := MemberProfileManager(service).Find(ctx, &types.MemberProfile{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -568,7 +380,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	companies, err := CompanyManager(service).Find(ctx, &Company{
+	companies, err := CompanyManager(service).Find(ctx, &types.Company{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
@@ -581,7 +393,7 @@ func OrganizationDestroyer(ctx context.Context, service *horizon.HorizonService,
 		}
 	}
 
-	memberDepartments, err := MemberDepartmentManager(service).Find(ctx, &MemberDepartment{
+	memberDepartments, err := MemberDepartmentManager(service).Find(ctx, &types.MemberDepartment{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

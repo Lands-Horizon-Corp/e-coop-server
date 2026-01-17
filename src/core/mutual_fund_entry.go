@@ -7,71 +7,13 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MutualFundEntry struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_mutual_fund_entry" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_mutual_fund_entry" json:"branch_id"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MutualFundID uuid.UUID   `gorm:"type:uuid;not null;index:idx_mutual_fund_entry_mutual_fund" json:"mutual_fund_id"`
-		MutualFund   *MutualFund `gorm:"foreignKey:MutualFundID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"mutual_fund,omitempty"`
-
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null;index:idx_mutual_fund_entry_member" json:"member_profile_id"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		AccountID uuid.UUID `gorm:"type:uuid;not null;index:idx_mutual_fund_entry_account" json:"account_id"`
-		Account   *Account  `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"account,omitempty"`
-
-		Amount float64 `gorm:"type:decimal(15,4);not null" json:"amount"`
-	}
-
-	MutualFundEntryResponse struct {
-		ID              uuid.UUID              `json:"id"`
-		CreatedAt       string                 `json:"created_at"`
-		CreatedByID     uuid.UUID              `json:"created_by_id"`
-		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt       string                 `json:"updated_at"`
-		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID  uuid.UUID              `json:"organization_id"`
-		Organization    *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID        uuid.UUID              `json:"branch_id"`
-		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID uuid.UUID              `json:"member_profile_id"`
-		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
-		AccountID       uuid.UUID              `json:"account_id"`
-		Account         *AccountResponse       `json:"account,omitempty"`
-		Amount          float64                `json:"amount"`
-		MutualFundID    uuid.UUID              `json:"mutual_fund_id"`
-		MutualFund      *MutualFundResponse    `json:"mutual_fund,omitempty"`
-	}
-
-	MutualFundEntryRequest struct {
-		ID              *uuid.UUID `json:"id,omitempty"`
-		MemberProfileID uuid.UUID  `json:"member_profile_id" validate:"required"`
-		AccountID       uuid.UUID  `json:"account_id" validate:"required"`
-		Amount          float64    `json:"amount" validate:"required,gte=0"`
-	}
-)
-
-func MutualFundEntryManager(service *horizon.HorizonService) *registry.Registry[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MutualFundEntry, MutualFundEntryResponse, MutualFundEntryRequest]{
+func MutualFundEntryManager(service *horizon.HorizonService) *registry.Registry[
+	types.MutualFundEntry, types.MutualFundEntryResponse, types.MutualFundEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.MutualFundEntry, types.MutualFundEntryResponse, types.MutualFundEntryRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -82,11 +24,11 @@ func MutualFundEntryManager(service *horizon.HorizonService) *registry.Registry[
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MutualFundEntry) *MutualFundEntryResponse {
+		Resource: func(data *types.MutualFundEntry) *types.MutualFundEntryResponse {
 			if data == nil {
 				return nil
 			}
-			return &MutualFundEntryResponse{
+			return &types.MutualFundEntryResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -107,7 +49,7 @@ func MutualFundEntryManager(service *horizon.HorizonService) *registry.Registry[
 				MutualFund:      MutualFundManager(service).ToModel(data.MutualFund),
 			}
 		},
-		Created: func(data *MutualFundEntry) registry.Topics {
+		Created: func(data *types.MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.create",
 				fmt.Sprintf("mutual_fund_entry.create.%s", data.ID),
@@ -117,7 +59,7 @@ func MutualFundEntryManager(service *horizon.HorizonService) *registry.Registry[
 				fmt.Sprintf("mutual_fund_entry.create.account.%s", data.AccountID),
 			}
 		},
-		Updated: func(data *MutualFundEntry) registry.Topics {
+		Updated: func(data *types.MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.update",
 				fmt.Sprintf("mutual_fund_entry.update.%s", data.ID),
@@ -127,7 +69,7 @@ func MutualFundEntryManager(service *horizon.HorizonService) *registry.Registry[
 				fmt.Sprintf("mutual_fund_entry.update.account.%s", data.AccountID),
 			}
 		},
-		Deleted: func(data *MutualFundEntry) registry.Topics {
+		Deleted: func(data *types.MutualFundEntry) registry.Topics {
 			return []string{
 				"mutual_fund_entry.delete",
 				fmt.Sprintf("mutual_fund_entry.delete.%s", data.ID),
@@ -140,23 +82,26 @@ func MutualFundEntryManager(service *horizon.HorizonService) *registry.Registry[
 	})
 }
 
-func MutualFundEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return MutualFundEntryManager(service).Find(context, &MutualFundEntry{
+func MutualFundEntryCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MutualFundEntry, error) {
+	return MutualFundEntryManager(service).Find(context, &types.MutualFundEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func MutualFundEntryByMember(context context.Context, service *horizon.HorizonService, memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return MutualFundEntryManager(service).Find(context, &MutualFundEntry{
+func MutualFundEntryByMember(context context.Context, service *horizon.HorizonService,
+	memberProfileID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MutualFundEntry, error) {
+	return MutualFundEntryManager(service).Find(context, &types.MutualFundEntry{
 		MemberProfileID: memberProfileID,
 		OrganizationID:  organizationID,
 		BranchID:        branchID,
 	})
 }
 
-func MutualFundEntryByAccount(context context.Context, service *horizon.HorizonService, accountID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*MutualFundEntry, error) {
-	return MutualFundEntryManager(service).Find(context, &MutualFundEntry{
+func MutualFundEntryByAccount(context context.Context, service *horizon.HorizonService,
+	accountID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MutualFundEntry, error) {
+	return MutualFundEntryManager(service).Find(context, &types.MutualFundEntry{
 		AccountID:      accountID,
 		OrganizationID: organizationID,
 		BranchID:       branchID,

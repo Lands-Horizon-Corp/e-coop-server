@@ -7,71 +7,24 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	ChargesRateSchemeAccount struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_charges_rate_scheme_account"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_charges_rate_scheme_account"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		ChargesRateSchemeID uuid.UUID          `gorm:"type:uuid;not null"`
-		ChargesRateScheme   *ChargesRateScheme `gorm:"foreignKey:ChargesRateSchemeID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"charges_rate_scheme,omitempty"`
-
-		AccountID uuid.UUID `gorm:"type:uuid;not null"`
-		Account   *Account  `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
-	}
-
-	ChargesRateSchemeAccountResponse struct {
-		ID                  uuid.UUID                  `json:"id"`
-		CreatedAt           string                     `json:"created_at"`
-		CreatedByID         uuid.UUID                  `json:"created_by_id"`
-		CreatedBy           *UserResponse              `json:"created_by,omitempty"`
-		UpdatedAt           string                     `json:"updated_at"`
-		UpdatedByID         uuid.UUID                  `json:"updated_by_id"`
-		UpdatedBy           *UserResponse              `json:"updated_by,omitempty"`
-		OrganizationID      uuid.UUID                  `json:"organization_id"`
-		Organization        *OrganizationResponse      `json:"organization,omitempty"`
-		BranchID            uuid.UUID                  `json:"branch_id"`
-		Branch              *BranchResponse            `json:"branch,omitempty"`
-		ChargesRateSchemeID uuid.UUID                  `json:"charges_rate_scheme_id"`
-		ChargesRateScheme   *ChargesRateSchemeResponse `json:"charges_rate_scheme,omitempty"`
-		AccountID           uuid.UUID                  `json:"account_id"`
-		Account             *AccountResponse           `json:"account,omitempty"`
-	}
-
-	ChargesRateSchemeAccountRequest struct {
-		ID        *uuid.UUID `json:"id,omitempty"`
-		AccountID uuid.UUID  `json:"account_id" validate:"required"`
-	}
-)
-
-func ChargesRateSchemeAccountManager(service *horizon.HorizonService) *registry.Registry[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest] {
-	return registry.NewRegistry(registry.RegistryParams[ChargesRateSchemeAccount, ChargesRateSchemeAccountResponse, ChargesRateSchemeAccountRequest]{
+func ChargesRateSchemeAccountManager(service *horizon.HorizonService) *registry.Registry[
+	types.ChargesRateSchemeAccount, types.ChargesRateSchemeAccountResponse, types.ChargesRateSchemeAccountRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
+		types.ChargesRateSchemeAccount, types.ChargesRateSchemeAccountResponse, types.ChargesRateSchemeAccountRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "ChargesRateScheme", "Account"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *ChargesRateSchemeAccount) *ChargesRateSchemeAccountResponse {
+		Resource: func(data *types.ChargesRateSchemeAccount) *types.ChargesRateSchemeAccountResponse {
 			if data == nil {
 				return nil
 			}
-			return &ChargesRateSchemeAccountResponse{
+			return &types.ChargesRateSchemeAccountResponse{
 				ID:                  data.ID,
 				CreatedAt:           data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:         data.CreatedByID,
@@ -89,7 +42,7 @@ func ChargesRateSchemeAccountManager(service *horizon.HorizonService) *registry.
 				Account:             AccountManager(service).ToModel(data.Account),
 			}
 		},
-		Created: func(data *ChargesRateSchemeAccount) registry.Topics {
+		Created: func(data *types.ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.create",
 				fmt.Sprintf("charges_rate_scheme_account.create.%s", data.ID),
@@ -97,7 +50,7 @@ func ChargesRateSchemeAccountManager(service *horizon.HorizonService) *registry.
 				fmt.Sprintf("charges_rate_scheme_account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *ChargesRateSchemeAccount) registry.Topics {
+		Updated: func(data *types.ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.update",
 				fmt.Sprintf("charges_rate_scheme_account.update.%s", data.ID),
@@ -105,7 +58,7 @@ func ChargesRateSchemeAccountManager(service *horizon.HorizonService) *registry.
 				fmt.Sprintf("charges_rate_scheme_account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *ChargesRateSchemeAccount) registry.Topics {
+		Deleted: func(data *types.ChargesRateSchemeAccount) registry.Topics {
 			return []string{
 				"charges_rate_scheme_account.delete",
 				fmt.Sprintf("charges_rate_scheme_account.delete.%s", data.ID),
@@ -116,8 +69,9 @@ func ChargesRateSchemeAccountManager(service *horizon.HorizonService) *registry.
 	})
 }
 
-func ChargesRateSchemeAccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*ChargesRateSchemeAccount, error) {
-	return ChargesRateSchemeAccountManager(service).Find(context, &ChargesRateSchemeAccount{
+func ChargesRateSchemeAccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID,
+	branchID uuid.UUID) ([]*types.ChargesRateSchemeAccount, error) {
+	return ChargesRateSchemeAccountManager(service).Find(context, &types.ChargesRateSchemeAccount{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

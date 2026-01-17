@@ -7,69 +7,24 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MemberOtherInformationEntry struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_other_information_entry"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_other_information_entry"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Name        string    `gorm:"type:varchar(255);not null"`
-		Description string    `gorm:"type:text"`
-		EntryDate   time.Time `gorm:"type:timestamp"`
-	}
-
-	MemberOtherInformationEntryResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-		EntryDate      string                `json:"entry_date"`
-	}
-
-	MemberOtherInformationEntryRequest struct {
-		Name        string    `json:"name" validate:"required,min=1,max=255"`
-		Description string    `json:"description,omitempty"`
-		EntryDate   time.Time `json:"entry_date"`
-	}
-)
-
-func MemberOtherInformationEntryManager(service *horizon.HorizonService) *registry.Registry[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberOtherInformationEntry, MemberOtherInformationEntryResponse, MemberOtherInformationEntryRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
+func MemberOtherInformationEntryManager(service *horizon.HorizonService) *registry.Registry[
+	types.MemberOtherInformationEntry, types.MemberOtherInformationEntryResponse, types.MemberOtherInformationEntryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
+		types.MemberOtherInformationEntry, types.MemberOtherInformationEntryResponse, types.MemberOtherInformationEntryRequest]{
+		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberOtherInformationEntry) *MemberOtherInformationEntryResponse {
+		Resource: func(data *types.MemberOtherInformationEntry) *types.MemberOtherInformationEntryResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberOtherInformationEntryResponse{
+			return &types.MemberOtherInformationEntryResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -87,7 +42,7 @@ func MemberOtherInformationEntryManager(service *horizon.HorizonService) *regist
 			}
 		},
 
-		Created: func(data *MemberOtherInformationEntry) registry.Topics {
+		Created: func(data *types.MemberOtherInformationEntry) registry.Topics {
 			return []string{
 				"member_other_information_entry.create",
 				fmt.Sprintf("member_other_information_entry.create.%s", data.ID),
@@ -95,7 +50,7 @@ func MemberOtherInformationEntryManager(service *horizon.HorizonService) *regist
 				fmt.Sprintf("member_other_information_entry.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberOtherInformationEntry) registry.Topics {
+		Updated: func(data *types.MemberOtherInformationEntry) registry.Topics {
 			return []string{
 				"member_other_information_entry.update",
 				fmt.Sprintf("member_other_information_entry.update.%s", data.ID),
@@ -103,7 +58,7 @@ func MemberOtherInformationEntryManager(service *horizon.HorizonService) *regist
 				fmt.Sprintf("member_other_information_entry.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberOtherInformationEntry) registry.Topics {
+		Deleted: func(data *types.MemberOtherInformationEntry) registry.Topics {
 			return []string{
 				"member_other_information_entry.delete",
 				fmt.Sprintf("member_other_information_entry.delete.%s", data.ID),
@@ -114,8 +69,9 @@ func MemberOtherInformationEntryManager(service *horizon.HorizonService) *regist
 	})
 }
 
-func MemberOtherInformationEntryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberOtherInformationEntry, error) {
-	return MemberOtherInformationEntryManager(service).Find(context, &MemberOtherInformationEntry{
+func MemberOtherInformationEntryCurrentBranch(context context.Context,
+	service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberOtherInformationEntry, error) {
+	return MemberOtherInformationEntryManager(service).Find(context, &types.MemberOtherInformationEntry{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

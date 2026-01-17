@@ -7,84 +7,15 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	InvitationCode struct {
-		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt      time.Time      `gorm:"not null;default:now()"`
-		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt      gorm.DeletedAt `gorm:"index"`
-		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_invitation_code"`
-		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_invitation_code"`
-		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
-
-		UserType       UserOrganizationType `gorm:"type:varchar(255);not null"`
-		Code           string               `gorm:"type:varchar(255);not null;unique"`
-		ExpirationDate time.Time            `gorm:"not null"`
-		MaxUse         int                  `gorm:"not null"`
-		CurrentUse     int                  `gorm:"default:0"`
-		Description    string               `gorm:"type:text"`
-
-		PermissionName        string         `gorm:"type:varchar(255);not null" json:"permission_name"`
-		PermissionDescription string         `gorm:"type:varchar(255);not null" json:"permission_description"`
-		Permissions           pq.StringArray `gorm:"type:varchar(255)[]" json:"permissions"`
-	}
-
-	InvitationCodeResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-
-		UserType       UserOrganizationType `json:"user_type"`
-		Code           string               `json:"code"`
-		ExpirationDate string               `json:"expiration_date"`
-		MaxUse         int                  `json:"max_use"`
-		CurrentUse     int                  `json:"current_use"`
-		Description    string               `json:"description,omitempty"`
-		QRCode         *horizon.QRResult    `json:"qr_code,omitempty"`
-
-		PermissionName        string   `json:"permission_name"`
-		PermissionDescription string   `json:"permission_description"`
-		Permissions           []string `json:"permissions"`
-	}
-
-	InvitationCodeRequest struct {
-		ID *uuid.UUID `json:"id,omitempty"`
-
-		UserType       string    `json:"user_type" validate:"required,oneof=employee owner member"`
-		Code           string    `json:"code" validate:"required,max=255"`
-		ExpirationDate time.Time `json:"expiration_date" validate:"required"`
-		MaxUse         int       `json:"max_use" validate:"required"`
-		Description    string    `json:"description,omitempty"`
-
-		PermissionName        string   `json:"permission_name,omitempty"`
-		PermissionDescription string   `json:"permission_description,omitempty"`
-		Permissions           []string `json:"permissions,omitempty" validate:"dive"`
-	}
-)
-
-func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[InvitationCode, InvitationCodeResponse, InvitationCodeRequest] {
-	return registry.NewRegistry(registry.RegistryParams[InvitationCode, InvitationCodeResponse, InvitationCodeRequest]{
+func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[
+	types.InvitationCode, types.InvitationCodeResponse, types.InvitationCodeRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.InvitationCode, types.InvitationCodeResponse, types.InvitationCodeRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -97,7 +28,7 @@ func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[I
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *InvitationCode) *InvitationCodeResponse {
+		Resource: func(data *types.InvitationCode) *types.InvitationCodeResponse {
 			if data == nil {
 				return nil
 			}
@@ -105,7 +36,7 @@ func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[I
 				data.Permissions = []string{}
 			}
 
-			return &InvitationCodeResponse{
+			return &types.InvitationCodeResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -130,7 +61,7 @@ func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[I
 				Permissions:           data.Permissions,
 			}
 		},
-		Created: func(data *InvitationCode) registry.Topics {
+		Created: func(data *types.InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.create",
 				fmt.Sprintf("invitation_code.create.%s", data.ID),
@@ -138,7 +69,7 @@ func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[I
 				fmt.Sprintf("invitation_code.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InvitationCode) registry.Topics {
+		Updated: func(data *types.InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.update",
 				fmt.Sprintf("invitation_code.update.%s", data.ID),
@@ -146,7 +77,7 @@ func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[I
 				fmt.Sprintf("invitation_code.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InvitationCode) registry.Topics {
+		Deleted: func(data *types.InvitationCode) registry.Topics {
 			return []string{
 				"invitation_code.delete",
 				fmt.Sprintf("invitation_code.delete.%s", data.ID),
@@ -157,11 +88,12 @@ func InvitationCodeManager(service *horizon.HorizonService) *registry.Registry[I
 	})
 }
 
-func invitationCodeSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func invitationCodeSeed(context context.Context, service *horizon.HorizonService,
+	tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 	expiration := now.AddDate(0, 1, 0)
 
-	invitationCodes := []*InvitationCode{
+	invitationCodes := []*types.InvitationCode{
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -169,7 +101,7 @@ func invitationCodeSeed(context context.Context, service *horizon.HorizonService
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			UserType:       UserOrganizationTypeEmployee,
+			UserType:       types.UserOrganizationTypeEmployee,
 			Code:           uuid.New().String(),
 			ExpirationDate: expiration,
 			MaxUse:         5,
@@ -183,7 +115,7 @@ func invitationCodeSeed(context context.Context, service *horizon.HorizonService
 			UpdatedByID:    userID,
 			OrganizationID: organizationID,
 			BranchID:       branchID,
-			UserType:       UserOrganizationTypeMember,
+			UserType:       types.UserOrganizationTypeMember,
 			Code:           uuid.New().String(),
 			ExpirationDate: expiration,
 			MaxUse:         1000,
@@ -199,20 +131,21 @@ func invitationCodeSeed(context context.Context, service *horizon.HorizonService
 	return nil
 }
 
-func GetInvitationCodeByBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*InvitationCode, error) {
-	return InvitationCodeManager(service).Find(context, &InvitationCode{
+func GetInvitationCodeByBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.InvitationCode, error) {
+	return InvitationCodeManager(service).Find(context, &types.InvitationCode{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func GetInvitationCodeByCode(context context.Context, service *horizon.HorizonService, code string) (*InvitationCode, error) {
-	return InvitationCodeManager(service).FindOne(context, &InvitationCode{
+func GetInvitationCodeByCode(context context.Context, service *horizon.HorizonService, code string) (*types.InvitationCode, error) {
+	return InvitationCodeManager(service).FindOne(context, &types.InvitationCode{
 		Code: code,
 	})
 }
 
-func VerifyInvitationCodeByCode(context context.Context, service *horizon.HorizonService, code string) (*InvitationCode, error) {
+func VerifyInvitationCodeByCode(context context.Context, service *horizon.HorizonService, code string) (*types.InvitationCode, error) {
 	data, err := GetInvitationCodeByCode(context, service, code)
 	if err != nil {
 		return nil, err

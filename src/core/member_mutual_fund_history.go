@@ -7,65 +7,23 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MemberMutualFundHistory struct {
-		ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt time.Time      `gorm:"not null;default:now()"`
-		UpdatedAt time.Time      `gorm:"not null;default:now()"`
-		DeletedAt gorm.DeletedAt `gorm:"index"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_mutual_fund_history"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_mutual_fund_history"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		Title       string  `gorm:"type:varchar(255)"`
-		Amount      float64 `gorm:"type:decimal(20,6)"`
-		Description string  `gorm:"type:text"`
-	}
-
-	MemberMutualFundHistoryResponse struct {
-		ID              uuid.UUID              `json:"id"`
-		CreatedAt       string                 `json:"created_at"`
-		UpdatedAt       string                 `json:"updated_at"`
-		OrganizationID  uuid.UUID              `json:"organization_id"`
-		Organization    *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID        uuid.UUID              `json:"branch_id"`
-		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID uuid.UUID              `json:"member_profile_id"`
-		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
-		Title           string                 `json:"title"`
-		Amount          float64                `json:"amount"`
-		Description     string                 `json:"description"`
-	}
-
-	MemberMutualFundHistoryRequest struct {
-		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
-		Title           string    `json:"title" validate:"required,min=1,max=255"`
-		Amount          float64   `json:"amount" validate:"required"`
-		Description     string    `json:"description,omitempty"`
-	}
-)
-
-func MemberMutualFundHistoryManager(service *horizon.HorizonService) *registry.Registry[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberMutualFundHistory, MemberMutualFundHistoryResponse, MemberMutualFundHistoryRequest]{
+func MemberMutualFundHistoryManager(service *horizon.HorizonService) *registry.Registry[
+	types.MemberMutualFundHistory, types.MemberMutualFundHistoryResponse, types.MemberMutualFundHistoryRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.MemberMutualFundHistory, types.MemberMutualFundHistoryResponse, types.MemberMutualFundHistoryRequest]{
 		Preloads: []string{"Organization", "Branch", "MemberProfile"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberMutualFundHistory) *MemberMutualFundHistoryResponse {
+		Resource: func(data *types.MemberMutualFundHistory) *types.MemberMutualFundHistoryResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberMutualFundHistoryResponse{
+			return &types.MemberMutualFundHistoryResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:       data.UpdatedAt.Format(time.RFC3339),
@@ -81,7 +39,7 @@ func MemberMutualFundHistoryManager(service *horizon.HorizonService) *registry.R
 			}
 		},
 
-		Created: func(data *MemberMutualFundHistory) registry.Topics {
+		Created: func(data *types.MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.create",
 				fmt.Sprintf("member_mutual_fund_history.create.%s", data.ID),
@@ -89,7 +47,7 @@ func MemberMutualFundHistoryManager(service *horizon.HorizonService) *registry.R
 				fmt.Sprintf("member_mutual_fund_history.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberMutualFundHistory) registry.Topics {
+		Updated: func(data *types.MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.update",
 				fmt.Sprintf("member_mutual_fund_history.update.%s", data.ID),
@@ -97,7 +55,7 @@ func MemberMutualFundHistoryManager(service *horizon.HorizonService) *registry.R
 				fmt.Sprintf("member_mutual_fund_history.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberMutualFundHistory) registry.Topics {
+		Deleted: func(data *types.MemberMutualFundHistory) registry.Topics {
 			return []string{
 				"member_mutual_fund_history.delete",
 				fmt.Sprintf("member_mutual_fund_history.delete.%s", data.ID),
@@ -108,8 +66,9 @@ func MemberMutualFundHistoryManager(service *horizon.HorizonService) *registry.R
 	})
 }
 
-func MemberMutualFundHistoryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberMutualFundHistory, error) {
-	return MemberMutualFundHistoryManager(service).Find(context, &MemberMutualFundHistory{
+func MemberMutualFundHistoryCurrentBranch(context context.Context,
+	service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberMutualFundHistory, error) {
+	return MemberMutualFundHistoryManager(service).Find(context, &types.MemberMutualFundHistory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

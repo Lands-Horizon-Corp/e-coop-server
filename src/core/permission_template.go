@@ -7,59 +7,11 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
-)
-
-type (
-	PermissionTemplate struct {
-		ID             uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt      time.Time      `gorm:"not null;default:now()"`
-		CreatedByID    uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy      *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt      time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID    uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy      *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt      gorm.DeletedAt `gorm:"index"`
-		DeletedByID    *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy      *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-		OrganizationID uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_permission_template"`
-		Organization   *Organization  `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID      `gorm:"type:uuid;not null;index:idx_branch_org_permission_template"`
-		Branch         *Branch        `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE;" json:"branch,omitempty"`
-
-		Name        string         `gorm:"type:varchar(255);not null"`
-		Description string         `gorm:"type:text"`
-		Permissions pq.StringArray `gorm:"type:varchar[];default:'{}'"`
-	}
-
-	PermissionTemplateRequest struct {
-		ID *uuid.UUID `json:"id,omitempty"`
-
-		Name        string   `json:"name" validate:"required,min=1,max=255"`
-		Description string   `json:"description,omitempty"`
-		Permissions []string `json:"permissions,omitempty"`
-	}
-
-	PermissionTemplateResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-
-		Name        string   `json:"name"`
-		Description string   `json:"description,omitempty"`
-		Permissions []string `json:"permissions"`
-	}
 )
 
 func permissionTemplateSeed(
@@ -70,7 +22,7 @@ func permissionTemplateSeed(
 	branchID uuid.UUID,
 ) error {
 	now := time.Now().UTC()
-	permissionsTemplates := []*PermissionTemplate{
+	permissionsTemplates := []*types.PermissionTemplate{
 		{
 			Name:        "Super Admin",
 			Description: "Full access to all resources and actions in the system",
@@ -274,8 +226,8 @@ func permissionTemplateSeed(
 	return nil
 }
 
-func PermissionTemplateManager(service *horizon.HorizonService) *registry.Registry[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest] {
-	return registry.NewRegistry(registry.RegistryParams[PermissionTemplate, PermissionTemplateResponse, PermissionTemplateRequest]{
+func PermissionTemplateManager(service *horizon.HorizonService) *registry.Registry[types.PermissionTemplate, types.PermissionTemplateResponse, types.PermissionTemplateRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.PermissionTemplate, types.PermissionTemplateResponse, types.PermissionTemplateRequest]{
 		Preloads: []string{
 			"CreatedBy",
 			"UpdatedBy",
@@ -291,14 +243,14 @@ func PermissionTemplateManager(service *horizon.HorizonService) *registry.Regist
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *PermissionTemplate) *PermissionTemplateResponse {
+		Resource: func(data *types.PermissionTemplate) *types.PermissionTemplateResponse {
 			if data == nil {
 				return nil
 			}
 			if data.Permissions == nil {
 				data.Permissions = []string{}
 			}
-			return &PermissionTemplateResponse{
+			return &types.PermissionTemplateResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -317,7 +269,7 @@ func PermissionTemplateManager(service *horizon.HorizonService) *registry.Regist
 			}
 		},
 
-		Created: func(data *PermissionTemplate) registry.Topics {
+		Created: func(data *types.PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.create",
 				fmt.Sprintf("permission_template.create.%s", data.ID),
@@ -325,7 +277,7 @@ func PermissionTemplateManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("permission_template.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *PermissionTemplate) registry.Topics {
+		Updated: func(data *types.PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.update",
 				fmt.Sprintf("permission_template.update.%s", data.ID),
@@ -333,7 +285,7 @@ func PermissionTemplateManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("permission_template.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *PermissionTemplate) registry.Topics {
+		Deleted: func(data *types.PermissionTemplate) registry.Topics {
 			return []string{
 				"permission_template.delete",
 				fmt.Sprintf("permission_template.delete.%s", data.ID),
@@ -344,8 +296,9 @@ func PermissionTemplateManager(service *horizon.HorizonService) *registry.Regist
 	})
 }
 
-func GetPermissionTemplateBybranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*PermissionTemplate, error) {
-	return PermissionTemplateManager(service).Find(context, &PermissionTemplate{
+func GetPermissionTemplateBybranch(context context.Context,
+	service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.PermissionTemplate, error) {
+	return PermissionTemplateManager(service).Find(context, &types.PermissionTemplate{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

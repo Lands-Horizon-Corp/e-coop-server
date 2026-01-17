@@ -7,81 +7,26 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	BillAndCoins struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bill_and_coins;uniqueIndex:idx_unique_name_org_branch" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_bill_and_coins;uniqueIndex:idx_unique_name_org_branch" json:"branch_id"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MediaID *uuid.UUID `gorm:"type:uuid" json:"media_id"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"media,omitempty"`
-
-		CurrencyID uuid.UUID `gorm:"type:uuid;not null" json:"currency_id"`
-		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
-
-		Name  string  `gorm:"type:varchar(255);uniqueIndex:idx_unique_name_org_branch" json:"name"`
-		Value float64 `gorm:"type:decimal;not null" json:"value"`
-	}
-
-	BillAndCoinsResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		MediaID        *uuid.UUID            `json:"media_id,omitempty"`
-		Media          *MediaResponse        `json:"media,omitempty"`
-		CurrencyID     uuid.UUID             `json:"currency_id"`
-		Currency       *CurrencyResponse     `json:"currency,omitempty"`
-		Name           string                `json:"name"`
-		Value          float64               `json:"value"`
-	}
-
-	BillAndCoinsRequest struct {
-		Name       string     `json:"name" validate:"required,min=1,max=255"`
-		Value      float64    `json:"value" validate:"required"`
-		CurrencyID uuid.UUID  `json:"currency_id" validate:"required"`
-		MediaID    *uuid.UUID `json:"media_id,omitempty"`
-	}
-)
-
-func BillAndCoinsManager(service *horizon.HorizonService) *registry.Registry[BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest] {
+func BillAndCoinsManager(service *horizon.HorizonService) *registry.Registry[types.BillAndCoins, types.BillAndCoinsResponse, types.BillAndCoinsRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		BillAndCoins, BillAndCoinsResponse, BillAndCoinsRequest,
+		types.BillAndCoins, types.BillAndCoinsResponse, types.BillAndCoinsRequest,
 	]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "Currency"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *BillAndCoins) *BillAndCoinsResponse {
+		Resource: func(data *types.BillAndCoins) *types.BillAndCoinsResponse {
 			if data == nil {
 				return nil
 			}
-			return &BillAndCoinsResponse{
+			return &types.BillAndCoinsResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -101,7 +46,7 @@ func BillAndCoinsManager(service *horizon.HorizonService) *registry.Registry[Bil
 				Value:          data.Value,
 			}
 		},
-		Created: func(data *BillAndCoins) registry.Topics {
+		Created: func(data *types.BillAndCoins) registry.Topics {
 			return []string{
 				"bill_and_coins.create",
 				fmt.Sprintf("bill_and_coins.create.%s", data.ID),
@@ -109,7 +54,7 @@ func BillAndCoinsManager(service *horizon.HorizonService) *registry.Registry[Bil
 				fmt.Sprintf("bill_and_coins.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *BillAndCoins) registry.Topics {
+		Updated: func(data *types.BillAndCoins) registry.Topics {
 			return []string{
 				"bill_and_coins.update",
 				fmt.Sprintf("bill_and_coins.update.%s", data.ID),
@@ -117,7 +62,7 @@ func BillAndCoinsManager(service *horizon.HorizonService) *registry.Registry[Bil
 				fmt.Sprintf("bill_and_coins.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *BillAndCoins) registry.Topics {
+		Deleted: func(data *types.BillAndCoins) registry.Topics {
 			return []string{
 				"bill_and_coins.delete",
 				fmt.Sprintf("bill_and_coins.delete.%s", data.ID),
@@ -138,10 +83,10 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 		return eris.New("no currencies found for bill and coins seeding")
 	}
 	for _, currency := range curency {
-		billAndCoins := []*BillAndCoins{}
+		billAndCoins := []*types.BillAndCoins{}
 		switch currency.ISO3166Alpha3 {
 		case "PHL":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 1000 Bill", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 500 Bill", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 200 Bill", Value: 200.00, CurrencyID: currency.ID},
@@ -158,7 +103,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₱ 0.1 Sentimo Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "USA":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "US$ 100 Bill", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "US$ 50 Bill", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "US$ 20 Bill", Value: 20.00, CurrencyID: currency.ID},
@@ -175,7 +120,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "US$ 0.01 Penny Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "DEU":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "€500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "€200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "€100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -194,7 +139,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "€0.01 Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "HRV":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "EUR-HR €500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "EUR-HR €200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "EUR-HR €100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -213,7 +158,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "EUR-HR €0.01 Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "JPN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -227,7 +172,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JPY ¥1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "GBR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "£50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "£20 Banknote", Value: 20.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "£10 Banknote", Value: 10.00, CurrencyID: currency.ID},
@@ -243,7 +188,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1p Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "AUS":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "A$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "A$50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "A$20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -258,7 +203,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AUD 5c Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "CAN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "C$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "C$50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "C$20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -272,7 +217,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5¢ Coin (Nickel)", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "CHE":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CHF 100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -289,7 +234,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Rappen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "CHN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CNY ¥100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CNY ¥50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CNY ¥20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -304,7 +249,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CNY 1 Fen Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "SWE":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SEK 1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SEK 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SEK 200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -318,7 +263,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SEK 1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "NZL":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NZ$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NZ$50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NZ$20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -332,7 +277,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NZD 10c Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "IND":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₹2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₹500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₹200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -348,7 +293,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₹1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "KOR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₩50,000 Banknote", Value: 50000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₩10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₩5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -360,7 +305,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₩10 Coin", Value: 10.00, CurrencyID: currency.ID},
 			}
 		case "THA":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "฿1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "฿500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "฿100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -375,7 +320,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "THB 25 Satang Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "SGP":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S$50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -390,7 +335,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "SGD 5¢ Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "HKG":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "HK$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "HK$500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "HK$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -407,7 +352,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "HKD 10¢ Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "MYS":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RM100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RM50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RM20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -422,7 +367,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MYR 5 Sen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "IDN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rp100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rp50,000 Banknote", Value: 50000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rp20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
@@ -437,7 +382,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rp100 Coin", Value: 100.00, CurrencyID: currency.ID},
 			}
 		case "VNM":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₫500,000 Banknote", Value: 500000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₫200,000 Banknote", Value: 200000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₫100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
@@ -451,7 +396,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₫500 Coin", Value: 500.00, CurrencyID: currency.ID},
 			}
 		case "TWN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NT$2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NT$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NT$500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -464,7 +409,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NT$1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "BRN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "B$10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "B$1,000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "B$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -481,7 +426,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BND 5 Sen Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "SAU":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.س 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.س 200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.س 100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -499,7 +444,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Halala Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "ARE":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.إ 1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.إ 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.إ 200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -515,7 +460,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AED 10 Fils Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "ISR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₪200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₪100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₪50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -529,7 +474,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Agorot Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "ZAF":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "R200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "R100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "R50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -544,7 +489,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ZAR 10c Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "EGY":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ج.م 1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ج.م 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ج.م 200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -560,7 +505,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Piastres Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "TUR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₺200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₺100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₺50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -575,7 +520,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Kuruş Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "BFA":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -590,7 +535,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XOF CFA 10 Coin", Value: 10.00, CurrencyID: currency.ID},
 			}
 		case "CMR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 2,000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -605,7 +550,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "XAF CFA 5 Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
 		case "MUS":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR ₨500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -622,7 +567,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MUR 20 Cents Coin", Value: 0.20, CurrencyID: currency.ID},
 			}
 		case "MDV":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rf1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rf500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Rf100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -638,7 +583,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Laari Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "NOR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 1000 kr Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 500 kr Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 200 kr Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -651,7 +596,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NOK 1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "DNK":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 1000 kr Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 500 kr Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 200 kr Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -666,7 +611,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DKK 50 øre Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
 		case "POL":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "500 zł Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "200 zł Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "100 zł Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -685,7 +630,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 grosz Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "CZE":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5000 Kč Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2000 Kč Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1000 Kč Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -701,7 +646,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Kč Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "HUN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "20,000 Ft Banknote", Value: 20000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10,000 Ft Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5,000 Ft Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -717,7 +662,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Ft Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
 		case "RUS":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₽5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₽2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₽1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -737,7 +682,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Kopeck Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "BRA":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL R$200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL R$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL R$50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -753,7 +698,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BRL 5 Centavos Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "MEX":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MX$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MX$500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MX$200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -771,7 +716,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "MXN 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "ARG":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AR$2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AR$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "AR$500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -789,7 +734,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ARS 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "CHL":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CL$20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CL$10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CL$5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -802,7 +747,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CL$10 Coin", Value: 10.00, CurrencyID: currency.ID},
 			}
 		case "COL":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CO$100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CO$50,000 Banknote", Value: 50000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CO$20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
@@ -817,7 +762,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "CO$50 Coin", Value: 50.00, CurrencyID: currency.ID},
 			}
 		case "PER":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S/200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S/100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "S/50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -832,7 +777,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PEN 10 Céntimos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "URY":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "$U2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "$U1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "$U500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -848,7 +793,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Centésimos Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
 		case "DOM":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RD$2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RD$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "RD$500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -865,7 +810,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "DOP 25 Centavos Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "PRY":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₲100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₲50,000 Banknote", Value: 50000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₲20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
@@ -879,7 +824,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₲50 Coin", Value: 50.00, CurrencyID: currency.ID},
 			}
 		case "BOL":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -894,7 +839,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BOB 10 Centavos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "VEN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs.S 1,000,000 Banknote", Value: 1000000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs.S 500,000 Banknote", Value: 500000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bs.S 200,000 Banknote", Value: 200000.00, CurrencyID: currency.ID},
@@ -910,7 +855,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Céntimos Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "PAK":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR ₨500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -925,7 +870,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "PKR 50 Paisa Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
 		case "BGD":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT ৳100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -942,7 +887,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BDT 25 Paisa Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "LKA":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR Rs1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -959,7 +904,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "LKR 25 Cents Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "NPL":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR Rs100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -976,7 +921,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "NPR 25 Paisa Coin", Value: 0.25, CurrencyID: currency.ID},
 			}
 		case "MMR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K10,000 PG Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K5,000 PG Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K1,000 PG Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -992,7 +937,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K1 PG Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "KHM":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "៛100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "៛50,000 Banknote", Value: 50000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "៛20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
@@ -1008,7 +953,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "៛50 Coin", Value: 50.00, CurrencyID: currency.ID},
 			}
 		case "LAO":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₭100,000 Banknote", Value: 100000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₭50,000 Banknote", Value: 50000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₭20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
@@ -1025,7 +970,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₭50 Coin", Value: 50.00, CurrencyID: currency.ID},
 			}
 		case "NGA":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₦1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₦500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₦200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -1040,7 +985,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Kobo Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
 		case "KEN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KSh1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KSh500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KSh200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -1055,7 +1000,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KES 50 Cents Coin", Value: 0.50, CurrencyID: currency.ID},
 			}
 		case "GHA":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₵200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₵100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₵50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -1073,7 +1018,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Pesewas Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "MAR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.م.200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.م.100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.م.50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -1088,7 +1033,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Centimes Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "TUN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ت50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ت30 Banknote", Value: 30.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ت20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -1103,7 +1048,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "50 Millimes Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "ETH":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Bir50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -1119,7 +1064,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Bir Santim Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "DZA":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ج2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ج1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ج500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -1134,7 +1079,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ج5 Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
 		case "UKR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₴1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₴500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₴200 Banknote", Value: 200.00, CurrencyID: currency.ID},
@@ -1155,7 +1100,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Kopiyky Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "ROU":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "500 lei Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "200 lei Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "100 lei Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -1170,7 +1115,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 ban Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "BGR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "лв100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "лв50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "лв20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -1187,7 +1132,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 стотинка Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "SRB":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "дин5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "дин2000 Banknote", Value: 2000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "дин1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
@@ -1205,7 +1150,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "дин1 Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "ISL":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10,000 kr Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5,000 kr Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "2,000 kr Banknote", Value: 2000.00, CurrencyID: currency.ID},
@@ -1219,7 +1164,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 kr Coin", Value: 1.00, CurrencyID: currency.ID},
 			}
 		case "BLR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Br100 Banknote", Value: 100.00, CurrencyID: currency.ID},
@@ -1238,7 +1183,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "1 Br Kopeck Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "FJI":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "FJ$100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "FJ$50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "FJ$20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -1253,7 +1198,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "FJD 5 Cents Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "PNG":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "K20 Banknote", Value: 20.00, CurrencyID: currency.ID},
@@ -1268,7 +1213,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Toea Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "JAM":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "J$5000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "J$1000 Banknote", Value: 1000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "J$500 Banknote", Value: 500.00, CurrencyID: currency.ID},
@@ -1284,7 +1229,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JMD 10 Cents Coin", Value: 0.10, CurrencyID: currency.ID},
 			}
 		case "CRI":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₡20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₡10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₡5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -1299,7 +1244,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₡5 Coin", Value: 5.00, CurrencyID: currency.ID},
 			}
 		case "GTM":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Q200 Banknote", Value: 200.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Q100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "Q50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -1315,7 +1260,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Centavos Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "KWT":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ك 20 Banknote", Value: 20.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ك 10 Banknote", Value: 10.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ك 5 Banknote", Value: 5.00, CurrencyID: currency.ID},
@@ -1330,7 +1275,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "KWD 5 Fils Coin", Value: 0.005, CurrencyID: currency.ID},
 			}
 		case "QAT":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.ق 500 Banknote", Value: 500.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.ق 100 Banknote", Value: 100.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.ق 50 Banknote", Value: 50.00, CurrencyID: currency.ID},
@@ -1344,7 +1289,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "5 Dirhams Coin", Value: 0.05, CurrencyID: currency.ID},
 			}
 		case "OMN":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.ع 50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.ع 20 Banknote", Value: 20.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ر.ع 10 Banknote", Value: 10.00, CurrencyID: currency.ID},
@@ -1358,7 +1303,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "10 Baisa Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "BHR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ب.د 20 Banknote", Value: 20.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ب.د 10 Banknote", Value: 10.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "ب.د 5 Banknote", Value: 5.00, CurrencyID: currency.ID},
@@ -1372,7 +1317,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "BHD 5 Fils Coin", Value: 0.005, CurrencyID: currency.ID},
 			}
 		case "JOR":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ا 50 Banknote", Value: 50.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ا 20 Banknote", Value: 20.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "د.ا 10 Banknote", Value: 10.00, CurrencyID: currency.ID},
@@ -1387,7 +1332,7 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "JOD 10 Fils Coin", Value: 0.01, CurrencyID: currency.ID},
 			}
 		case "KAZ":
-			billAndCoins = []*BillAndCoins{
+			billAndCoins = []*types.BillAndCoins{
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₸20,000 Banknote", Value: 20000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₸10,000 Banknote", Value: 10000.00, CurrencyID: currency.ID},
 				{CreatedAt: now, UpdatedAt: now, CreatedByID: userID, UpdatedByID: userID, OrganizationID: organizationID, BranchID: branchID, Name: "₸5,000 Banknote", Value: 5000.00, CurrencyID: currency.ID},
@@ -1416,8 +1361,8 @@ func billAndCoinsSeed(context context.Context, service *horizon.HorizonService, 
 	return nil
 }
 
-func BillAndCoinsCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*BillAndCoins, error) {
-	return BillAndCoinsManager(service).Find(context, &BillAndCoins{
+func BillAndCoinsCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.BillAndCoins, error) {
+	return BillAndCoinsManager(service).Find(context, &types.BillAndCoins{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

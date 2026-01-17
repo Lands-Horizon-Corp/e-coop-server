@@ -7,67 +7,15 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	Disbursement struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_disbursement"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_disbursement"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		CurrencyID uuid.UUID `gorm:"type:uuid;not null"`
-		Currency   *Currency `gorm:"foreignKey:CurrencyID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"currency,omitempty"`
-
-		Name        string `gorm:"type:varchar(50)"`
-		Icon        string `gorm:"type:varchar(50)"`
-		Description string `gorm:"type:text"`
-	}
-
-	DisbursementResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		CurrencyID     uuid.UUID             `json:"currency_id"`
-		Currency       *CurrencyResponse     `json:"currency,omitempty"`
-		Name           string                `json:"name"`
-		Icon           string                `json:"icon"`
-		Description    string                `json:"description"`
-	}
-
-	DisbursementRequest struct {
-		Name        string    `json:"name" validate:"required,min=1,max=50"`
-		Icon        string    `json:"icon,omitempty"`
-		Description string    `json:"description,omitempty"`
-		CurrencyID  uuid.UUID `json:"currency_id" validate:"required"`
-	}
-)
-
-func DisbursementManager(service *horizon.HorizonService) *registry.Registry[Disbursement, DisbursementResponse, DisbursementRequest] {
+func DisbursementManager(service *horizon.HorizonService) *registry.Registry[types.Disbursement, types.DisbursementResponse, types.DisbursementRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		Disbursement, DisbursementResponse, DisbursementRequest,
+		types.Disbursement, types.DisbursementResponse, types.DisbursementRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Currency",
@@ -77,11 +25,11 @@ func DisbursementManager(service *horizon.HorizonService) *registry.Registry[Dis
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *Disbursement) *DisbursementResponse {
+		Resource: func(data *types.Disbursement) *types.DisbursementResponse {
 			if data == nil {
 				return nil
 			}
-			return &DisbursementResponse{
+			return &types.DisbursementResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -100,7 +48,7 @@ func DisbursementManager(service *horizon.HorizonService) *registry.Registry[Dis
 				Description:    data.Description,
 			}
 		},
-		Created: func(data *Disbursement) registry.Topics {
+		Created: func(data *types.Disbursement) registry.Topics {
 			return []string{
 				"disbursement.create",
 				fmt.Sprintf("disbursement.create.%s", data.ID),
@@ -108,7 +56,7 @@ func DisbursementManager(service *horizon.HorizonService) *registry.Registry[Dis
 				fmt.Sprintf("disbursement.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Disbursement) registry.Topics {
+		Updated: func(data *types.Disbursement) registry.Topics {
 			return []string{
 				"disbursement.update",
 				fmt.Sprintf("disbursement.update.%s", data.ID),
@@ -116,7 +64,7 @@ func DisbursementManager(service *horizon.HorizonService) *registry.Registry[Dis
 				fmt.Sprintf("disbursement.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Disbursement) registry.Topics {
+		Deleted: func(data *types.Disbursement) registry.Topics {
 			return []string{
 				"disbursement.delete",
 				fmt.Sprintf("disbursement.delete.%s", data.ID),
@@ -127,7 +75,8 @@ func DisbursementManager(service *horizon.HorizonService) *registry.Registry[Dis
 	})
 }
 
-func disbursementSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func disbursementSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB,
+	userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
 	branch, err := BranchManager(service).GetByID(context, branchID)
@@ -135,7 +84,7 @@ func disbursementSeed(context context.Context, service *horizon.HorizonService, 
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
 
-	disbursements := []*Disbursement{
+	disbursements := []*types.Disbursement{
 		{
 			CreatedAt:      now,
 			CreatedByID:    userID,
@@ -281,8 +230,9 @@ func disbursementSeed(context context.Context, service *horizon.HorizonService, 
 	return nil
 }
 
-func DisbursementCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Disbursement, error) {
-	return DisbursementManager(service).Find(context, &Disbursement{
+func DisbursementCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID,
+	branchID uuid.UUID) ([]*types.Disbursement, error) {
+	return DisbursementManager(service).Find(context, &types.Disbursement{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

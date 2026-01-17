@@ -7,75 +7,22 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MemberExpense struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_expense"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_member_expense"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MemberProfileID uuid.UUID      `gorm:"type:uuid;not null"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		Name        string  `gorm:"type:varchar(255)"`
-		Amount      float64 `gorm:"type:decimal(20,6)"`
-		Description string  `gorm:"type:text"`
-	}
-
-	MemberExpenseResponse struct {
-		ID              uuid.UUID              `json:"id"`
-		CreatedAt       string                 `json:"created_at"`
-		CreatedByID     uuid.UUID              `json:"created_by_id"`
-		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt       string                 `json:"updated_at"`
-		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID  uuid.UUID              `json:"organization_id"`
-		Organization    *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID        uuid.UUID              `json:"branch_id"`
-		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID uuid.UUID              `json:"member_profile_id"`
-		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
-		Name            string                 `json:"name"`
-		Amount          float64                `json:"amount"`
-		Description     string                 `json:"description"`
-	}
-
-	MemberExpenseRequest struct {
-		MemberProfileID uuid.UUID `json:"member_profile_id" validate:"required"`
-		Name            string    `json:"name" validate:"required,min=1,max=255"`
-		Amount          float64   `json:"amount" validate:"required"`
-		Description     string    `json:"description,omitempty"`
-	}
-)
-
-func MemberExpenseManager(service *horizon.HorizonService) *registry.Registry[MemberExpense, MemberExpenseResponse, MemberExpenseRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberExpense, MemberExpenseResponse, MemberExpenseRequest]{
+func MemberExpenseManager(service *horizon.HorizonService) *registry.Registry[types.MemberExpense, types.MemberExpenseResponse, types.MemberExpenseRequest] {
+	return registry.NewRegistry(registry.RegistryParams[types.MemberExpense, types.MemberExpenseResponse, types.MemberExpenseRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "MemberProfile"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberExpense) *MemberExpenseResponse {
+		Resource: func(data *types.MemberExpense) *types.MemberExpenseResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberExpenseResponse{
+			return &types.MemberExpenseResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -95,7 +42,7 @@ func MemberExpenseManager(service *horizon.HorizonService) *registry.Registry[Me
 			}
 		},
 
-		Created: func(data *MemberExpense) registry.Topics {
+		Created: func(data *types.MemberExpense) registry.Topics {
 			return []string{
 				"member_expense.create",
 				fmt.Sprintf("member_expense.create.%s", data.ID),
@@ -103,7 +50,7 @@ func MemberExpenseManager(service *horizon.HorizonService) *registry.Registry[Me
 				fmt.Sprintf("member_expense.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *MemberExpense) registry.Topics {
+		Updated: func(data *types.MemberExpense) registry.Topics {
 			return []string{
 				"member_expense.update",
 				fmt.Sprintf("member_expense.update.%s", data.ID),
@@ -111,7 +58,7 @@ func MemberExpenseManager(service *horizon.HorizonService) *registry.Registry[Me
 				fmt.Sprintf("member_expense.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *MemberExpense) registry.Topics {
+		Deleted: func(data *types.MemberExpense) registry.Topics {
 			return []string{
 				"member_expense.delete",
 				fmt.Sprintf("member_expense.delete.%s", data.ID),
@@ -122,8 +69,9 @@ func MemberExpenseManager(service *horizon.HorizonService) *registry.Registry[Me
 	})
 }
 
-func MemberExpenseCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*MemberExpense, error) {
-	return MemberExpenseManager(service).Find(context, &MemberExpense{
+func MemberExpenseCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.MemberExpense, error) {
+	return MemberExpenseManager(service).Find(context, &types.MemberExpense{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

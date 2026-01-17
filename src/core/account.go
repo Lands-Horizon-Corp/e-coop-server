@@ -8,478 +8,16 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type GeneralLedgerType string
-
-const (
-	GLTypeAssets      GeneralLedgerType = "Assets"
-	GLTypeLiabilities GeneralLedgerType = "Liabilities"
-	GLTypeEquity      GeneralLedgerType = "Equity"
-	GLTypeRevenue     GeneralLedgerType = "Revenue"
-	GLTypeExpenses    GeneralLedgerType = "Expenses"
-)
-
-type AccountType string
-
-const (
-	AccountTypeDeposit     AccountType = "Deposit"
-	AccountTypeLoan        AccountType = "Loan"
-	AccountTypeARLedger    AccountType = "A/R-Ledger"
-	AccountTypeARAging     AccountType = "A/R-Aging"
-	AccountTypeFines       AccountType = "Fines"
-	AccountTypeInterest    AccountType = "Interest"
-	AccountTypeSVFLedger   AccountType = "SVF-Ledger"
-	AccountTypeWOff        AccountType = "W-Off"
-	AccountTypeAPLedger    AccountType = "A/P-Ledger"
-	AccountTypeOther       AccountType = "Other"
-	AccountTypeTimeDeposit AccountType = "Time Deposit"
-)
-
-type LumpsumComputationType string
-
-const (
-	LumpsumComputationNone             LumpsumComputationType = "None"
-	LumpsumComputationFinesMaturity    LumpsumComputationType = "Compute Fines Maturity"
-	LumpsumComputationInterestMaturity LumpsumComputationType = "Compute Interest Maturity / Terms"
-	LumpsumComputationAdvanceInterest  LumpsumComputationType = "Compute Advance Interest"
-)
-
-type InterestFinesComputationDiminishing string
-
-const (
-	IFCDNone                  InterestFinesComputationDiminishing = "None"
-	IFCDByAmortization        InterestFinesComputationDiminishing = "By Amortization"
-	IFCDByAmortizationDalyArr InterestFinesComputationDiminishing = "By Amortization Daly on Interest Principal + Interest = Fines(Arr)"
-)
-
-type InterestFinesComputationDiminishingStraightYearly string
-
-const (
-	IFCDSYNone                   InterestFinesComputationDiminishingStraightYearly = "None"
-	IFCDSYByDailyInterestBalance InterestFinesComputationDiminishingStraightYearly = "By Daily on Interest based on loan balance by year Principal + Interest Amortization = Fines Fines Grace Period Month end Amortization"
-)
-
-type EarnedUnearnedInterest string
-
-const (
-	EUITypeNone                    EarnedUnearnedInterest = "None"
-	EUITypeByFormula               EarnedUnearnedInterest = "By Formula"
-	EUITypeByFormulaActualPay      EarnedUnearnedInterest = "By Formula + Actual Pay"
-	EUITypeByAdvanceInterestActual EarnedUnearnedInterest = "By Advance Interest + Actual Pay"
-)
-
-type LoanSavingType string
-
-const (
-	LSTSeparate                 LoanSavingType = "Separate"
-	LSTSingleLedger             LoanSavingType = "Single Ledger"
-	LSTSingleLedgerIfNotZero    LoanSavingType = "Single Ledger if Not Zero"
-	LSTSingleLedgerSemi1530     LoanSavingType = "Single Ledger Semi (15/30)"
-	LSTSingleLedgerSemiMaturity LoanSavingType = "Single Ledger Semi Within Maturity"
-)
-
-type InterestDeduction string
-
-const (
-	InterestDeductionAbove InterestDeduction = "Above"
-	InterestDeductionBelow InterestDeduction = "Below"
-)
-
-type OtherDeductionEntry string
-
-const (
-	OtherDeductionEntryNone       OtherDeductionEntry = "None"
-	OtherDeductionEntryHealthCare OtherDeductionEntry = "Health Care"
-)
-
-type InterestSavingTypeDiminishingStraight string
-
-const (
-	ISTDSSpread     InterestSavingTypeDiminishingStraight = "Spread"
-	ISTDS1stPayment InterestSavingTypeDiminishingStraight = "1st Payment"
-)
-
-type OtherInformationOfAnAccount string
-
-const (
-	OIOANone               OtherInformationOfAnAccount = "None"
-	OIOAJewely             OtherInformationOfAnAccount = "Jewely"
-	OIOAGrocery            OtherInformationOfAnAccount = "Grocery"
-	OIOATrackLoanDeduction OtherInformationOfAnAccount = "Track Loan Deduction"
-	OIOARestructured       OtherInformationOfAnAccount = "Restructured"
-	OIOACashInBank         OtherInformationOfAnAccount = "Cash in Bank / Cash in Check Account"
-	OIOACashOnHand         OtherInformationOfAnAccount = "Cash on Hand"
-)
-
-type InterestStandardComputation string
-
-const (
-	ISCNone    InterestStandardComputation = "None"
-	ISCYearly  InterestStandardComputation = "Yearly"
-	ISCMonthly InterestStandardComputation = "Monthly"
-)
-
-type ComputationType string
-
-const (
-	Straight            ComputationType = "Straight"
-	Diminishing         ComputationType = "Diminishing"
-	DiminishingStraight ComputationType = "DiminishingStraight"
-)
-
-type (
-	Account struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account;uniqueIndex:idx_account_name_org_branch" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account;uniqueIndex:idx_account_name_org_branch" json:"branch_id"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		GeneralLedgerDefinitionID *uuid.UUID               `gorm:"type:uuid" json:"general_ledger_definition_id"`
-		GeneralLedgerDefinition   *GeneralLedgerDefinition `gorm:"foreignKey:GeneralLedgerDefinitionID" json:"general_ledger_definition,omitempty"`
-
-		FinancialStatementDefinitionID *uuid.UUID                    `gorm:"type:uuid" json:"financial_statement_definition_id"`
-		FinancialStatementDefinition   *FinancialStatementDefinition `gorm:"foreignKey:FinancialStatementDefinitionID;constraint:OnDelete:SET NULL;" json:"financial_statement_definition,omitempty"`
-
-		AccountClassificationID *uuid.UUID             `gorm:"type:uuid" json:"account_classification_id"`
-		AccountClassification   *AccountClassification `gorm:"foreignKey:AccountClassificationID;constraint:OnDelete:SET NULL;" json:"account_classification,omitempty"`
-
-		AccountCategoryID *uuid.UUID       `gorm:"type:uuid" json:"account_category_id"`
-		AccountCategory   *AccountCategory `gorm:"foreignKey:AccountCategoryID;constraint:OnDelete:SET NULL;" json:"account_category,omitempty"`
-
-		MemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"member_type_id"`
-		MemberType   *MemberType `gorm:"foreignKey:MemberTypeID;constraint:OnDelete:SET NULL;" json:"member_type,omitempty"`
-
-		CurrencyID *uuid.UUID `gorm:"type:uuid" json:"currency_id"`
-		Currency   *Currency  `gorm:"foreignKey:CurrencyID;constraint:OnDelete:SET NULL;" json:"currency,omitempty"`
-
-		DefaultPaymentTypeID *uuid.UUID   `gorm:"type:uuid" json:"default_payment_type_id"`
-		DefaultPaymentType   *PaymentType `gorm:"foreignKey:DefaultPaymentTypeID;constraint:OnDelete:SET NULL;" json:"default_payment_type,omitempty"`
-
-		Name        string `gorm:"type:varchar(255);not null;uniqueIndex:idx_account_name_org_branch" json:"name"`
-		Description string `gorm:"type:text;not null" json:"description"`
-
-		MinAmount float64     `gorm:"type:decimal;default:0" json:"min_amount"`
-		MaxAmount float64     `gorm:"type:decimal;default:50000" json:"max_amount"`
-		Index     float64     `gorm:"default:0" json:"index"`
-		Type      AccountType `gorm:"type:varchar(50);not null" json:"type"`
-
-		IsInternal         bool `gorm:"default:false" json:"is_internal"`
-		CashOnHand         bool `gorm:"default:false" json:"cash_on_hand"`
-		PaidUpShareCapital bool `gorm:"default:false" json:"paid_up_share_capital"`
-
-		ComputationType ComputationType `gorm:"type:varchar(50);default:'Straight'" json:"computation_type"`
-
-		FinesAmort       float64 `gorm:"type:decimal;default:0;check:fines_amort >= 0 AND fines_amort <= 100" json:"fines_amort"`
-		FinesMaturity    float64 `gorm:"type:decimal;default:0;check:fines_maturity >= 0 AND fines_maturity <= 100" json:"fines_maturity"`
-		InterestStandard float64 `gorm:"type:decimal;default:0" json:"interest_standard"`
-		InterestSecured  float64 `gorm:"type:decimal;default:0" json:"interest_secured"`
-
-		ComputationSheetID *uuid.UUID        `gorm:"type:uuid" json:"computation_sheet_id"`
-		ComputationSheet   *ComputationSheet `gorm:"foreignKey:ComputationSheetID;constraint:OnDelete:SET NULL;" json:"computation_sheet,omitempty"`
-
-		CohCibFinesGracePeriodEntryCashHand                float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_cash_hand >= 0 AND coh_cib_fines_grace_period_entry_cash_hand <= 100" json:"coh_cib_fines_grace_period_entry_cash_hand"`
-		CohCibFinesGracePeriodEntryCashInBank              float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_cash_in_bank >= 0 AND coh_cib_fines_grace_period_entry_cash_in_bank <= 100" json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
-		CohCibFinesGracePeriodEntryDailyAmortization       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_daily_amortization >= 0 AND coh_cib_fines_grace_period_entry_daily_amortization <= 100" json:"coh_cib_fines_grace_period_entry_daily_amortization"`
-		CohCibFinesGracePeriodEntryDailyMaturity           float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_daily_maturity >= 0 AND coh_cib_fines_grace_period_entry_daily_maturity <= 100" json:"coh_cib_fines_grace_period_entry_daily_maturity"`
-		CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_weekly_amortization >= 0 AND coh_cib_fines_grace_period_entry_weekly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_weekly_amortization"`
-		CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_weekly_maturity >= 0 AND coh_cib_fines_grace_period_entry_weekly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_weekly_maturity"`
-		CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_monthly_amortization >= 0 AND coh_cib_fines_grace_period_entry_monthly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_monthly_amortization"`
-		CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_monthly_maturity >= 0 AND coh_cib_fines_grace_period_entry_monthly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_monthly_maturity"`
-		CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_monthly_amortization >= 0 AND coh_cib_fines_grace_period_entry_semi_monthly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization"`
-		CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_monthly_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_monthly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
-		CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_quarterly_amortization >= 0 AND coh_cib_fines_grace_period_entry_quarterly_amortization <= 100" json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
-		CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_quarterly_maturity >= 0 AND coh_cib_fines_grace_period_entry_quarterly_maturity <= 100" json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-		CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_annual_amortization >= 0 AND coh_cib_fines_grace_period_entry_semi_annual_amortization <= 100" json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
-		CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_semi_annual_maturity >= 0 AND coh_cib_fines_grace_period_entry_semi_annual_maturity <= 100" json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
-		CohCibFinesGracePeriodEntryAnnualAmortization      float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_annual_amortization >= 0 AND coh_cib_fines_grace_period_entry_annual_amortization <= 100" json:"coh_cib_fines_grace_period_entry_annual_amortization"`
-		CohCibFinesGracePeriodEntryAnnualMaturity          float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_annual_maturity >= 0 AND coh_cib_fines_grace_period_entry_annual_maturity <= 100" json:"coh_cib_fines_grace_period_entry_annual_maturity"`
-		CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_lumpsum_amortization >= 0 AND coh_cib_fines_grace_period_entry_lumpsum_amortization <= 100" json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
-		CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `gorm:"type:decimal;default:0;check:coh_cib_fines_grace_period_entry_lumpsum_maturity >= 0 AND coh_cib_fines_grace_period_entry_lumpsum_maturity <= 100" json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
-
-		GeneralLedgerType GeneralLedgerType `gorm:"type:varchar(50)" json:"general_ledger_type"`
-
-		LoanAccountID *uuid.UUID `gorm:"type:uuid" json:"loan_account_id"`
-		LoanAccount   *Account   `gorm:"foreignKey:LoanAccountID;constraint:OnDelete:SET NULL;" json:"loan_account,omitempty"`
-
-		FinesGracePeriodAmortization int  `gorm:"type:int;default:0" json:"fines_grace_period_amortization"`
-		AdditionalGracePeriod        int  `gorm:"type:int;default:0" json:"additional_grace_period"`
-		NoGracePeriodDaily           bool `gorm:"default:false" json:"no_grace_period_daily"`
-		FinesGracePeriodMaturity     int  `gorm:"type:int;default:0" json:"fines_grace_period_maturity"`
-		YearlySubscriptionFee        int  `gorm:"type:int;default:0" json:"yearly_subscription_fee"`
-		CutOffDays                   int  `gorm:"type:int;default:0;check:cut_off_days >= 0 AND cut_off_days <= 30" json:"cut_off_days"`
-		CutOffMonths                 int  `gorm:"type:int;default:0;check:cut_off_months >= 0 AND cut_off_months <= 12" json:"cut_off_months"`
-
-		LumpsumComputationType                            LumpsumComputationType                            `gorm:"type:varchar(50);default:'None'" json:"lumpsum_computation_type"`
-		InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `gorm:"type:varchar(100);default:'None'" json:"interest_fines_computation_diminishing"`
-		InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `gorm:"type:varchar(200);default:'None'" json:"interest_fines_computation_diminishing_straight_yearly"`
-		EarnedUnearnedInterest                            EarnedUnearnedInterest                            `gorm:"type:varchar(50);default:'None'" json:"earned_unearned_interest"`
-		LoanSavingType                                    LoanSavingType                                    `gorm:"type:varchar(50);default:'Separate'" json:"loan_saving_type"`
-		InterestDeduction                                 InterestDeduction                                 `gorm:"type:varchar(10);default:'Above'" json:"interest_deduction"`
-		OtherDeductionEntry                               OtherDeductionEntry                               `gorm:"type:varchar(20);default:'None'" json:"other_deduction_entry"`
-		InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `gorm:"type:varchar(20);default:'Spread'" json:"interest_saving_type_diminishing_straight"`
-		OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `gorm:"type:varchar(50);default:'None'" json:"other_information_of_an_account"`
-
-		HeaderRow int `gorm:"type:int;default:0" json:"header_row"`
-		CenterRow int `gorm:"type:int;default:0" json:"center_row"`
-		TotalRow  int `gorm:"type:int;default:0" json:"total_row"`
-
-		AccountTags                         []*AccountTag `gorm:"foreignKey:AccountID;constraint:OnDelete:CASCADE;" json:"account_tags,omitempty"`
-		GeneralLedgerGroupingExcludeAccount bool          `gorm:"default:false" json:"general_ledger_grouping_exclude_account"`
-
-		Icon string `gorm:"type:varchar(50);default:'account'" json:"icon,omitempty"`
-
-		ShowInGeneralLedgerSourceWithdraw       bool `gorm:"default:true" json:"show_in_general_ledger_source_withdraw"`
-		ShowInGeneralLedgerSourceDeposit        bool `gorm:"default:true" json:"show_in_general_ledger_source_deposit"`
-		ShowInGeneralLedgerSourceJournal        bool `gorm:"default:true" json:"show_in_general_ledger_source_journal"`
-		ShowInGeneralLedgerSourcePayment        bool `gorm:"default:true" json:"show_in_general_ledger_source_payment"`
-		ShowInGeneralLedgerSourceAdjustment     bool `gorm:"default:true" json:"show_in_general_ledger_source_adjustment"`
-		ShowInGeneralLedgerSourceJournalVoucher bool `gorm:"default:true" json:"show_in_general_ledger_source_journal_voucher"`
-		ShowInGeneralLedgerSourceCheckVoucher   bool `gorm:"default:true" json:"show_in_general_ledger_source_check_voucher"`
-
-		CompassionFund         bool    `gorm:"default:false" json:"compassion_fund"`
-		CompassionFundAmount   float64 `gorm:"type:decimal;default:0" json:"compassion_fund_amount"`
-		CashAndCashEquivalence bool    `gorm:"default:false" json:"cash_and_cash_equivalence"`
-
-		InterestStandardComputation InterestStandardComputation `gorm:"type:varchar(20);default:'None'" json:"interest_standard_computation"`
-		AccountHistoryID            *uuid.UUID                  `json:"account_history_id"`
-		InterestAmortization        float64                     `gorm:"type:decimal;default:0" json:"interest_amortization,omitempty"`
-		InterestMaturity            float64                     `gorm:"type:decimal;default:0" json:"interest_maturity,omitempty"`
-
-		IsTaxable bool `gorm:"default:true" json:"is_taxable"`
-	}
-)
-
-type AccountResponse struct {
-	ID             uuid.UUID             `json:"id"`
-	CreatedAt      string                `json:"created_at"`
-	CreatedByID    uuid.UUID             `json:"created_by_id"`
-	CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-	UpdatedAt      string                `json:"updated_at"`
-	UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-	UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-	OrganizationID uuid.UUID             `json:"organization_id"`
-	Organization   *OrganizationResponse `json:"organization,omitempty"`
-	BranchID       uuid.UUID             `json:"branch_id"`
-	Branch         *BranchResponse       `json:"branch,omitempty"`
-
-	GeneralLedgerDefinitionID      *uuid.UUID                            `json:"general_ledger_definition_id,omitempty"`
-	GeneralLedgerDefinition        *GeneralLedgerDefinitionResponse      `json:"general_ledger_definition,omitempty"`
-	FinancialStatementDefinitionID *uuid.UUID                            `json:"financial_statement_definition_id,omitempty"`
-	FinancialStatementDefinition   *FinancialStatementDefinitionResponse `json:"financial_statement_definition,omitempty"`
-	AccountClassificationID        *uuid.UUID                            `json:"account_classification_id,omitempty"`
-	AccountClassification          *AccountClassificationResponse        `json:"account_classification,omitempty"`
-	AccountCategoryID              *uuid.UUID                            `json:"account_category_id,omitempty"`
-	AccountCategory                *AccountCategoryResponse              `json:"account_category,omitempty"`
-	MemberTypeID                   *uuid.UUID                            `json:"member_type_id,omitempty"`
-	MemberType                     *MemberTypeResponse                   `json:"member_type,omitempty"`
-	CurrencyID                     *uuid.UUID                            `json:"currency_id,omitempty"`
-	Currency                       *CurrencyResponse                     `json:"currency,omitempty"`
-	DefaultPaymentTypeID           *uuid.UUID                            `json:"default_payment_type_id,omitempty"`
-	DefaultPaymentType             *PaymentTypeResponse                  `json:"default_payment_type,omitempty"`
-
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	MinAmount   float64     `json:"min_amount"`
-	MaxAmount   float64     `json:"max_amount"`
-	Index       float64     `json:"index"`
-	Type        AccountType `json:"type"`
-
-	IsInternal         bool `json:"is_internal"`
-	CashOnHand         bool `json:"cash_on_hand"`
-	PaidUpShareCapital bool `json:"paid_up_share_capital"`
-
-	ComputationType ComputationType `json:"computation_type"`
-
-	FinesAmort       float64 `json:"fines_amort"`
-	FinesMaturity    float64 `json:"fines_maturity"`
-	InterestStandard float64 `json:"interest_standard"`
-	InterestSecured  float64 `json:"interest_secured"`
-
-	ComputationSheetID *uuid.UUID                `json:"computation_sheet_id,omitempty"`
-	ComputationSheet   *ComputationSheetResponse `json:"computation_sheet,omitempty"`
-
-	CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand"`
-	CohCibFinesGracePeriodEntryCashInBank              float64 `json:"coh_cib_fines_grace_period_entry_cash_in_bank"`
-	CohCibFinesGracePeriodEntryDailyAmortization       float64 `json:"coh_cib_fines_grace_period_entry_daily_amortization"`
-	CohCibFinesGracePeriodEntryDailyMaturity           float64 `json:"coh_cib_fines_grace_period_entry_daily_maturity"`
-	CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `json:"coh_cib_fines_grace_period_entry_weekly_amortization"`
-	CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `json:"coh_cib_fines_grace_period_entry_weekly_maturity"`
-	CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `json:"coh_cib_fines_grace_period_entry_monthly_amortization"`
-	CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `json:"coh_cib_fines_grace_period_entry_monthly_maturity"`
-	CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization"`
-	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity"`
-	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization"`
-	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity"`
-	CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_amortization"`
-	CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_maturity"`
-	CohCibFinesGracePeriodEntryAnnualAmortization      float64 `json:"coh_cib_fines_grace_period_entry_annual_amortization"`
-	CohCibFinesGracePeriodEntryAnnualMaturity          float64 `json:"coh_cib_fines_grace_period_entry_annual_maturity"`
-	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization"`
-	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity"`
-
-	GeneralLedgerType GeneralLedgerType `json:"general_ledger_type"`
-
-	LoanAccountID *uuid.UUID       `json:"loan_account_id,omitempty"`
-	LoanAccount   *AccountResponse `json:"loan_account,omitempty"`
-
-	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization"`
-	AdditionalGracePeriod        int  `json:"additional_grace_period"`
-	NoGracePeriodDaily           bool `json:"no_grace_period_daily"`
-	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity"`
-	YearlySubscriptionFee        int  `json:"yearly_subscription_fee"`
-	CutOffDays                   int  `json:"cut_off_days"`
-	CutOffMonths                 int  `json:"cut_off_months"`
-
-	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type"`
-	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing"`
-	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_yearly"`
-	EarnedUnearnedInterest                            EarnedUnearnedInterest                            `json:"earned_unearned_interest"`
-	LoanSavingType                                    LoanSavingType                                    `json:"loan_saving_type"`
-	InterestDeduction                                 InterestDeduction                                 `json:"interest_deduction"`
-	OtherDeductionEntry                               OtherDeductionEntry                               `json:"other_deduction_entry"`
-	InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `json:"interest_saving_type_diminishing_straight"`
-	OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `json:"other_information_of_an_account"`
-
-	HeaderRow int `json:"header_row"`
-	CenterRow int `json:"center_row"`
-	TotalRow  int `json:"total_row"`
-
-	GeneralLedgerGroupingExcludeAccount bool                  `json:"general_ledger_grouping_exclude_account"`
-	AccountTags                         []*AccountTagResponse `json:"account_tags,omitempty"`
-
-	Icon                                    string `json:"icon,omitempty"`
-	ShowInGeneralLedgerSourceWithdraw       bool   `json:"show_in_general_ledger_source_withdraw"`
-	ShowInGeneralLedgerSourceDeposit        bool   `json:"show_in_general_ledger_source_deposit"`
-	ShowInGeneralLedgerSourceJournal        bool   `json:"show_in_general_ledger_source_journal"`
-	ShowInGeneralLedgerSourcePayment        bool   `json:"show_in_general_ledger_source_payment"`
-	ShowInGeneralLedgerSourceAdjustment     bool   `json:"show_in_general_ledger_source_adjustment"`
-	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
-	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
-
-	CompassionFund              bool                        `json:"compassion_fund"`
-	CompassionFundAmount        float64                     `json:"compassion_fund_amount"`
-	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence"`
-	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation"`
-	AccountHistoryID            *uuid.UUID                  `json:"account_history_id"`
-
-	InterestAmortization float64 `json:"interest_amortization,omitempty"`
-	InterestMaturity     float64 `json:"interest_maturity,omitempty"`
-	IsTaxable            bool    `json:"is_taxable"`
-}
-
-type AccountRequest struct {
-	GeneralLedgerDefinitionID      *uuid.UUID `json:"general_ledger_definition_id,omitempty"`
-	FinancialStatementDefinitionID *uuid.UUID `json:"financial_statement_definition_id,omitempty"`
-	AccountClassificationID        *uuid.UUID `json:"account_classification_id,omitempty"`
-	AccountCategoryID              *uuid.UUID `json:"account_category_id,omitempty"`
-	MemberTypeID                   *uuid.UUID `json:"member_type_id,omitempty"`
-	CurrencyID                     *uuid.UUID `json:"currency_id" validate:"required"`
-	DefaultPaymentTypeID           *uuid.UUID `json:"default_payment_type_id,omitempty"`
-
-	Name        string      `json:"name" validate:"required,min=1,max=255"`
-	Description string      `json:"description"`
-	MinAmount   float64     `json:"min_amount,omitempty"`
-	MaxAmount   float64     `json:"max_amount,omitempty"`
-	Index       float64     `json:"index,omitempty"`
-	Type        AccountType `json:"type" validate:"required"`
-
-	IsInternal         bool `json:"is_internal,omitempty"`
-	CashOnHand         bool `json:"cash_on_hand,omitempty"`
-	PaidUpShareCapital bool `json:"paid_up_share_capital,omitempty"`
-
-	ComputationType ComputationType `json:"computation_type,omitempty"`
-
-	FinesAmort       float64 `json:"fines_amort,omitempty" validate:"gte=0,lte=100"`
-	FinesMaturity    float64 `json:"fines_maturity,omitempty" validate:"gte=0,lte=100"`
-	InterestStandard float64 `json:"interest_standard,omitempty" validate:"gte=0,lte=100"`
-	InterestSecured  float64 `json:"interest_secured,omitempty" validate:"gte=0,lte=100"`
-
-	ComputationSheetID *uuid.UUID `json:"computation_sheet_id,omitempty"`
-
-	CohCibFinesGracePeriodEntryCashHand                float64 `json:"coh_cib_fines_grace_period_entry_cash_hand,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryCashInBank              float64 `json:"coh_cib_fines_grace_period_entry_cash_in_bank,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryDailyAmortization       float64 `json:"coh_cib_fines_grace_period_entry_daily_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryDailyMaturity           float64 `json:"coh_cib_fines_grace_period_entry_daily_maturity,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryWeeklyAmortization      float64 `json:"coh_cib_fines_grace_period_entry_weekly_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryWeeklyMaturity          float64 `json:"coh_cib_fines_grace_period_entry_weekly_maturity,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryMonthlyAmortization     float64 `json:"coh_cib_fines_grace_period_entry_monthly_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryMonthlyMaturity         float64 `json:"coh_cib_fines_grace_period_entry_monthly_maturity,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntrySemiMonthlyAmortization float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntrySemiMonthlyMaturity     float64 `json:"coh_cib_fines_grace_period_entry_semi_monthly_maturity,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryQuarterlyAmortization   float64 `json:"coh_cib_fines_grace_period_entry_quarterly_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryQuarterlyMaturity       float64 `json:"coh_cib_fines_grace_period_entry_quarterly_maturity,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntrySemiAnnualAmortization  float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntrySemiAnnualMaturity      float64 `json:"coh_cib_fines_grace_period_entry_semi_annual_maturity,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryAnnualAmortization      float64 `json:"coh_cib_fines_grace_period_entry_annual_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryAnnualMaturity          float64 `json:"coh_cib_fines_grace_period_entry_annual_maturity,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryLumpsumAmortization     float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_amortization,omitempty" validate:"gte=0,lte=100"`
-	CohCibFinesGracePeriodEntryLumpsumMaturity         float64 `json:"coh_cib_fines_grace_period_entry_lumpsum_maturity,omitempty" validate:"gte=0,lte=100"`
-
-	GeneralLedgerType GeneralLedgerType `json:"general_ledger_type,omitempty"`
-
-	LoanAccountID *uuid.UUID `json:"loan_account_id,omitempty"`
-
-	FinesGracePeriodAmortization int  `json:"fines_grace_period_amortization,omitempty" validate:"gte=0,lte=365"`
-	AdditionalGracePeriod        int  `json:"additional_grace_period,omitempty" validate:"gte=0,lte=365"`
-	NoGracePeriodDaily           bool `json:"no_grace_period_daily,omitempty"`
-	FinesGracePeriodMaturity     int  `json:"fines_grace_period_maturity,omitempty" validate:"gte=0,lte=365"`
-	YearlySubscriptionFee        int  `json:"yearly_subscription_fee,omitempty" validate:"gte=0"`
-	CutOffDays                   int  `json:"cut_off_days,omitempty" validate:"gte=0,lte=30"`
-	CutOffMonths                 int  `json:"cut_off_months,omitempty" validate:"gte=0,lte=12"`
-
-	LumpsumComputationType                            LumpsumComputationType                            `json:"lumpsum_computation_type,omitempty"`
-	InterestFinesComputationDiminishing               InterestFinesComputationDiminishing               `json:"interest_fines_computation_diminishing,omitempty"`
-	InterestFinesComputationDiminishingStraightYearly InterestFinesComputationDiminishingStraightYearly `json:"interest_fines_computation_diminishing_straight_yearly,omitempty"`
-	EarnedUnearnedInterest                            EarnedUnearnedInterest                            `json:"earned_unearned_interest,omitempty"`
-	LoanSavingType                                    LoanSavingType                                    `json:"loan_saving_type,omitempty"`
-	InterestDeduction                                 InterestDeduction                                 `json:"interest_deduction,omitempty"`
-	OtherDeductionEntry                               OtherDeductionEntry                               `json:"other_deduction_entry,omitempty"`
-	InterestSavingTypeDiminishingStraight             InterestSavingTypeDiminishingStraight             `json:"interest_saving_type_diminishing_straight,omitempty"`
-	OtherInformationOfAnAccount                       OtherInformationOfAnAccount                       `json:"other_information_of_an_account,omitempty"`
-
-	HeaderRow int `json:"header_row,omitempty"`
-	CenterRow int `json:"center_row,omitempty"`
-	TotalRow  int `json:"total_row,omitempty"`
-
-	GeneralLedgerGroupingExcludeAccount bool                 `json:"general_ledger_grouping_exclude_account,omitempty"`
-	AccountTags                         []*AccountTagRequest `json:"account_tags,omitempty"`
-
-	Icon                                    string `json:"icon,omitempty"`
-	ShowInGeneralLedgerSourceWithdraw       bool   `json:"show_in_general_ledger_source_withdraw"`
-	ShowInGeneralLedgerSourceDeposit        bool   `json:"show_in_general_ledger_source_deposit"`
-	ShowInGeneralLedgerSourceJournal        bool   `json:"show_in_general_ledger_source_journal"`
-	ShowInGeneralLedgerSourcePayment        bool   `json:"show_in_general_ledger_source_payment"`
-	ShowInGeneralLedgerSourceAdjustment     bool   `json:"show_in_general_ledger_source_adjustment"`
-	ShowInGeneralLedgerSourceJournalVoucher bool   `json:"show_in_general_ledger_source_journal_voucher"`
-	ShowInGeneralLedgerSourceCheckVoucher   bool   `json:"show_in_general_ledger_source_check_voucher"`
-
-	CompassionFund              bool                        `json:"compassion_fund,omitempty"`
-	CompassionFundAmount        float64                     `json:"compassion_fund_amount,omitempty"`
-	CashAndCashEquivalence      bool                        `json:"cash_and_cash_equivalence,omitempty"`
-	InterestStandardComputation InterestStandardComputation `json:"interest_standard_computation,omitempty"`
-	InterestAmortization        float64                     `json:"interest_amortization,omitempty"`
-	InterestMaturity            float64                     `json:"interest_maturity,omitempty"`
-	IsTaxable                   bool                        `json:"is_taxable,omitempty"`
-}
-
-func AccountManager(service *horizon.HorizonService) *registry.Registry[Account, AccountResponse, AccountRequest] {
+func AccountManager(service *horizon.HorizonService) *registry.Registry[
+	types.Account, types.AccountResponse, types.AccountRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		Account, AccountResponse, AccountRequest,
+		types.Account, types.AccountResponse, types.AccountRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy",
@@ -491,11 +29,11 @@ func AccountManager(service *horizon.HorizonService) *registry.Registry[Account,
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *Account) *AccountResponse {
+		Resource: func(data *types.Account) *types.AccountResponse {
 			if data == nil {
 				return nil
 			}
-			return &AccountResponse{
+			return &types.AccountResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -601,7 +139,7 @@ func AccountManager(service *horizon.HorizonService) *registry.Registry[Account,
 				IsTaxable:                   data.IsTaxable,
 			}
 		},
-		Created: func(data *Account) registry.Topics {
+		Created: func(data *types.Account) registry.Topics {
 			return []string{
 				"account.create",
 				fmt.Sprintf("account.create.%s", data.ID),
@@ -609,7 +147,7 @@ func AccountManager(service *horizon.HorizonService) *registry.Registry[Account,
 				fmt.Sprintf("account.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *Account) registry.Topics {
+		Updated: func(data *types.Account) registry.Topics {
 			return []string{
 				"account.update",
 				fmt.Sprintf("account.update.%s", data.ID),
@@ -617,7 +155,7 @@ func AccountManager(service *horizon.HorizonService) *registry.Registry[Account,
 				fmt.Sprintf("account.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *Account) registry.Topics {
+		Deleted: func(data *types.Account) registry.Topics {
 			return []string{
 				"account.delete",
 				fmt.Sprintf("account.delete.%s", data.ID),
@@ -628,7 +166,9 @@ func AccountManager(service *horizon.HorizonService) *registry.Registry[Account,
 	})
 }
 
-func accountSeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
+func accountSeed(context context.Context,
+	service *horizon.HorizonService,
+	tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
 
 	branch, err := BranchManager(service).GetByID(context, branchID)
@@ -636,7 +176,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
 
-	accounts := []*Account{
+	accounts := []*types.Account{
 		{
 			CreatedAt:         now,
 			CreatedByID:       userID,
@@ -646,13 +186,13 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Regular Savings",
 			Description:       "Basic savings account for general purpose savings with standard interest rates.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         100.00,
 			MaxAmount:         1000000.00,
 			InterestStandard:  2.5,
 			CurrencyID:        branch.CurrencyID,
-			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   Diminishing,
+			GeneralLedgerType: types.GLTypeLiabilities,
+			ComputationType:   types.Diminishing,
 			Index:             1,
 			Icon:              "Savings",
 		},
@@ -665,11 +205,11 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Premium Savings",
 			Description:       "High-yield savings account with better interest rates for higher balances.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         5000.00,
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.0,
-			GeneralLedgerType: GLTypeLiabilities,
+			GeneralLedgerType: types.GLTypeLiabilities,
 			Index:             2,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Crown",
@@ -683,11 +223,11 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Junior Savings",
 			Description:       "Special savings account designed for minors and young members.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         50.00,
 			MaxAmount:         100000.00,
 			InterestStandard:  3.0,
-			GeneralLedgerType: GLTypeLiabilities,
+			GeneralLedgerType: types.GLTypeLiabilities,
 			Index:             3,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Cake",
@@ -701,11 +241,11 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Senior Citizen Savings",
 			Description:       "Special savings account with higher interest rates for senior citizens.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         500.00,
 			MaxAmount:         2000000.00,
 			InterestStandard:  3.5,
-			GeneralLedgerType: GLTypeLiabilities,
+			GeneralLedgerType: types.GLTypeLiabilities,
 			Index:             4,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Umbrella",
@@ -719,12 +259,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Christmas Savings",
 			Description:       "Seasonal savings account for holiday preparations with withdrawal restrictions.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         200.00,
 			MaxAmount:         500000.00,
 			InterestStandard:  3.0,
-			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   Diminishing,
+			GeneralLedgerType: types.GLTypeLiabilities,
+			ComputationType:   types.Diminishing,
 			Index:             5,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Calendar",
@@ -738,12 +278,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Education Savings",
 			Description:       "Long-term savings account dedicated to educational expenses.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         1000.00,
 			MaxAmount:         3000000.00,
 			InterestStandard:  4.0,
-			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   Straight,
+			GeneralLedgerType: types.GLTypeLiabilities,
+			ComputationType:   types.Straight,
 			Index:             6,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Graduation Cap",
@@ -757,12 +297,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Emergency Fund",
 			Description:       "High-liquidity savings account for emergency situations.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         500.00,
 			MaxAmount:         1000000.00,
 			InterestStandard:  2.0,
-			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   Diminishing,
+			GeneralLedgerType: types.GLTypeLiabilities,
+			ComputationType:   types.Diminishing,
 			Index:             7,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Shield Check",
@@ -776,12 +316,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Business Savings",
 			Description:       "Savings account designed for small businesses and entrepreneurs.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         2000.00,
 			MaxAmount:         10000000.00,
 			InterestStandard:  3.5,
-			GeneralLedgerType: GLTypeLiabilities,
-			ComputationType:   DiminishingStraight,
+			GeneralLedgerType: types.GLTypeLiabilities,
+			ComputationType:   types.DiminishingStraight,
 			Index:             8,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Brief Case",
@@ -795,11 +335,11 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:          branchID,
 			Name:              "Retirement Savings",
 			Description:       "Long-term savings account for retirement planning with tax benefits.",
-			Type:              AccountTypeDeposit,
+			Type:              types.AccountTypeDeposit,
 			MinAmount:         1000.00,
 			MaxAmount:         5000000.00,
 			InterestStandard:  4.5,
-			GeneralLedgerType: GLTypeLiabilities,
+			GeneralLedgerType: types.GLTypeLiabilities,
 			Index:             9,
 			CurrencyID:        branch.CurrencyID,
 			Icon:              "Clock",
@@ -824,7 +364,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		}
 	}
 
-	loanAccounts := []*Account{
+	loanAccounts := []*types.Account{
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -834,26 +374,26 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:                                branchID,
 			Name:                                    "Emergency Loan",
 			Description:                             "Quick access loan for urgent financial needs and unexpected expenses.",
-			Type:                                    AccountTypeLoan,
+			Type:                                    types.AccountTypeLoan,
 			MinAmount:                               1000.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        8.5, // Already between 0-100
 			InterestSecured:                         7.5,
 			FinesAmort:                              1.0,
 			FinesMaturity:                           2.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Diminishing,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Diminishing,
 			Index:                                   10,
 			CutOffDays:                              3,
 			CutOffMonths:                            0,
 			FinesGracePeriodAmortization:            5,
 			FinesGracePeriodMaturity:                7,
 			AdditionalGracePeriod:                   2,
-			LumpsumComputationType:                  LumpsumComputationNone,
-			InterestFinesComputationDiminishing:     IFCDByAmortization,
-			EarnedUnearnedInterest:                  EUITypeByFormula,
-			LoanSavingType:                          LSTSeparate,
-			InterestDeduction:                       InterestDeductionAbove,
+			LumpsumComputationType:                  types.LumpsumComputationNone,
+			InterestFinesComputationDiminishing:     types.IFCDByAmortization,
+			EarnedUnearnedInterest:                  types.EUITypeByFormula,
+			LoanSavingType:                          types.LSTSeparate,
+			InterestDeduction:                       types.InterestDeductionAbove,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -873,25 +413,25 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:                                branchID,
 			Name:                                    "Business Loan",
 			Description:                             "Capital loan for business expansion, equipment purchase, and working capital needs.",
-			Type:                                    AccountTypeLoan,
+			Type:                                    types.AccountTypeLoan,
 			MinAmount:                               50000.00,
 			MaxAmount:                               5000000.00,
 			InterestStandard:                        10.0, // Already between 0-100
 			InterestSecured:                         9.0,
 			FinesAmort:                              1.5,
 			FinesMaturity:                           2.5,
-			GeneralLedgerType:                       GLTypeAssets,
+			GeneralLedgerType:                       types.GLTypeAssets,
 			Index:                                   11,
 			CutOffDays:                              7,
 			CutOffMonths:                            0,
 			FinesGracePeriodAmortization:            10,
 			FinesGracePeriodMaturity:                15,
 			AdditionalGracePeriod:                   5,
-			LumpsumComputationType:                  LumpsumComputationNone,
-			InterestFinesComputationDiminishing:     IFCDByAmortization,
-			EarnedUnearnedInterest:                  EUITypeByFormula,
-			LoanSavingType:                          LSTSeparate,
-			InterestDeduction:                       InterestDeductionAbove,
+			LumpsumComputationType:                  types.LumpsumComputationNone,
+			InterestFinesComputationDiminishing:     types.IFCDByAmortization,
+			EarnedUnearnedInterest:                  types.EUITypeByFormula,
+			LoanSavingType:                          types.LSTSeparate,
+			InterestDeduction:                       types.InterestDeductionAbove,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -911,26 +451,26 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:                                branchID,
 			Name:                                    "Educational Loan",
 			Description:                             "Student loan for tuition fees, educational expenses, and academic development.",
-			Type:                                    AccountTypeLoan,
+			Type:                                    types.AccountTypeLoan,
 			MinAmount:                               5000.00,
 			MaxAmount:                               500000.00,
 			InterestStandard:                        6.5, // Already between 0-100
 			InterestSecured:                         5.5,
 			FinesAmort:                              0.5,
 			FinesMaturity:                           1.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Diminishing,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Diminishing,
 			Index:                                   12,
 			CutOffDays:                              14,
 			CutOffMonths:                            0,
 			FinesGracePeriodAmortization:            15,
 			FinesGracePeriodMaturity:                30,
 			AdditionalGracePeriod:                   10,
-			LumpsumComputationType:                  LumpsumComputationNone,
-			InterestFinesComputationDiminishing:     IFCDNone,
-			EarnedUnearnedInterest:                  EUITypeByFormula,
-			LoanSavingType:                          LSTSeparate,
-			InterestDeduction:                       InterestDeductionBelow,
+			LumpsumComputationType:                  types.LumpsumComputationNone,
+			InterestFinesComputationDiminishing:     types.IFCDNone,
+			EarnedUnearnedInterest:                  types.EUITypeByFormula,
+			LoanSavingType:                          types.LSTSeparate,
+			InterestDeduction:                       types.InterestDeductionBelow,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
 			ShowInGeneralLedgerSourceJournal:        true,
@@ -953,25 +493,25 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			return eris.Wrapf(err, "history: failed to create history for seeded loan account %s", loanAccount.Name)
 		}
 
-		var interestComputationType ComputationType
+		var interestComputationType types.ComputationType
 		var interestStandardRate float64
 
 		switch loanAccount.Name {
 		case "Emergency Loan":
-			interestComputationType = Diminishing
+			interestComputationType = types.Diminishing
 			interestStandardRate = 2.5 // 2.5% interest standard
 		case "Business Loan":
-			interestComputationType = DiminishingStraight
+			interestComputationType = types.DiminishingStraight
 			interestStandardRate = 3.0 // 3% interest standard
 		case "Educational Loan":
-			interestComputationType = Diminishing
+			interestComputationType = types.Diminishing
 			interestStandardRate = 1.5 // 1.5% interest standard
 		default:
-			interestComputationType = Diminishing
+			interestComputationType = types.Diminishing
 			interestStandardRate = 2.0 // 2% default interest standard
 		}
 
-		interestAccount := &Account{
+		interestAccount := &types.Account{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
 			UpdatedAt:                               now,
@@ -981,11 +521,11 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			CurrencyID:                              branch.CurrencyID,
 			Name:                                    "Interest " + loanAccount.Name,
 			Description:                             "Interest account for " + loanAccount.Description,
-			Type:                                    AccountTypeInterest,
+			Type:                                    types.AccountTypeInterest,
 			MinAmount:                               0.00,
 			MaxAmount:                               100.00, // Max percentage is 100%
 			InterestStandard:                        interestStandardRate,
-			GeneralLedgerType:                       GLTypeRevenue,
+			GeneralLedgerType:                       types.GLTypeRevenue,
 			ComputationType:                         interestComputationType,
 			Index:                                   loanAccount.Index + 100, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
@@ -996,7 +536,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			Icon:                                    "Percent",
 		}
 
@@ -1008,25 +548,25 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			return eris.Wrapf(err, "history: failed to create history for seeded interest account for %s", loanAccount.Name)
 		}
 
-		var svfComputationType ComputationType
+		var svfComputationType types.ComputationType
 		var svfStandardRate float64
 
 		switch loanAccount.Name {
 		case "Emergency Loan":
-			svfComputationType = Straight
+			svfComputationType = types.Straight
 			svfStandardRate = 1.0
 		case "Business Loan":
-			svfComputationType = DiminishingStraight
+			svfComputationType = types.DiminishingStraight
 			svfStandardRate = 1.5
 		case "Educational Loan":
-			svfComputationType = Diminishing
+			svfComputationType = types.Diminishing
 			svfStandardRate = 0.5
 		default:
-			svfComputationType = DiminishingStraight
+			svfComputationType = types.DiminishingStraight
 			svfStandardRate = 1.0
 		}
 
-		serviceFeeAccount := &Account{
+		serviceFeeAccount := &types.Account{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
 			UpdatedAt:                               now,
@@ -1036,11 +576,11 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			CurrencyID:                              branch.CurrencyID,
 			Name:                                    "Service Fee " + loanAccount.Name,
 			Description:                             "Service fee account for " + loanAccount.Description,
-			Type:                                    AccountTypeSVFLedger,
+			Type:                                    types.AccountTypeSVFLedger,
 			MinAmount:                               0.00,
 			MaxAmount:                               100.00, // Max percentage is 100%
 			InterestStandard:                        svfStandardRate,
-			GeneralLedgerType:                       GLTypeRevenue,
+			GeneralLedgerType:                       types.GLTypeRevenue,
 			ComputationType:                         svfComputationType,
 			Index:                                   loanAccount.Index + 200, // Offset to avoid conflicts
 			LoanAccountID:                           &loanAccount.ID,
@@ -1051,7 +591,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			Icon:                                    "Receipt",
 		}
 
@@ -1063,7 +603,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			return eris.Wrapf(err, "history: failed to create history for seeded service fee account for %s", loanAccount.Name)
 		}
 
-		finesAccount := &Account{
+		finesAccount := &types.Account{
 			CreatedAt:        now,
 			CreatedByID:      userID,
 			UpdatedAt:        now,
@@ -1073,7 +613,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			CurrencyID:       branch.CurrencyID,
 			Name:             "Fines " + loanAccount.Name,
 			Description:      "Fines account for " + loanAccount.Description,
-			Type:             AccountTypeFines,
+			Type:             types.AccountTypeFines,
 			MinAmount:        0.00,
 			MaxAmount:        100.00, // Max percentage is 100%
 			InterestStandard: 0.0,
@@ -1086,8 +626,8 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			AdditionalGracePeriod:        3,     // 3 additional days
 			NoGracePeriodDaily:           false, // Allow daily grace period
 
-			GeneralLedgerType: GLTypeRevenue,
-			ComputationType:   Straight,
+			GeneralLedgerType: types.GLTypeRevenue,
+			ComputationType:   types.Straight,
 			Index:             loanAccount.Index + 300, // Offset to avoid conflicts
 			LoanAccountID:     &loanAccount.ID,
 
@@ -1113,7 +653,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			Icon:                                    "Warning",
 		}
 
@@ -1126,7 +666,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		}
 	}
 
-	standaloneFinesAccounts := []*Account{
+	standaloneFinesAccounts := []*types.Account{
 		{
 			CreatedAt:                    now,
 			CreatedByID:                  userID,
@@ -1137,7 +677,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			CurrencyID:                   branch.CurrencyID,
 			Name:                         "Late Payment Fines",
 			Description:                  "Fines for late payment of any cooperative obligations and dues.",
-			Type:                         AccountTypeFines,
+			Type:                         types.AccountTypeFines,
 			MinAmount:                    0.00,
 			MaxAmount:                    100.00, // Max percentage is 100%
 			InterestStandard:             0.0,
@@ -1147,8 +687,8 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			FinesGracePeriodMaturity:     10,  // 10 days grace period for maturity fines
 			AdditionalGracePeriod:        2,   // 2 additional days
 			NoGracePeriodDaily:           false,
-			GeneralLedgerType:            GLTypeRevenue,
-			ComputationType:              Straight,
+			GeneralLedgerType:            types.GLTypeRevenue,
+			ComputationType:              types.Straight,
 			Index:                        500,
 			CohCibFinesGracePeriodEntryDailyAmortization:   2.0,  // 2% daily amortization fine
 			CohCibFinesGracePeriodEntryDailyMaturity:       3.5,  // 3.5% daily maturity fine
@@ -1163,7 +703,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:            true,
 			ShowInGeneralLedgerSourceJournalVoucher:        true,
 			ShowInGeneralLedgerSourceCheckVoucher:          true,
-			OtherInformationOfAnAccount:                    OIOANone,
+			OtherInformationOfAnAccount:                    types.OIOANone,
 			Icon:                                           "Clock Cancel",
 		},
 		{
@@ -1176,7 +716,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			CurrencyID:                   branch.CurrencyID,
 			Name:                         "Penalty Fines",
 			Description:                  "Penalty fines for violations of cooperative rules and regulations.",
-			Type:                         AccountTypeFines,
+			Type:                         types.AccountTypeFines,
 			MinAmount:                    0.00,
 			MaxAmount:                    100.00,
 			InterestStandard:             0.0,
@@ -1186,8 +726,8 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			FinesGracePeriodMaturity:     7,    // 7 days grace period for maturity fines
 			AdditionalGracePeriod:        1,    // 1 additional day
 			NoGracePeriodDaily:           false,
-			GeneralLedgerType:            GLTypeRevenue,
-			ComputationType:              Straight,
+			GeneralLedgerType:            types.GLTypeRevenue,
+			ComputationType:              types.Straight,
 			Index:                        501,
 			CohCibFinesGracePeriodEntryDailyAmortization:   3.0,  // 3% daily amortization fine
 			CohCibFinesGracePeriodEntryDailyMaturity:       5.0,  // 5% daily maturity fine
@@ -1202,7 +742,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:            true,
 			ShowInGeneralLedgerSourceJournalVoucher:        true,
 			ShowInGeneralLedgerSourceCheckVoucher:          true,
-			OtherInformationOfAnAccount:                    OIOANone,
+			OtherInformationOfAnAccount:                    types.OIOANone,
 			Icon:                                           "Badge Exclamation",
 		},
 		{
@@ -1215,7 +755,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			CurrencyID:                   branch.CurrencyID,
 			Name:                         "Administrative Fines",
 			Description:                  "Administrative fines for procedural violations and documentation errors.",
-			Type:                         AccountTypeFines,
+			Type:                         types.AccountTypeFines,
 			MinAmount:                    0.00,
 			MaxAmount:                    100.00,
 			InterestStandard:             0.0,
@@ -1225,8 +765,8 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			FinesGracePeriodMaturity:     20,  // 20 days grace period for maturity fines
 			AdditionalGracePeriod:        5,   // 5 additional days
 			NoGracePeriodDaily:           false,
-			GeneralLedgerType:            GLTypeRevenue,
-			ComputationType:              Straight,
+			GeneralLedgerType:            types.GLTypeRevenue,
+			ComputationType:              types.Straight,
 			Index:                        502,
 			CohCibFinesGracePeriodEntryDailyAmortization:   0.5,  // 0.5% daily amortization fine
 			CohCibFinesGracePeriodEntryDailyMaturity:       1.0,  // 1% daily maturity fine
@@ -1241,7 +781,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:            true,
 			ShowInGeneralLedgerSourceJournalVoucher:        true,
 			ShowInGeneralLedgerSourceCheckVoucher:          true,
-			OtherInformationOfAnAccount:                    OIOANone,
+			OtherInformationOfAnAccount:                    types.OIOANone,
 			Icon:                                           "Document File Fill",
 		},
 	}
@@ -1256,7 +796,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		}
 	}
 
-	standaloneInterestAccounts := []*Account{
+	standaloneInterestAccounts := []*types.Account{
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -1268,12 +808,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "General Interest Income",
 			Icon:                                    "Trend Up",
 			Description:                             "General interest income from various cooperative investments and deposits.",
-			Type:                                    AccountTypeInterest,
+			Type:                                    types.AccountTypeInterest,
 			MinAmount:                               0.00,
 			MaxAmount:                               100.00, // Max percentage is 100%
 			InterestStandard:                        2.0,    // 2% interest standard
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Diminishing,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Diminishing,
 			Index:                                   600,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1282,7 +822,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -1295,12 +835,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Penalty Interest",
 			Icon:                                    "Arrow Trend Up",
 			Description:                             "Interest penalties for overdue accounts and late payments.",
-			Type:                                    AccountTypeInterest,
+			Type:                                    types.AccountTypeInterest,
 			MinAmount:                               0.00,
 			MaxAmount:                               100.00, // Max percentage is 100%
 			InterestStandard:                        5.0,    // 5% penalty interest
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   601,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1309,7 +849,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -1322,12 +862,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Investment Interest",
 			Icon:                                    "Pie Chart",
 			Description:                             "Interest income from long-term investments and financial instruments.",
-			Type:                                    AccountTypeInterest,
+			Type:                                    types.AccountTypeInterest,
 			MinAmount:                               0.00,
 			MaxAmount:                               100.00, // Max percentage is 100%
 			InterestStandard:                        3.5,    // 3.5% investment interest
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         DiminishingStraight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.DiminishingStraight,
 			Index:                                   602,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1336,11 +876,11 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 	}
 
-	standaloneSVFAccounts := []*Account{
+	standaloneSVFAccounts := []*types.Account{
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -1352,12 +892,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "General Service Fee",
 			Icon:                                    "Ticket",
 			Description:                             "General service fees for various cooperative services and transactions.",
-			Type:                                    AccountTypeSVFLedger,
+			Type:                                    types.AccountTypeSVFLedger,
 			MinAmount:                               0.00,
 			MaxAmount:                               100.00, // Max percentage is 100%
 			InterestStandard:                        1.0,    // 1% service fee standard
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   700,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1366,7 +906,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -1379,12 +919,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Processing Service Fee",
 			Icon:                                    "Wrench Icon",
 			Description:                             "Service fees for loan processing, account opening, and administrative services.",
-			Type:                                    AccountTypeSVFLedger,
+			Type:                                    types.AccountTypeSVFLedger,
 			MinAmount:                               0.00,
 			MaxAmount:                               100.00, // Max percentage is 100%
 			InterestStandard:                        2.0,    // 2% processing fee standard
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Diminishing,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Diminishing,
 			Index:                                   701,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1393,7 +933,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -1406,12 +946,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Maintenance Service Fee",
 			Icon:                                    "Gear",
 			Description:                             "Monthly and annual maintenance service fees for account upkeep and services.",
-			Type:                                    AccountTypeSVFLedger,
+			Type:                                    types.AccountTypeSVFLedger,
 			MinAmount:                               0.00,
 			MaxAmount:                               100.00, // Max percentage is 100%
 			InterestStandard:                        0.5,    // 0.5% maintenance fee standard
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         DiminishingStraight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.DiminishingStraight,
 			Index:                                   702,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1420,7 +960,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 	}
 
@@ -1444,7 +984,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		}
 	}
 
-	paidUpShareCapital := &Account{
+	paidUpShareCapital := &types.Account{
 		CreatedAt:                         now,
 		CreatedByID:                       userID,
 		UpdatedAt:                         now,
@@ -1455,12 +995,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		Name:                              "Paid Up Share Capital",
 		Icon:                              "Star",
 		Description:                       "Member's share capital contribution representing ownership stake in the cooperative.",
-		Type:                              AccountTypeOther,
+		Type:                              types.AccountTypeOther,
 		MinAmount:                         100.00,
 		MaxAmount:                         1000000.00,
 		InterestStandard:                  0.0,
-		GeneralLedgerType:                 GLTypeEquity,
-		ComputationType:                   Straight,
+		GeneralLedgerType:                 types.GLTypeEquity,
+		ComputationType:                   types.Straight,
 		Index:                             10,
 		PaidUpShareCapital:                true,
 		ShowInGeneralLedgerSourceWithdraw: true,
@@ -1476,16 +1016,16 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", paidUpShareCapital.Name)
 	}
 
-	var cashOnHandPaymentType *PaymentType
+	var cashOnHandPaymentType *types.PaymentType
 
-	cashOnHandPaymentType, _ = PaymentTypeManager(service).FindOne(context, &PaymentType{
+	cashOnHandPaymentType, _ = PaymentTypeManager(service).FindOne(context, &types.PaymentType{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 		Name:           "Cash On Hand",
 	})
 
 	if cashOnHandPaymentType == nil {
-		cashOnHandPaymentType = &PaymentType{
+		cashOnHandPaymentType = &types.PaymentType{
 			CreatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedAt:      now,
@@ -1494,14 +1034,14 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:       branchID,
 			Name:           "Cash On Hand",
 			Description:    "Cash available at the branch for immediate use.",
-			Type:           PaymentTypeCash,
+			Type:           types.PaymentTypeCash,
 			NumberOfDays:   0,
 		}
 
 		if err := PaymentTypeManager(service).CreateWithTx(context, tx, cashOnHandPaymentType); err != nil {
 			return eris.Wrapf(err, "failed to seed payment type %s", cashOnHandPaymentType.Name)
 		}
-		paymentTypes := []*PaymentType{
+		paymentTypes := []*types.PaymentType{
 			{
 				CreatedAt:      now,
 				UpdatedAt:      now,
@@ -1512,7 +1052,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "Forward Cash On Hand",
 				Description:    "Physical cash received and forwarded for transactions.",
 				NumberOfDays:   0,
-				Type:           PaymentTypeCash,
+				Type:           types.PaymentTypeCash,
 			},
 			{
 				CreatedAt:      now,
@@ -1524,7 +1064,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "Petty Cash",
 				Description:    "Small amount of cash for minor expenses.",
 				NumberOfDays:   0,
-				Type:           PaymentTypeCash,
+				Type:           types.PaymentTypeCash,
 			},
 			{
 				CreatedAt:      now,
@@ -1536,7 +1076,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "E-Wallet",
 				Description:    "Digital wallet for online payments.",
 				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
+				Type:           types.PaymentTypeOnline,
 			},
 			{
 				CreatedAt:      now,
@@ -1548,7 +1088,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "E-Bank",
 				Description:    "Online banking transfer.",
 				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
+				Type:           types.PaymentTypeOnline,
 			},
 			{
 				CreatedAt:      now,
@@ -1560,7 +1100,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "GCash",
 				Description:    "GCash mobile wallet payment.",
 				NumberOfDays:   0,
-				Type:           PaymentTypeOnline,
+				Type:           types.PaymentTypeOnline,
 			},
 			{
 				CreatedAt:      now,
@@ -1572,7 +1112,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "Cheque",
 				Description:    "Payment via cheque/check.",
 				NumberOfDays:   3,
-				Type:           PaymentTypeCheck,
+				Type:           types.PaymentTypeCheck,
 			},
 			{
 				CreatedAt:      now,
@@ -1584,7 +1124,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "Bank Transfer",
 				Description:    "Direct bank-to-bank transfer.",
 				NumberOfDays:   1,
-				Type:           PaymentTypeCheck,
+				Type:           types.PaymentTypeCheck,
 			},
 			{
 				CreatedAt:      now,
@@ -1596,7 +1136,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "Manager's Check",
 				Description:    "Bank-issued check for secure payments.",
 				NumberOfDays:   2,
-				Type:           PaymentTypeCheck,
+				Type:           types.PaymentTypeCheck,
 			},
 			{
 				CreatedAt:      now,
@@ -1608,7 +1148,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "Manual Adjustment",
 				Description:    "Manual adjustments for corrections and reconciliation.",
 				NumberOfDays:   0,
-				Type:           PaymentTypeAdjustment,
+				Type:           types.PaymentTypeAdjustment,
 			},
 			{
 				CreatedAt:      now,
@@ -1620,7 +1160,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 				Name:           "Adjustment Entry",
 				Description:    "Manual adjustments for corrections and reconciliation.",
 				NumberOfDays:   0,
-				Type:           PaymentTypeAdjustment,
+				Type:           types.PaymentTypeAdjustment,
 			},
 		}
 
@@ -1632,7 +1172,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		}
 	}
 
-	cashOnHand := &Account{
+	cashOnHand := &types.Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
 		UpdatedAt:                               now,
@@ -1644,12 +1184,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		Name:                                    "Cash on Hand",
 		Icon:                                    "Hand Coins",
 		Description:                             "Physical cash available at the branch for daily operations and transactions.",
-		Type:                                    AccountTypeOther,
+		Type:                                    types.AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Straight,
+		GeneralLedgerType:                       types.GLTypeAssets,
+		ComputationType:                         types.Straight,
 		Index:                                   11,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       false,
@@ -1661,7 +1201,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 
-		OtherInformationOfAnAccount: OIOACashOnHand,
+		OtherInformationOfAnAccount: types.OIOACashOnHand,
 	}
 
 	if err := AccountManager(service).CreateWithTx(context, tx, cashOnHand); err != nil {
@@ -1672,7 +1212,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashOnHand.Name)
 	}
 
-	cashInBank := &Account{
+	cashInBank := &types.Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
 		UpdatedAt:                               now,
@@ -1684,12 +1224,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		Name:                                    "Cash in Bank",
 		Icon:                                    "Bank",
 		Description:                             "Funds deposited in bank accounts for secure storage and banking transactions.",
-		Type:                                    AccountTypeOther,
+		Type:                                    types.AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               50000000.00,
 		InterestStandard:                        0.0,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Straight,
+		GeneralLedgerType:                       types.GLTypeAssets,
+		ComputationType:                         types.Straight,
 		Index:                                   12,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1700,7 +1240,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             OIOACashInBank,
+		OtherInformationOfAnAccount:             types.OIOACashInBank,
 	}
 
 	if err := AccountManager(service).CreateWithTx(context, tx, cashInBank); err != nil {
@@ -1711,7 +1251,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashInBank.Name)
 	}
 
-	cashOnline := &Account{
+	cashOnline := &types.Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
 		UpdatedAt:                               now,
@@ -1722,12 +1262,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		Name:                                    "Cash Online",
 		Icon:                                    "Smartphone",
 		Description:                             "Digital funds available through online banking platforms and digital wallets.",
-		Type:                                    AccountTypeOther,
+		Type:                                    types.AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               10000000.00,
 		InterestStandard:                        0.0,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Straight,
+		GeneralLedgerType:                       types.GLTypeAssets,
+		ComputationType:                         types.Straight,
 		Index:                                   13,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1738,7 +1278,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             OIOANone,
+		OtherInformationOfAnAccount:             types.OIOANone,
 		CurrencyID:                              branch.CurrencyID,
 	}
 
@@ -1750,7 +1290,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashOnline.Name)
 	}
 
-	pettyCash := &Account{
+	pettyCash := &types.Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
 		UpdatedAt:                               now,
@@ -1761,12 +1301,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		Name:                                    "Petty Cash",
 		Icon:                                    "Wallet",
 		Description:                             "Small amount of cash kept on hand for minor expenses and incidental purchases.",
-		Type:                                    AccountTypeOther,
+		Type:                                    types.AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               100000.00,
 		InterestStandard:                        0.0,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Straight,
+		GeneralLedgerType:                       types.GLTypeAssets,
+		ComputationType:                         types.Straight,
 		Index:                                   14,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1777,7 +1317,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             OIOANone,
+		OtherInformationOfAnAccount:             types.OIOANone,
 		CurrencyID:                              branch.CurrencyID,
 	}
 
@@ -1789,7 +1329,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", pettyCash.Name)
 	}
 
-	cashInTransit := &Account{
+	cashInTransit := &types.Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
 		UpdatedAt:                               now,
@@ -1800,12 +1340,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		Name:                                    "Cash in Transit",
 		Icon:                                    "Running",
 		Description:                             "Cash deposits or transfers that are in process but not yet cleared or posted.",
-		Type:                                    AccountTypeOther,
+		Type:                                    types.AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               5000000.00,
 		InterestStandard:                        0.0,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Straight,
+		GeneralLedgerType:                       types.GLTypeAssets,
+		ComputationType:                         types.Straight,
 		Index:                                   15,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1816,7 +1356,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		ShowInGeneralLedgerSourceJournalVoucher: true,
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
-		OtherInformationOfAnAccount:             OIOANone,
+		OtherInformationOfAnAccount:             types.OIOANone,
 		CurrencyID:                              branch.CurrencyID,
 	}
 
@@ -1828,7 +1368,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", cashInTransit.Name)
 	}
 
-	foreignCurrencyCash := &Account{
+	foreignCurrencyCash := &types.Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
 		UpdatedAt:                               now,
@@ -1839,12 +1379,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		Name:                                    "Foreign Currency Cash",
 		Icon:                                    "Globe Asia",
 		Description:                             "Cash holdings in foreign currencies for international transactions and exchange.",
-		Type:                                    AccountTypeOther,
+		Type:                                    types.AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               2000000.00,
 		InterestStandard:                        0.0,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Straight,
+		GeneralLedgerType:                       types.GLTypeAssets,
+		ComputationType:                         types.Straight,
 		Index:                                   16,
 		CashOnHand:                              true,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1856,7 +1396,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 		CurrencyID:                              branch.CurrencyID,
-		OtherInformationOfAnAccount:             OIOANone,
+		OtherInformationOfAnAccount:             types.OIOANone,
 	}
 
 	if err := AccountManager(service).CreateWithTx(context, tx, foreignCurrencyCash); err != nil {
@@ -1867,7 +1407,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", foreignCurrencyCash.Name)
 	}
 
-	moneyMarketFund := &Account{
+	moneyMarketFund := &types.Account{
 		CreatedAt:                               now,
 		CreatedByID:                             userID,
 		UpdatedAt:                               now,
@@ -1878,12 +1418,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		Name:                                    "Money Market Fund",
 		Icon:                                    "Chart Bar",
 		Description:                             "Short-term, highly liquid investments that can be quickly converted to cash.",
-		Type:                                    AccountTypeOther,
+		Type:                                    types.AccountTypeOther,
 		MinAmount:                               0.00,
 		MaxAmount:                               20000000.00,
 		InterestStandard:                        1.5,
-		GeneralLedgerType:                       GLTypeAssets,
-		ComputationType:                         Diminishing,
+		GeneralLedgerType:                       types.GLTypeAssets,
+		ComputationType:                         types.Diminishing,
 		Index:                                   17,
 		CashOnHand:                              false,
 		ShowInGeneralLedgerSourceWithdraw:       true,
@@ -1895,7 +1435,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		ShowInGeneralLedgerSourceCheckVoucher:   true,
 		CashAndCashEquivalence:                  true,
 		CurrencyID:                              branch.CurrencyID,
-		OtherInformationOfAnAccount:             OIOANone,
+		OtherInformationOfAnAccount:             types.OIOANone,
 	}
 
 	if err := AccountManager(service).CreateWithTx(context, tx, moneyMarketFund); err != nil {
@@ -1906,7 +1446,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrapf(err, "history: failed to create history for seeded account %s", moneyMarketFund.Name)
 	}
 
-	feeAccounts := []*Account{
+	feeAccounts := []*types.Account{
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -1916,13 +1456,13 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:                                branchID,
 			Name:                                    "Service Fee",
 			Description:                             "General service fees charged for account maintenance and banking services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			Icon:                                    "Receipt",
 			MinAmount:                               0.00,
 			MaxAmount:                               10000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   19,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1931,7 +1471,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -1943,13 +1483,13 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:                                branchID,
 			Name:                                    "Transaction Fee",
 			Description:                             "Fees charged for various transaction services including transfers and withdrawals.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			Icon:                                    "Transaction Dollar",
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   20,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1958,7 +1498,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -1970,13 +1510,13 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:                                branchID,
 			Name:                                    "Loan Processing Fee",
 			Description:                             "One-time fee charged for loan application processing and documentation.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			Icon:                                    "Document File Fill",
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   21,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -1986,7 +1526,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -1997,13 +1537,13 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:                                branchID,
 			Name:                                    "Passbook Fee",
 			Description:                             "Fee for issuing new passbooks and passbook replacement services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			Icon:                                    "Book",
 			MinAmount:                               0.00,
 			MaxAmount:                               500.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   22,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2012,7 +1552,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2024,13 +1564,13 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			BranchID:                                branchID,
 			Name:                                    "ATM Fee",
 			Description:                             "Fees charged for ATM usage, card issuance, and ATM-related services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			Icon:                                    "Credit Card",
 			MinAmount:                               0.00,
 			MaxAmount:                               200.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   23,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2039,7 +1579,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2051,12 +1591,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Check Processing Fee",
 			Icon:                                    "Receipt",
 			Description:                             "Fees for check processing, clearance, and checkbook issuance services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   24,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2065,7 +1605,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2078,12 +1618,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Documentation Fee",
 			Icon:                                    "Document File Fill",
 			Description:                             "Fee for preparing legal documents, certificates, and official statements.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               2000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   25,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2092,7 +1632,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2105,12 +1645,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Late Payment Fee",
 			Icon:                                    "Warning",
 			Description:                             "Penalty fees charged for late loan payments and overdue account obligations.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   26,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2119,7 +1659,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2132,12 +1672,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Account Closure Fee",
 			Icon:                                    "User Lock",
 			Description:                             "Fee charged for closing accounts and terminating membership services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   27,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2146,7 +1686,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2159,12 +1699,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Annual Membership Fee",
 			Icon:                                    "ID Card",
 			Description:                             "Yearly membership fee for maintaining cooperative membership status.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   28,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2173,7 +1713,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2186,12 +1726,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Insurance Premium Fee",
 			Icon:                                    "Shield",
 			Description:                             "Insurance premium fees for loan protection and member insurance coverage.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               20000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   29,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2200,7 +1740,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2213,12 +1753,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Notarial Fee",
 			Icon:                                    "Badge Check",
 			Description:                             "Fee for notarial services and document authentication requirements.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               3000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   30,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2227,12 +1767,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 	}
 
-	operationalAccounts := []*Account{
+	operationalAccounts := []*types.Account{
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2243,12 +1783,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Computer Maintenance",
 			Icon:                                    "Monitor",
 			Description:                             "Expenses for computer hardware maintenance, software updates, and IT support services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   31,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2257,7 +1797,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2270,12 +1810,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "General Maintenance",
 			Icon:                                    "Gear",
 			Description:                             "General maintenance expenses for equipment, furniture, and operational assets.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               150000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   32,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2284,7 +1824,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2297,12 +1837,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Electricity Bills",
 			Icon:                                    "Sparkle",
 			Description:                             "Monthly electricity and power consumption expenses for branch operations.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   33,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2311,7 +1851,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2324,12 +1864,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Water Bills",
 			Icon:                                    "Globe",
 			Description:                             "Monthly water utility expenses for branch facilities and operations.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               20000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   34,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2338,7 +1878,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2351,12 +1891,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Building Repairs",
 			Icon:                                    "Building",
 			Description:                             "Costs for building repairs, renovations, and structural maintenance work.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               500000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   35,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2365,7 +1905,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2378,12 +1918,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Internet and Telecommunications",
 			Icon:                                    "Globe",
 			Description:                             "Monthly internet, phone, and communication service expenses.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               30000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   36,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2392,7 +1932,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2405,12 +1945,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Office Supplies",
 			Icon:                                    "Pencil Outline",
 			Description:                             "Expenses for office supplies, stationery, and consumable materials.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               25000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   37,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2419,7 +1959,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2432,12 +1972,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Security Services",
 			Icon:                                    "Shield",
 			Description:                             "Expenses for security guards, surveillance systems, and safety equipment.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               80000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   38,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2446,7 +1986,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2459,12 +1999,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Cleaning Services",
 			Icon:                                    "Sparkle",
 			Description:                             "Expenses for janitorial services, cleaning supplies, and facility sanitation.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               40000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   39,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2473,7 +2013,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2486,12 +2026,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Professional Services",
 			Icon:                                    "Brief Case",
 			Description:                             "Fees for legal, accounting, consulting, and other professional services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               200000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   40,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2500,7 +2040,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2513,12 +2053,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Vehicle Maintenance",
 			Icon:                                    "Gear",
 			Description:                             "Expenses for company vehicle maintenance, fuel, and transportation costs.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               60000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   41,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2527,7 +2067,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2540,12 +2080,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Equipment Rental",
 			Icon:                                    "Settings",
 			Description:                             "Rental expenses for equipment, machinery, and temporary facility needs.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   42,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2554,7 +2094,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2567,12 +2107,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Training and Development",
 			Icon:                                    "Graduation Cap",
 			Description:                             "Expenses for employee training, seminars, workshops, and professional development.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               75000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   43,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2581,7 +2121,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2594,12 +2134,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Marketing and Advertising",
 			Icon:                                    "Sparkle",
 			Description:                             "Expenses for promotional activities, advertising campaigns, and marketing materials.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   44,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2608,7 +2148,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2621,12 +2161,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Travel and Accommodation",
 			Icon:                                    "Navigation",
 			Description:                             "Business travel expenses including transportation, lodging, and meal allowances.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               80000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   45,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2635,7 +2175,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2648,12 +2188,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Government Fees and Permits",
 			Icon:                                    "Building Cog",
 			Description:                             "Expenses for business permits, licenses, regulatory fees, and government compliance.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               50000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   46,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2662,7 +2202,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2675,12 +2215,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Medical and Health Services",
 			Icon:                                    "Shield Check",
 			Description:                             "Expenses for employee health benefits, medical services, and workplace health programs.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               150000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   47,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2689,7 +2229,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2702,12 +2242,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Waste Management",
 			Icon:                                    "Recycle",
 			Description:                             "Expenses for garbage collection, waste disposal, and environmental compliance services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               15000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   48,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2716,7 +2256,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 		{
@@ -2729,12 +2269,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Emergency Expenses",
 			Icon:                                    "Warning",
 			Description:                             "Unexpected expenses for emergency repairs, urgent purchases, and crisis management.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               200000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   49,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2743,12 +2283,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceAdjustment:     true,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 			CurrencyID:                              branch.CurrencyID,
 		},
 	}
 
-	cooperativeAccounts := []*Account{
+	cooperativeAccounts := []*types.Account{
 		{
 			CreatedAt:                               now,
 			CreatedByID:                             userID,
@@ -2759,12 +2299,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Retained Earnings",
 			Icon:                                    "PiggyBank",
 			Description:                             "Accumulated profits retained for reinvestment in the cooperative.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               50000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeEquity,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeEquity,
+			ComputationType:                         types.Straight,
 			Index:                                   50,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2774,7 +2314,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2786,12 +2326,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Patronage Refund Payable",
 			Icon:                                    "Hand Drop Coins",
 			Description:                             "Profits to be distributed to members based on their patronage.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               10000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeLiabilities,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeLiabilities,
+			ComputationType:                         types.Straight,
 			Index:                                   51,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2801,7 +2341,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2813,12 +2353,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Member Equity Withdrawals",
 			Icon:                                    "Hand Withdraw",
 			Description:                             "Account for tracking member equity withdrawals and distributions.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeEquity,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeEquity,
+			ComputationType:                         types.Straight,
 			Index:                                   52,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2828,7 +2368,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2840,12 +2380,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Dividend Income",
 			Icon:                                    "Money Trend",
 			Description:                             "Income from investments and dividend distributions.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               2000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   53,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2855,7 +2395,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2867,12 +2407,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Other Income",
 			Icon:                                    "Money",
 			Description:                             "Miscellaneous income not categorized elsewhere.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeRevenue,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeRevenue,
+			ComputationType:                         types.Straight,
 			Index:                                   54,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2882,7 +2422,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2894,12 +2434,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Accounts Receivable",
 			Icon:                                    "Receive Money",
 			Description:                             "Money owed to the cooperative by members and other parties.",
-			Type:                                    AccountTypeARLedger,
+			Type:                                    types.AccountTypeARLedger,
 			MinAmount:                               0.00,
 			MaxAmount:                               10000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   55,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2909,7 +2449,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2921,12 +2461,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Allowance for Doubtful Accounts",
 			Icon:                                    "Question Circle",
 			Description:                             "Reserve for potential uncollectible receivables.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   56,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2936,7 +2476,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2948,12 +2488,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Inventory",
 			Icon:                                    "Store",
 			Description:                             "Goods and supplies held for sale or use in operations.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               3000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   57,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2963,7 +2503,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -2975,12 +2515,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Prepaid Expenses",
 			Icon:                                    "Calendar Check",
 			Description:                             "Expenses paid in advance for future periods.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               500000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   58,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -2990,7 +2530,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3002,12 +2542,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Land",
 			Icon:                                    "Park",
 			Description:                             "Real estate and land owned by the cooperative.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               50000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   59,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3017,7 +2557,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3029,12 +2569,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Building",
 			Icon:                                    "Building",
 			Description:                             "Buildings and structures owned by the cooperative.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               30000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   60,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3044,7 +2584,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3056,12 +2596,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Equipment",
 			Icon:                                    "Gear",
 			Description:                             "Machinery, tools, and equipment used in operations.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   61,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3071,7 +2611,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3083,12 +2623,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Furniture and Fixtures",
 			Icon:                                    "House",
 			Description:                             "Office furniture, fixtures, and fittings.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   62,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3098,7 +2638,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3110,12 +2650,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Accumulated Depreciation",
 			Icon:                                    "Trend Down",
 			Description:                             "Cumulative depreciation of fixed assets.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               20000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeAssets,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeAssets,
+			ComputationType:                         types.Straight,
 			Index:                                   63,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3125,7 +2665,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3137,12 +2677,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Accounts Payable",
 			Icon:                                    "Bill",
 			Description:                             "Amounts owed to suppliers and vendors.",
-			Type:                                    AccountTypeAPLedger,
+			Type:                                    types.AccountTypeAPLedger,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeLiabilities,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeLiabilities,
+			ComputationType:                         types.Straight,
 			Index:                                   64,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3152,7 +2692,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3164,12 +2704,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Accrued Expenses",
 			Icon:                                    "Clock",
 			Description:                             "Expenses incurred but not yet paid.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               2000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeLiabilities,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeLiabilities,
+			ComputationType:                         types.Straight,
 			Index:                                   65,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3179,7 +2719,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3191,12 +2731,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Taxes Payable",
 			Icon:                                    "Receipt",
 			Description:                             "Taxes owed to government authorities.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               3000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeLiabilities,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeLiabilities,
+			ComputationType:                         types.Straight,
 			Index:                                   66,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3206,7 +2746,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3218,12 +2758,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Unearned Revenue",
 			Icon:                                    "Calendar",
 			Description:                             "Advance payments received for services not yet rendered.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeLiabilities,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeLiabilities,
+			ComputationType:                         types.Straight,
 			Index:                                   67,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3233,7 +2773,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3245,12 +2785,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Salaries and Wages",
 			Icon:                                    "Users 3",
 			Description:                             "Employee compensation and payroll expenses.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               5000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   68,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3260,7 +2800,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3272,12 +2812,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Employee Benefits",
 			Icon:                                    "Shield Check",
 			Description:                             "Health insurance, retirement, and other employee benefits.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   69,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3287,7 +2827,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3299,12 +2839,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Depreciation Expense",
 			Icon:                                    "Trend Down",
 			Description:                             "Systematic allocation of asset cost over useful life.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               500000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   70,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3314,7 +2854,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3326,12 +2866,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Bad Debt Expense",
 			Icon:                                    "Trash",
 			Description:                             "Losses from uncollectible receivables.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               1000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   71,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3341,7 +2881,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3353,12 +2893,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Interest Expense on Borrowings",
 			Icon:                                    "Percent",
 			Description:                             "Interest paid on loans and borrowings.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               2000000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   72,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3368,7 +2908,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3380,12 +2920,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Audit and Accounting Fees",
 			Icon:                                    "Finance Reports",
 			Description:                             "Professional fees for auditing and accounting services.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               300000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   73,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3395,7 +2935,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3407,12 +2947,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Bank Charges",
 			Icon:                                    "Bank",
 			Description:                             "Bank service fees, transaction charges, and related costs.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               100000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   74,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3422,7 +2962,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 		{
 			CreatedAt:                               now,
@@ -3434,12 +2974,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			Name:                                    "Donations and Contributions",
 			Icon:                                    "Hand Shake Heart",
 			Description:                             "Charitable donations and community contributions.",
-			Type:                                    AccountTypeOther,
+			Type:                                    types.AccountTypeOther,
 			MinAmount:                               0.00,
 			MaxAmount:                               500000.00,
 			InterestStandard:                        0.0,
-			GeneralLedgerType:                       GLTypeExpenses,
-			ComputationType:                         Straight,
+			GeneralLedgerType:                       types.GLTypeExpenses,
+			ComputationType:                         types.Straight,
 			Index:                                   75,
 			ShowInGeneralLedgerSourceWithdraw:       true,
 			ShowInGeneralLedgerSourceDeposit:        true,
@@ -3449,7 +2989,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			ShowInGeneralLedgerSourceJournalVoucher: true,
 			ShowInGeneralLedgerSourceCheckVoucher:   true,
 			CurrencyID:                              branch.CurrencyID,
-			OtherInformationOfAnAccount:             OIOANone,
+			OtherInformationOfAnAccount:             types.OIOANone,
 		},
 	}
 
@@ -3483,7 +3023,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 			return eris.Wrapf(err, "history: failed to seed operational account %s", operationalAccount.Name)
 		}
 	}
-	compassionFund := &Account{
+	compassionFund := &types.Account{
 		CreatedAt:         now,
 		CreatedByID:       userID,
 		UpdatedAt:         now,
@@ -3492,12 +3032,12 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		BranchID:          branchID,
 		Name:              "Compassion Fund",
 		Description:       "Special deposit account for emergency assistance and member welfare support.",
-		Type:              AccountTypeDeposit,
+		Type:              types.AccountTypeDeposit,
 		MinAmount:         100.00,
 		MaxAmount:         1000000.00,
 		InterestStandard:  2.5,
-		GeneralLedgerType: GLTypeLiabilities,
-		ComputationType:   Straight,
+		GeneralLedgerType: types.GLTypeLiabilities,
+		ComputationType:   types.Straight,
 		Index:             10,
 		CurrencyID:        branch.CurrencyID,
 		Icon:              "Heart",
@@ -3516,7 +3056,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
 	}
 
-	unbalanced := &UnbalancedAccount{
+	unbalanced := &types.UnbalancedAccount{
 		CreatedAt:            now,
 		CreatedByID:          userID,
 		UpdatedAt:            now,
@@ -3531,7 +3071,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 		return eris.Wrap(err, "failed to create unbalanced account for branch")
 	}
 
-	var regularSavings *Account
+	var regularSavings *types.Account
 	for _, account := range accounts {
 		if account.Name == "Regular Savings" {
 			regularSavings = account
@@ -3541,7 +3081,7 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 	if regularSavings == nil {
 		return eris.New("Regular Savings account not found")
 	}
-	userOrganization, err := UserOrganizationManager(service).FindOne(context, &UserOrganization{
+	userOrganization, err := UserOrganizationManager(service).FindOne(context, &types.UserOrganization{
 		UserID:         userID,
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
@@ -3563,9 +3103,9 @@ func accountSeed(context context.Context, service *horizon.HorizonService, tx *g
 	return nil
 }
 
-func CreateAccountHistory(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, account *Account) error {
+func CreateAccountHistory(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, account *types.Account) error {
 	now := time.Now().UTC()
-	history := &AccountHistory{
+	history := &types.AccountHistory{
 		AccountID:      account.ID,
 		OrganizationID: account.OrganizationID,
 		BranchID:       account.BranchID,
@@ -3664,7 +3204,7 @@ func CreateAccountHistoryBeforeUpdate(ctx context.Context, service *horizon.Hori
 	}
 
 	now := time.Now().UTC()
-	history := &AccountHistory{
+	history := &types.AccountHistory{
 		AccountID:      accountID,
 		OrganizationID: original.OrganizationID,
 		BranchID:       original.BranchID,
@@ -3755,18 +3295,18 @@ func CreateAccountHistoryBeforeUpdate(ctx context.Context, service *horizon.Hori
 	return AccountHistoryManager(service).Create(ctx, history)
 }
 
-func AccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
-	return AccountManager(service).Find(context, &Account{
+func AccountCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.Account, error) {
+	return AccountManager(service).Find(context, &types.Account{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
 }
 
-func AccountLockForUpdate(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, accountID uuid.UUID) (*Account, error) {
+func AccountLockForUpdate(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, accountID uuid.UUID) (*types.Account, error) {
 	return AccountManager(service).GetByIDLock(ctx, tx, accountID)
 }
 
-func AccountLockWithValidation(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, accountID uuid.UUID, originalAccount *Account) (*Account, error) {
+func AccountLockWithValidation(ctx context.Context, service *horizon.HorizonService, tx *gorm.DB, accountID uuid.UUID, originalAccount *types.Account) (*types.Account, error) {
 	lockedAccount, err := AccountManager(service).GetByIDLock(ctx, tx, accountID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to acquire account lock")
@@ -3783,7 +3323,7 @@ func AccountLockWithValidation(ctx context.Context, service *horizon.HorizonServ
 	return lockedAccount, nil
 }
 
-func LoanAccounts(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*Account, error) {
+func LoanAccounts(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.Account, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -3794,15 +3334,15 @@ func LoanAccounts(ctx context.Context, service *horizon.HorizonService, organiza
 	})
 }
 
-func FindAccountsByTypesAndBranch(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, currencyID uuid.UUID) ([]*Account, error) {
+func FindAccountsByTypesAndBranch(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, currencyID uuid.UUID) ([]*types.Account, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
 		{Field: "currency_id", Op: query.ModeEqual, Value: currencyID},
-		{Field: "type", Op: query.ModeInside, Value: []AccountType{
-			AccountTypeFines,
-			AccountTypeInterest,
-			AccountTypeSVFLedger,
+		{Field: "type", Op: query.ModeInside, Value: []types.AccountType{
+			types.AccountTypeFines,
+			types.AccountTypeInterest,
+			types.AccountTypeSVFLedger,
 		}},
 	}
 	return AccountManager(service).ArrFind(ctx, filters, []query.ArrFilterSortSQL{
@@ -3810,7 +3350,7 @@ func FindAccountsByTypesAndBranch(ctx context.Context, service *horizon.HorizonS
 	})
 }
 
-func FindAccountsBySpecificType(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, accountType AccountType) ([]*Account, error) {
+func FindAccountsBySpecificType(ctx context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID, accountType types.AccountType) ([]*types.Account, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -3824,7 +3364,7 @@ func FindAccountsBySpecificType(ctx context.Context, service *horizon.HorizonSer
 
 func FindLoanAccountsByID(ctx context.Context,
 	service *horizon.HorizonService,
-	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*Account, error) {
+	organizationID uuid.UUID, branchID uuid.UUID, accountID uuid.UUID) ([]*types.Account, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -3857,7 +3397,7 @@ func AccountDeleteCheck(ctx context.Context, service *horizon.HorizonService, ac
 		return eris.Wrap(err, "failed to retrieve account for validation")
 	}
 
-	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &BranchSetting{
+	branchSetting, err := BranchSettingManager(service).FindOne(ctx, &types.BranchSetting{
 		BranchID: account.BranchID,
 	})
 	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {
@@ -3874,7 +3414,7 @@ func AccountDeleteCheck(ctx context.Context, service *horizon.HorizonService, ac
 		return eris.New("cannot delete account: it is currently set as the Paid Up Share Capital account in branch settings")
 	}
 
-	UnbalancedAccount, err := UnbalancedAccountManager(service).FindOne(ctx, &UnbalancedAccount{
+	UnbalancedAccount, err := UnbalancedAccountManager(service).FindOne(ctx, &types.UnbalancedAccount{
 		BranchSettingsID: branchSetting.ID,
 	})
 	if err != nil && !eris.Is(err, gorm.ErrRecordNotFound) {

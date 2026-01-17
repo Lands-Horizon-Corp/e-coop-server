@@ -7,80 +7,24 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	MemberProfileMedia struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID *uuid.UUID    `gorm:"type:uuid;index:idx_organization_branch_member_profile_media" json:"organization_id,omitempty"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       *uuid.UUID    `gorm:"type:uuid;index:idx_organization_branch_member_profile_media" json:"branch_id,omitempty"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		MemberProfileID *uuid.UUID     `gorm:"type:uuid" json:"member_profile_id,omitempty"`
-		MemberProfile   *MemberProfile `gorm:"foreignKey:MemberProfileID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"member_profile,omitempty"`
-
-		MediaID *uuid.UUID `gorm:"type:uuid" json:"media_id"`
-		Media   *Media     `gorm:"foreignKey:MediaID;constraint:OnDelete:SET NULL;" json:"media,omitempty"`
-
-		Name        string `gorm:"type:varchar(255);not null" json:"name"`
-		Description string `gorm:"type:text" json:"description"`
-	}
-
-	MemberProfileMediaResponse struct {
-		ID              uuid.UUID              `json:"id"`
-		CreatedAt       string                 `json:"created_at"`
-		CreatedByID     uuid.UUID              `json:"created_by_id"`
-		CreatedBy       *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt       string                 `json:"updated_at"`
-		UpdatedByID     uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy       *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID  *uuid.UUID             `json:"organization_id,omitempty"`
-		Organization    *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID        *uuid.UUID             `json:"branch_id,omitempty"`
-		Branch          *BranchResponse        `json:"branch,omitempty"`
-		MemberProfileID *uuid.UUID             `json:"member_profile_id,omitempty"`
-		MemberProfile   *MemberProfileResponse `json:"member_profile,omitempty"`
-		MediaID         *uuid.UUID             `json:"media_id,omitempty"`
-		Media           *MediaResponse         `json:"media,omitempty"`
-		Name            string                 `json:"name"`
-		Description     string                 `json:"description"`
-	}
-
-	MemberProfileMediaRequest struct {
-		Name            string     `json:"name" validate:"required,min=1,max=255"`
-		Description     string     `json:"description,omitempty"`
-		MemberProfileID *uuid.UUID `json:"member_profile_id,omitempty"`
-		MediaID         *uuid.UUID `json:"media_id,omitempty"`
-		OrganizationID  *uuid.UUID `json:"organization_id,omitempty"`
-		BranchID        *uuid.UUID `json:"branch_id,omitempty"`
-	}
-)
-
-func MemberProfileMediaManager(service *horizon.HorizonService) *registry.Registry[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest] {
-	return registry.NewRegistry(registry.RegistryParams[MemberProfileMedia, MemberProfileMediaResponse, MemberProfileMediaRequest]{
+func MemberProfileMediaManager(service *horizon.HorizonService) *registry.Registry[
+	types.MemberProfileMedia, types.MemberProfileMediaResponse, types.MemberProfileMediaRequest] {
+	return registry.NewRegistry(registry.RegistryParams[
+		types.MemberProfileMedia, types.MemberProfileMediaResponse, types.MemberProfileMediaRequest]{
 		Preloads: []string{"CreatedBy", "UpdatedBy", "Media", "MemberProfile"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *MemberProfileMedia) *MemberProfileMediaResponse {
+		Resource: func(data *types.MemberProfileMedia) *types.MemberProfileMediaResponse {
 			if data == nil {
 				return nil
 			}
-			return &MemberProfileMediaResponse{
+			return &types.MemberProfileMediaResponse{
 				ID:              data.ID,
 				CreatedAt:       data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:     data.CreatedByID,
@@ -100,7 +44,7 @@ func MemberProfileMediaManager(service *horizon.HorizonService) *registry.Regist
 				Description:     data.Description,
 			}
 		},
-		Created: func(data *MemberProfileMedia) registry.Topics {
+		Created: func(data *types.MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.create",
 				fmt.Sprintf("member_profile_media.create.%s", data.ID),
@@ -113,7 +57,7 @@ func MemberProfileMediaManager(service *horizon.HorizonService) *registry.Regist
 			}
 			return events
 		},
-		Updated: func(data *MemberProfileMedia) registry.Topics {
+		Updated: func(data *types.MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.update",
 				fmt.Sprintf("member_profile_media.update.%s", data.ID),
@@ -126,7 +70,7 @@ func MemberProfileMediaManager(service *horizon.HorizonService) *registry.Regist
 			}
 			return events
 		},
-		Deleted: func(data *MemberProfileMedia) registry.Topics {
+		Deleted: func(data *types.MemberProfileMedia) registry.Topics {
 			events := []string{
 				"member_profile_media.delete",
 				fmt.Sprintf("member_profile_media.delete.%s", data.ID),
@@ -142,8 +86,9 @@ func MemberProfileMediaManager(service *horizon.HorizonService) *registry.Regist
 	})
 }
 
-func MemberProfileMediaCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID *uuid.UUID, branchID *uuid.UUID) ([]*MemberProfileMedia, error) {
-	return MemberProfileMediaManager(service).Find(context, &MemberProfileMedia{
+func MemberProfileMediaCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID *uuid.UUID, branchID *uuid.UUID) ([]*types.MemberProfileMedia, error) {
+	return MemberProfileMediaManager(service).Find(context, &types.MemberProfileMedia{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})

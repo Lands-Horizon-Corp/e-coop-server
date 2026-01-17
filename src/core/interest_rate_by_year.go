@@ -8,68 +8,14 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type (
-	InterestRateByYear struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_interest_rate_by_year"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_interest_rate_by_year"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		BrowseReferenceID uuid.UUID        `gorm:"type:uuid;not null;index:idx_browse_reference_year_range"`
-		BrowseReference   *BrowseReference `gorm:"foreignKey:BrowseReferenceID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"browse_reference,omitempty"`
-
-		FromYear     int     `gorm:"not null;index:idx_browse_reference_year_range" json:"from_year" validate:"required,min=1"`
-		ToYear       int     `gorm:"not null;index:idx_browse_reference_year_range" json:"to_year" validate:"required,min=1"`
-		InterestRate float64 `gorm:"type:decimal(15,6);not null" json:"interest_rate" validate:"required,min=0"`
-	}
-
-	InterestRateByYearResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-
-		BrowseReferenceID uuid.UUID                `json:"browse_reference_id"`
-		BrowseReference   *BrowseReferenceResponse `json:"browse_reference,omitempty"`
-		FromYear          int                      `json:"from_year"`
-		ToYear            int                      `json:"to_year"`
-		InterestRate      float64                  `json:"interest_rate"`
-	}
-
-	InterestRateByYearRequest struct {
-		ID                *uuid.UUID `json:"id"`
-		BrowseReferenceID uuid.UUID  `json:"browse_reference_id" validate:"required"`
-		FromYear          int        `json:"from_year" validate:"required,min=1"`
-		ToYear            int        `json:"to_year" validate:"required,min=1,gtefield=FromYear"`
-		InterestRate      float64    `json:"interest_rate" validate:"required,min=0"`
-	}
-)
-
-func InterestRateByYearManager(service *horizon.HorizonService) *registry.Registry[InterestRateByYear, InterestRateByYearResponse, InterestRateByYearRequest] {
+func InterestRateByYearManager(service *horizon.HorizonService) *registry.Registry[
+	types.InterestRateByYear, types.InterestRateByYearResponse, types.InterestRateByYearRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
-		InterestRateByYear, InterestRateByYearResponse, InterestRateByYearRequest,
+		types.InterestRateByYear, types.InterestRateByYearResponse, types.InterestRateByYearRequest,
 	]{
 		Preloads: []string{
 			"CreatedBy", "UpdatedBy", "Organization", "Branch", "BrowseReference",
@@ -78,11 +24,11 @@ func InterestRateByYearManager(service *horizon.HorizonService) *registry.Regist
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
 		},
-		Resource: func(data *InterestRateByYear) *InterestRateByYearResponse {
+		Resource: func(data *types.InterestRateByYear) *types.InterestRateByYearResponse {
 			if data == nil {
 				return nil
 			}
-			return &InterestRateByYearResponse{
+			return &types.InterestRateByYearResponse{
 				ID:             data.ID,
 				CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:    data.CreatedByID,
@@ -103,7 +49,7 @@ func InterestRateByYearManager(service *horizon.HorizonService) *registry.Regist
 			}
 		},
 
-		Created: func(data *InterestRateByYear) registry.Topics {
+		Created: func(data *types.InterestRateByYear) registry.Topics {
 			return []string{
 				"interest_rate_by_year.create",
 				fmt.Sprintf("interest_rate_by_year.create.%s", data.ID),
@@ -112,7 +58,7 @@ func InterestRateByYearManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("interest_rate_by_year.create.organization.%s", data.OrganizationID),
 			}
 		},
-		Updated: func(data *InterestRateByYear) registry.Topics {
+		Updated: func(data *types.InterestRateByYear) registry.Topics {
 			return []string{
 				"interest_rate_by_year.update",
 				fmt.Sprintf("interest_rate_by_year.update.%s", data.ID),
@@ -121,7 +67,7 @@ func InterestRateByYearManager(service *horizon.HorizonService) *registry.Regist
 				fmt.Sprintf("interest_rate_by_year.update.organization.%s", data.OrganizationID),
 			}
 		},
-		Deleted: func(data *InterestRateByYear) registry.Topics {
+		Deleted: func(data *types.InterestRateByYear) registry.Topics {
 			return []string{
 				"interest_rate_by_year.delete",
 				fmt.Sprintf("interest_rate_by_year.delete.%s", data.ID),
@@ -133,7 +79,8 @@ func InterestRateByYearManager(service *horizon.HorizonService) *registry.Regist
 	})
 }
 
-func InterestRateByYearForBrowseReference(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID) ([]*InterestRateByYear, error) {
+func InterestRateByYearForBrowseReference(context context.Context,
+	service *horizon.HorizonService, browseReferenceID uuid.UUID) ([]*types.InterestRateByYear, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 	}
@@ -141,7 +88,8 @@ func InterestRateByYearForBrowseReference(context context.Context, service *hori
 	return InterestRateByYearManager(service).ArrFind(context, filters, nil)
 }
 
-func InterestRateByYearForRange(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID, year int) ([]*InterestRateByYear, error) {
+func InterestRateByYearForRange(context context.Context, service *horizon.HorizonService,
+	browseReferenceID uuid.UUID, year int) ([]*types.InterestRateByYear, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "browse_reference_id", Op: query.ModeEqual, Value: browseReferenceID},
 		{Field: "from_year", Op: query.ModeLTE, Value: year},
@@ -151,7 +99,8 @@ func InterestRateByYearForRange(context context.Context, service *horizon.Horizo
 	return InterestRateByYearManager(service).ArrFind(context, filters, nil)
 }
 
-func InterestRateByYearCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*InterestRateByYear, error) {
+func InterestRateByYearCurrentBranch(context context.Context, service *horizon.HorizonService,
+	organizationID uuid.UUID, branchID uuid.UUID) ([]*types.InterestRateByYear, error) {
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
@@ -160,7 +109,8 @@ func InterestRateByYearCurrentBranch(context context.Context, service *horizon.H
 	return InterestRateByYearManager(service).ArrFind(context, filters, nil)
 }
 
-func GetInterestRateForYear(context context.Context, service *horizon.HorizonService, browseReferenceID uuid.UUID, year int) (*InterestRateByYear, error) {
+func GetInterestRateForYear(context context.Context, service *horizon.HorizonService,
+	browseReferenceID uuid.UUID, year int) (*types.InterestRateByYear, error) {
 	rates, err := InterestRateByYearForRange(context, service, browseReferenceID, year)
 	if err != nil {
 		return nil, err

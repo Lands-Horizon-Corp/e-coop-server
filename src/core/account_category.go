@@ -7,68 +7,25 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
-type (
-	AccountCategory struct {
-		ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-		CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-		CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-		CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-		UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-		UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-		UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-		DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-		DeletedByID *uuid.UUID     `gorm:"type:uuid" json:"deleted_by_id"`
-		DeletedBy   *User          `gorm:"foreignKey:DeletedByID;constraint:OnDelete:SET NULL;" json:"deleted_by,omitempty"`
-
-		OrganizationID uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account_category" json:"organization_id"`
-		Organization   *Organization `gorm:"foreignKey:OrganizationID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"organization,omitempty"`
-		BranchID       uuid.UUID     `gorm:"type:uuid;not null;index:idx_organization_branch_account_category" json:"branch_id"`
-		Branch         *Branch       `gorm:"foreignKey:BranchID;constraint:OnDelete:CASCADE,OnUpdate:CASCADE;" json:"branch,omitempty"`
-
-		Name        string `gorm:"type:varchar(255)" json:"name"`
-		Description string `gorm:"type:text" json:"description"`
-	}
-
-	AccountCategoryResponse struct {
-		ID             uuid.UUID             `json:"id"`
-		CreatedAt      string                `json:"created_at"`
-		CreatedByID    uuid.UUID             `json:"created_by_id"`
-		CreatedBy      *UserResponse         `json:"created_by,omitempty"`
-		UpdatedAt      string                `json:"updated_at"`
-		UpdatedByID    uuid.UUID             `json:"updated_by_id"`
-		UpdatedBy      *UserResponse         `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID             `json:"organization_id"`
-		Organization   *OrganizationResponse `json:"organization,omitempty"`
-		BranchID       uuid.UUID             `json:"branch_id"`
-		Branch         *BranchResponse       `json:"branch,omitempty"`
-		Name           string                `json:"name"`
-		Description    string                `json:"description"`
-	}
-
-	AccountCategoryRequest struct {
-		Name        string `json:"name" validate:"required,min=1,max=255"`
-		Description string `json:"description,omitempty"`
-	}
-)
-
-func AccountCategoryManager(service *horizon.HorizonService) *registry.Registry[AccountCategory, AccountCategoryResponse, AccountCategoryRequest] {
+func AccountCategoryManager(service *horizon.HorizonService) *registry.Registry[types.AccountCategory, types.AccountCategoryResponse, types.AccountCategoryRequest] {
 	return registry.GetRegistry(
-		registry.RegistryParams[AccountCategory, AccountCategoryResponse, AccountCategoryRequest]{
-			Preloads: []string{"CreatedBy", "UpdatedBy", "Branch", "Organization"},
+		registry.RegistryParams[types.AccountCategory, types.AccountCategoryResponse, types.AccountCategoryRequest]{
+			Preloads: []string{"CreatedBy", "UpdatedBy", },
 			Database: service.Database.Client(),
 			Dispatch: func(topics registry.Topics, payload any) error {
 				return service.Broker.Dispatch(topics, payload)
 			},
-			Resource: func(data *AccountCategory) *AccountCategoryResponse {
+			Resource: func(data *types.AccountCategory) *types.AccountCategoryResponse {
 				if data == nil {
 					return nil
 				}
-				return &AccountCategoryResponse{
+				return &types.AccountCategoryResponse{
 					ID:             data.ID,
 					CreatedAt:      data.CreatedAt.Format(time.RFC3339),
 					CreatedByID:    data.CreatedByID,
@@ -84,7 +41,7 @@ func AccountCategoryManager(service *horizon.HorizonService) *registry.Registry[
 					Description:    data.Description,
 				}
 			},
-			Created: func(data *AccountCategory) registry.Topics {
+			Created: func(data *types.AccountCategory) registry.Topics {
 				return []string{
 					"account_category.create",
 					fmt.Sprintf("account_category.create.%s", data.ID),
@@ -92,7 +49,7 @@ func AccountCategoryManager(service *horizon.HorizonService) *registry.Registry[
 					fmt.Sprintf("account_category.create.organization.%s", data.OrganizationID),
 				}
 			},
-			Updated: func(data *AccountCategory) registry.Topics {
+			Updated: func(data *types.AccountCategory) registry.Topics {
 				return []string{
 					"account_category.update",
 					fmt.Sprintf("account_category.update.%s", data.ID),
@@ -100,7 +57,7 @@ func AccountCategoryManager(service *horizon.HorizonService) *registry.Registry[
 					fmt.Sprintf("account_category.update.organization.%s", data.OrganizationID),
 				}
 			},
-			Deleted: func(data *AccountCategory) registry.Topics {
+			Deleted: func(data *types.AccountCategory) registry.Topics {
 				return []string{
 					"account_category.delete",
 					fmt.Sprintf("account_category.delete.%s", data.ID),
@@ -113,7 +70,7 @@ func AccountCategoryManager(service *horizon.HorizonService) *registry.Registry[
 
 func accountCategorySeed(context context.Context, service *horizon.HorizonService, tx *gorm.DB, userID uuid.UUID, organizationID uuid.UUID, branchID uuid.UUID) error {
 	now := time.Now().UTC()
-	accountCategories := []*AccountCategory{
+	accountCategories := []*types.AccountCategory{
 		{
 			CreatedAt:      now,
 			UpdatedAt:      now,
@@ -225,8 +182,8 @@ func accountCategorySeed(context context.Context, service *horizon.HorizonServic
 	return nil
 }
 
-func AccountCategoryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*AccountCategory, error) {
-	return AccountCategoryManager(service).Find(context, &AccountCategory{
+func AccountCategoryCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.AccountCategory, error) {
+	return AccountCategoryManager(service).Find(context, &types.AccountCategory{
 		OrganizationID: organizationID,
 		BranchID:       branchID,
 	})
