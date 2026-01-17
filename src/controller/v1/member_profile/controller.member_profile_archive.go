@@ -330,7 +330,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
 		}
 
-		var req core.MemberProfileArchiveBulkRequest
+		var req types.MemberProfileArchiveBulkRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
 		}

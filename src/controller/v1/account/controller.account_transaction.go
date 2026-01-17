@@ -50,7 +50,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		Note:        "Processes account transactions for the specified date range.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.AccountTransactionProcessGLRequest
+		var req types.AccountTransactionProcessGLRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "process-gl-error",
@@ -215,7 +215,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-transaction/:transaction_id",
 		Method:       "PUT",
 		Note:         "Updates an account transaction.",
-		RequestType: types.AccountTransactionRequest{},
+		RequestType:  types.AccountTransactionRequest{},
 		ResponseType: types.AccountTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

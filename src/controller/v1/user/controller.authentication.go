@@ -89,7 +89,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var req core.UserLoginRequest
+		var req types.UserLoginRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
@@ -210,7 +210,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Note:        "Initiates forgot password flow and sends a reset link.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserForgotPasswordRequest
+		var req types.UserForgotPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -309,7 +309,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Note:        "Changes the user's password using the reset link.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserChangePasswordRequest
+		var req types.UserChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -427,7 +427,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Note:         "Verifies OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserVerifyContactNumberRequest
+		var req types.UserVerifyContactNumberRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -559,7 +559,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		RequestType: types.UserVerifyWithPasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserVerifyWithPasswordRequest
+		var req types.UserVerifyWithPasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid verify with password payload: " + err.Error()})
 		}
@@ -583,7 +583,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Note:   "Verifies the user's password for protected owner actions. (must be owner and inside a branch)",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserAdminPasswordVerificationRequest
+		var req types.UserAdminPasswordVerificationRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
@@ -599,7 +599,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		if userOrganization.UserType != core.UserOrganizationTypeOwner {
+		if userOrganization.UserType != types.UserOrganizationTypeOwner {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Forbidden: User is not an owner"})
 		}
 		valid, err := service.Security.VerifyPassword(userOrganization.User.Password, req.Password)
@@ -622,7 +622,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		RequestType: types.UserVerifyEmailRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserVerifyEmailRequest
+		var req types.UserVerifyEmailRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",

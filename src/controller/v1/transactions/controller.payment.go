@@ -198,7 +198,7 @@ func PaymentController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var req core.PaymentRequest
+		var req types.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "payment-bind-error",
@@ -278,7 +278,7 @@ func PaymentController(service *horizon.HorizonService) {
 		RequestType: types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.PaymentRequest
+		var req types.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "withdraw-bind-error",
@@ -353,7 +353,7 @@ func PaymentController(service *horizon.HorizonService) {
 		RequestType: types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.PaymentRequest
+		var req types.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "deposit-bind-error",
@@ -428,7 +428,7 @@ func PaymentController(service *horizon.HorizonService) {
 		RequestType: types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.PaymentQuickRequest
+		var req types.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-payment-bind-error",
@@ -494,7 +494,7 @@ func PaymentController(service *horizon.HorizonService) {
 		RequestType: types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.PaymentQuickRequest
+		var req types.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-withdraw-bind-error",
@@ -560,7 +560,7 @@ func PaymentController(service *horizon.HorizonService) {
 		RequestType: types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.PaymentQuickRequest
+		var req types.PaymentQuickRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "general-deposit-bind-error",

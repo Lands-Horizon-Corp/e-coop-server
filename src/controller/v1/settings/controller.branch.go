@@ -128,7 +128,7 @@ func BranchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found " + err.Error()})
 		}
-		if userOrganization.UserType != core.UserOrganizationTypeOwner {
+		if userOrganization.UserType != types.UserOrganizationTypeOwner {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create error",
 				Description: "Only organization owners can create branches for POST /branch/organization/:organization_id",
@@ -350,7 +350,7 @@ func BranchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization for this branch not found: " + err.Error()})
 		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner {
+		if userOrg.UserType != types.UserOrganizationTypeOwner {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Only the branch owner can update branch for PUT /branch/:branch_id",
@@ -460,7 +460,7 @@ func BranchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
-		if userOrganization.UserType != core.UserOrganizationTypeOwner {
+		if userOrganization.UserType != types.UserOrganizationTypeOwner {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete error",
 				Description: "Only the branch owner can delete this branch for DELETE /branch/:branch_id",
@@ -578,7 +578,7 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
 		}
 
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: "Insufficient permissions to update branch settings for PUT /branch-settings",

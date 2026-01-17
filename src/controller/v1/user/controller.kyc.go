@@ -33,7 +33,7 @@ func KYCController(service *horizon.HorizonService) {
 		RequestType: types.KYCPersonalDetailsRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.KYCPersonalDetailsRequest
+		var req types.KYCPersonalDetailsRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 		}
@@ -69,7 +69,7 @@ func KYCController(service *horizon.HorizonService) {
 		RequestType: types.KYCSecurityDetailsRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.KYCSecurityDetailsRequest
+		var req types.KYCSecurityDetailsRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 		}
@@ -148,7 +148,7 @@ func KYCController(service *horizon.HorizonService) {
 		RequestType: types.KYCVerifyEmailRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.KYCVerifyEmailRequest
+		var req types.KYCVerifyEmailRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 		}
@@ -180,7 +180,7 @@ func KYCController(service *horizon.HorizonService) {
 		RequestType: types.KYCVerifyContactNumberRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.KYCVerifyContactNumberRequest
+		var req types.KYCVerifyContactNumberRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 		}
@@ -379,7 +379,7 @@ func KYCController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var req core.KYCResendEmailVerificationRequest
+		var req types.KYCResendEmailVerificationRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Invalid request format",
@@ -424,7 +424,7 @@ func KYCController(service *horizon.HorizonService) {
 		RequestType: types.KYCResendContactNumberVerificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.KYCResendContactNumberVerificationRequest
+		var req types.KYCResendContactNumberVerificationRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, echo.Map{
 				"error": "Invalid request format",
@@ -467,7 +467,7 @@ func KYCController(service *horizon.HorizonService) {
 		RequestType: types.KYCRegisterRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.KYCRegisterRequest
+		var req types.KYCRegisterRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 		}
@@ -597,7 +597,7 @@ func KYCController(service *horizon.HorizonService) {
 		Note:         "Authenticates a KYC user using email, username, or phone and returns user details.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.KYCLoginRequest
+		var req types.KYCLoginRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}

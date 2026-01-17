@@ -157,7 +157,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			if userOrganization.UserID != user.ID {
 				continue
 			}
-			if userOrganization.UserType != core.UserOrganizationTypeOwner {
+			if userOrganization.UserType != types.UserOrganizationTypeOwner {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
 					Description: "Seed organization failed: not owner",
@@ -967,7 +967,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != "admin" {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != "admin" {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "approve-error",
 				Description: "Accept application failed: not owner or admin",
@@ -1046,7 +1046,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != "admin" && userOrg.UserType != core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != "admin" && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Reject application failed: not allowed for user type " + string(userOrg.UserType),
@@ -1220,7 +1220,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
-		var req core.UserOrganizationSettingsRequest
+		var req types.UserOrganizationSettingsRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1293,7 +1293,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var req core.UserOrganizationSelfSettingsRequest
+		var req types.UserOrganizationSelfSettingsRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -1410,7 +1410,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
 
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != "admin" {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != "admin" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners or admins can create employees"})
 		}
 		var payload core.EmployeeCreateRequest

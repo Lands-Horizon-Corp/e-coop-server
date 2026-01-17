@@ -40,7 +40,7 @@ func UserController(service *horizon.HorizonService) {
 		RequestType: types.UserSettingsChangeProfileRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserSettingsChangeProfileRequest
+		var req types.UserSettingsChangeProfileRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid change profile payload: " + err.Error()})
 		}
@@ -71,7 +71,7 @@ func UserController(service *horizon.HorizonService) {
 		RequestType: types.UserSettingsChangePasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserSettingsChangePasswordRequest
+		var req types.UserSettingsChangePasswordRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -147,7 +147,7 @@ func UserController(service *horizon.HorizonService) {
 		ResponseType: types.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserSettingsChangeProfilePictureRequest
+		var req types.UserSettingsChangeProfilePictureRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -206,7 +206,7 @@ func UserController(service *horizon.HorizonService) {
 		ResponseType: types.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var req core.UserSettingsChangeGeneralRequest
+		var req types.UserSettingsChangeGeneralRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",

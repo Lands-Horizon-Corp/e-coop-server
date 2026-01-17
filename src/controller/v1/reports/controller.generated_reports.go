@@ -181,7 +181,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report ID: " + err.Error()})
 		}
-		var req core.GeneratedReportUpdateRequest
+		var req types.GeneratedReportUpdateRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid generated report update payload: " + err.Error()})
 		}
