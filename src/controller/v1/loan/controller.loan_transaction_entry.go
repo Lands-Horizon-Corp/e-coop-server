@@ -20,7 +20,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction-entry/loan-transaction/:loan_transaction_id/deduction",
 		Method:       "POST",
 		Note:         "Adds a deduction to a loan transaction by ID.",
-		RequestType: types.LoanTransactionDeductionRequest{},
+		RequestType:  types.LoanTransactionDeductionRequest{},
 		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -67,7 +67,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			LoanTransactionID: *loanTransactionID,
-			Type:              core.LoanTransactionDeduction,
+			Type:              types.LoanTransactionDeduction,
 			Debit:             0,
 			Credit:            req.Amount,
 			IsAddOn:           req.IsAddOn,
@@ -106,7 +106,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/deduction",
 		Method:       "PUT",
 		Note:         "Adds a deduction to a loan transaction by ID.",
-		RequestType: types.LoanTransactionDeductionRequest{},
+		RequestType:  types.LoanTransactionDeductionRequest{},
 		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -153,7 +153,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found for deduction update: " + err.Error()})
 		}
-		if loanTransactionEntry.Type == core.LoanTransactionAutomaticDeduction {
+		if loanTransactionEntry.Type == types.LoanTransactionAutomaticDeduction {
 			loanTransactionEntry.Credit = req.Amount
 			loanTransactionEntry.IsAddOn = req.IsAddOn
 		} else {
@@ -214,7 +214,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Loan transaction entry not found"})
 		}
-		if loanTransactionEntry.Type == core.LoanTransactionAutomaticDeduction {
+		if loanTransactionEntry.Type == types.LoanTransactionAutomaticDeduction {
 			loanTransactionEntry.IsAutomaticLoanDeductionDeleted = true
 			loanTransactionEntry.UpdatedAt = time.Now().UTC()
 			loanTransactionEntry.UpdatedByID = userOrg.UserID
@@ -280,7 +280,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction entry"})
 		}
 
-		if loanTransactionEntry.Type != core.LoanTransactionAutomaticDeduction {
+		if loanTransactionEntry.Type != types.LoanTransactionAutomaticDeduction {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Only automatic loan deduction entries can be restored"})
 		}
 
