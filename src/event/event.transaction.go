@@ -227,11 +227,7 @@ func TransactionPayment(
 	}
 	inputAmount := decimal.NewFromFloat(data.Amount)
 	transactionDec := decimal.NewFromFloat(transaction.Amount)
-	if inputAmount.GreaterThan(decimal.Zero) {
-		transactionDec = transactionDec.Add(inputAmount)
-	} else {
-		transactionDec = transactionDec.Add(inputAmount)
-	}
+	transactionDec = transactionDec.Add(inputAmount)
 	if data.Reverse {
 		transactionDec = transactionDec.Mul(decimal.NewFromInt(-1))
 	}

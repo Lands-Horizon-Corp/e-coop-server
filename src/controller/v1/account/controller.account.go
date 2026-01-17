@@ -615,10 +615,9 @@ func AccountController(service *horizon.HorizonService) {
 		}
 		tx, endTx := service.Database.StartTransaction(context)
 		if err := core.CreateAccountHistory(context, service, tx, account); err != nil {
-			endTx(err)
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
-				Description: "Account creation failed (/account), db error: " + err.Error(),
+				Description: "Account creation failed (/account), db error: " + endTx(err).Error(),
 				Module:      "Account",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account: " + err.Error()})
@@ -643,10 +642,9 @@ func AccountController(service *horizon.HorizonService) {
 				})
 			}
 			if err := tx.Create(&tags).Error; err != nil {
-				endTx(err) // rollback
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
-					Description: "Account tag creation failed (/account), db error: " + err.Error(),
+					Description: "Account tag creation failed (/account), db error: " + endTx(err).Error(),
 					Module:      "Account",
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account tags: " + err.Error()})

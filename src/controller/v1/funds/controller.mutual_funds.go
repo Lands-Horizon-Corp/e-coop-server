@@ -270,10 +270,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 		if err := core.MutualFundManager(service).UpdateByIDWithTx(context, tx, mutualFund.ID, mutualFund); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
-				Description: "Mutual fund update failed (/mutual-fund/:mutual_fund_id), db error: " + err.Error(),
+				Description: "Mutual fund update failed (/mutual-fund/:mutual_fund_id), db error: " + endTx(err).Error(),
 				Module:      "MutualFund",
 			})
-			endTx(err)
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update mutual fund: " + err.Error()})
 		}
 
@@ -285,10 +284,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 			if err := core.MutualFundAdditionalMembersManager(service).BulkDeleteWithTx(context, tx, mfIds); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
-					Description: "Failed to delete additional members: " + err.Error(),
+					Description: "Failed to delete additional members: " + endTx(err).Error(),
 					Module:      "MutualFund",
 				})
-				endTx(err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete additional members: " + err.Error()})
 			}
 		}
@@ -301,10 +299,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 			if err := core.MutualFundTableManager(service).BulkDeleteWithTx(context, tx, mftIds); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
-					Description: "Failed to delete mutual fund tables: " + err.Error(),
+					Description: "Failed to delete mutual fund tables: " + endTx(err).Error(),
 					Module:      "MutualFund",
 				})
-				endTx(err)
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete mutual fund tables: " + err.Error()})
 			}
 		}
@@ -315,10 +312,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 				if err != nil {
 					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
-						Description: "Additional member not found for update: " + err.Error(),
+						Description: "Additional member not found for update: " + endTx(err).Error(),
 						Module:      "MutualFund",
 					})
-					endTx(err)
 					return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Additional member not found: " + err.Error()})
 				}
 				existingMember.MemberTypeID = additionalMember.MemberTypeID
@@ -329,10 +325,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 				if err := core.MutualFundAdditionalMembersManager(service).UpdateByIDWithTx(context, tx, existingMember.ID, existingMember); err != nil {
 					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
-						Description: "Additional member update failed: " + err.Error(),
+						Description: "Additional member update failed: " + endTx(err).Error(),
 						Module:      "MutualFund",
 					})
-					endTx(err)
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update additional member: " + err.Error()})
 				}
 			} else {
@@ -351,10 +346,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 				if err := core.MutualFundAdditionalMembersManager(service).CreateWithTx(context, tx, additionalMemberData); err != nil {
 					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
-						Description: "Additional member creation failed: " + err.Error(),
+						Description: "Additional member creation failed: " + endTx(err).Error(),
 						Module:      "MutualFund",
 					})
-					endTx(err)
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create additional member: " + err.Error()})
 				}
 			}
@@ -366,10 +360,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 				if err != nil {
 					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
-						Description: "Mutual fund table not found for update: " + err.Error(),
+						Description: "Mutual fund table not found for update: " + endTx(err).Error(),
 						Module:      "MutualFund",
 					})
-					endTx(err)
 					return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Mutual fund table not found: " + err.Error()})
 				}
 				existingTable.MonthFrom = mutualFundTable.MonthFrom
@@ -380,10 +373,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 				if err := core.MutualFundTableManager(service).UpdateByIDWithTx(context, tx, existingTable.ID, existingTable); err != nil {
 					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
-						Description: "Mutual fund table update failed: " + err.Error(),
+						Description: "Mutual fund table update failed: " + endTx(err).Error(),
 						Module:      "MutualFund",
 					})
-					endTx(err)
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update mutual fund table: " + err.Error()})
 				}
 			} else {
@@ -402,10 +394,9 @@ func MutualFundsController(service *horizon.HorizonService) {
 				if err := core.MutualFundTableManager(service).CreateWithTx(context, tx, mutualFundTableData); err != nil {
 					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity:    "update-error",
-						Description: "Mutual fund table creation failed: " + err.Error(),
+						Description: "Mutual fund table creation failed: " + endTx(err).Error(),
 						Module:      "MutualFund",
 					})
-					endTx(err)
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create mutual fund table: " + err.Error()})
 				}
 			}
@@ -425,10 +416,10 @@ func MutualFundsController(service *horizon.HorizonService) {
 			if err := core.MutualFundEntryManager(service).CreateWithTx(context, tx, entry); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
-					Description: "Mutual fund entry creation failed: " + err.Error(),
+					Description: "Mutual fund entry creation failed: " + endTx(err).Error(),
 					Module:      "MutualFund",
 				})
-				endTx(err)
+
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create mutual fund entry: " + err.Error()})
 			}
 		}

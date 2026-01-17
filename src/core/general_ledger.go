@@ -526,10 +526,10 @@ func GeneralLedgerByLoanTransaction(
 		if entry.Account.CashAndCashEquivalence {
 			continue
 		}
-		if !(entry.Account.Type == types.AccountTypeLoan ||
-			entry.Account.Type == types.AccountTypeFines ||
-			entry.Account.Type == types.AccountTypeInterest ||
-			entry.Account.Type == types.AccountTypeSVFLedger) {
+		if entry.Account.Type != types.AccountTypeLoan &&
+			entry.Account.Type != types.AccountTypeFines &&
+			entry.Account.Type != types.AccountTypeInterest &&
+			entry.Account.Type != types.AccountTypeSVFLedger {
 			continue
 		}
 		result = append(result, entry)
