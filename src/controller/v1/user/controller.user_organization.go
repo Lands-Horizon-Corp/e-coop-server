@@ -24,7 +24,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/:user_organization_id/permission",
 		Method:       "PUT",
 		Note:         "Updates the permission fields of a user organization.",
-		RequestType: types.UserOrganizationPermissionPayload{},
+		RequestType:  types.UserOrganizationPermissionPayload{},
 		ResponseType: types.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -38,7 +38,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user_organization_id: " + err.Error()})
 		}
 
-		var payload core.UserOrganizationPermissionPayload
+		var payload types.UserOrganizationPermissionPayload
 		if err := ctx.Bind(&payload); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -621,7 +621,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			OrganizationID:         invitationCode.OrganizationID,
 			BranchID:               &invitationCode.BranchID,
 			UserID:                 user.ID,
-			UserType:               core.UserOrganizationType(invitationCode.UserType),
+			UserType:               types.UserOrganizationType(invitationCode.UserType),
 			Description:            invitationCode.Description,
 			ApplicationDescription: "anything",
 			ApplicationStatus:      "pending",
@@ -698,7 +698,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Joins an existing organization and branch.",
 		ResponseType: types.UserOrganizationResponse{},
-		RequestType: types.UserOrganizationRequest{},
+		RequestType:  types.UserOrganizationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationID, err := helpers.EngineUUIDParam(ctx, "organization_id")
@@ -1210,7 +1210,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/settings/:user_organization_id",
 		Method:       "PUT",
-		RequestType: types.UserOrganizationSettingsRequest{},
+		RequestType:  types.UserOrganizationSettingsRequest{},
 		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Updates the user organization settings.",
 	}, func(ctx echo.Context) error {
@@ -1287,7 +1287,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/settings/current",
 		Method:       "PUT",
-		RequestType: types.UserOrganizationSelfSettingsRequest{},
+		RequestType:  types.UserOrganizationSelfSettingsRequest{},
 		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Updates the user organization settings.",
 	}, func(ctx echo.Context) error {
@@ -1399,7 +1399,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/employee",
 		Method:       "POST",
 		Note:         "Creates a new employee user and user organization record.",
-		RequestType: types.EmployeeCreateRequest{},
+		RequestType:  types.EmployeeCreateRequest{},
 		ResponseType: types.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 
@@ -1413,7 +1413,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != "admin" {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners or admins can create employees"})
 		}
-		var payload core.EmployeeCreateRequest
+		var payload types.EmployeeCreateRequest
 		if err := ctx.Bind(&payload); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload: " + err.Error()})
 		}
@@ -1466,7 +1466,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			UserType:              types.UserOrganizationTypeEmployee,
 			ApplicationStatus:     "accepted",
 			DeveloperSecretKey:    fmt.Sprintf("%s-%s-employee-horizon", developerKey, uuid.NewString()),
-			Status:                core.UserOrganizationStatusOffline,
+			Status:                types.UserOrganizationStatusOffline,
 			LastOnlineAt:          now,
 			PermissionName:        payload.PermissionName,
 			PermissionDescription: payload.PermissionDescription,

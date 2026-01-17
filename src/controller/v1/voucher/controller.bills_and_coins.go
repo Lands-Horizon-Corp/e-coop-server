@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -85,7 +86,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bills and coins ID"})
 		}
-		billAndCoins, err := core.BillAndCoinsManager(service).GetByIDRaw(context, *types.BillAndCoinsID)
+		billAndCoins, err := core.BillAndCoinsManager(service).GetByIDRaw(context, billAndCoinsID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bills and coins record not found"})
 		}
@@ -95,7 +96,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "POST",
-		RequestType: types.BillAndCoinsRequest{},
+		RequestType:  types.BillAndCoinsRequest{},
 		ResponseType: types.BillAndCoinsResponse{},
 		Note:         "Creates a new bills and coins record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
@@ -160,7 +161,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "PUT",
-		RequestType: types.BillAndCoinsRequest{},
+		RequestType:  types.BillAndCoinsRequest{},
 		ResponseType: types.BillAndCoinsResponse{},
 		Note:         "Updates an existing bills and coins record by its ID.",
 	}, func(ctx echo.Context) error {
@@ -193,7 +194,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		billAndCoins, err := core.BillAndCoinsManager(service).GetByID(context, *types.BillAndCoinsID)
+		billAndCoins, err := core.BillAndCoinsManager(service).GetByID(context, billAndCoinsID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -240,7 +241,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bills and coins ID"})
 		}
-		billAndCoins, err := core.BillAndCoinsManager(service).GetByID(context, *types.BillAndCoinsID)
+		billAndCoins, err := core.BillAndCoinsManager(service).GetByID(context, billAndCoinsID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -249,7 +250,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Bills and coins record not found"})
 		}
-		if err := core.BillAndCoinsManager(service).Delete(context, *types.BillAndCoinsID); err != nil {
+		if err := core.BillAndCoinsManager(service).Delete(context, billAndCoinsID); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Bills and coins delete failed (/bills-and-coins/:bills_and_coins_id), db error: " + err.Error(),

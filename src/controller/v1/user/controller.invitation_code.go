@@ -97,7 +97,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/invitation-code",
 		Method:       "POST",
 		ResponseType: types.InvitationCodeResponse{},
-		RequestType: types.InvitationCodeRequest{},
+		RequestType:  types.InvitationCodeRequest{},
 		Note:         "Creates a new invitation code under the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -127,7 +127,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners and employees can create invitation codes"})
 		}
-		if core.UserOrganizationType(req.UserType) == types.UserOrganizationTypeOwner {
+		if types.UserOrganizationType(req.UserType) == types.UserOrganizationTypeOwner {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), attempted to create user type 'owner'",
@@ -150,7 +150,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 			UpdatedByID:    userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			UserType:       core.UserOrganizationType(req.UserType),
+			UserType:       types.UserOrganizationType(req.UserType),
 			Code:           req.Code,
 			ExpirationDate: req.ExpirationDate,
 			MaxUse:         req.MaxUse,
@@ -177,7 +177,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "PUT",
 		ResponseType: types.InvitationCodeResponse{},
-		RequestType: types.InvitationCodeRequest{},
+		RequestType:  types.InvitationCodeRequest{},
 		Note:         "Updates an existing invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -229,7 +229,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		invitationCode.UpdatedByID = userOrg.UserID
 		invitationCode.OrganizationID = userOrg.OrganizationID
 		invitationCode.BranchID = *userOrg.BranchID
-		invitationCode.UserType = core.UserOrganizationType(req.UserType)
+		invitationCode.UserType = types.UserOrganizationType(req.UserType)
 		invitationCode.Code = req.Code
 		invitationCode.ExpirationDate = req.ExpirationDate
 		invitationCode.MaxUse = req.MaxUse

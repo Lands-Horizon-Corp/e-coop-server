@@ -109,11 +109,11 @@ func CashCountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-count",
 		Method:       "POST",
 		ResponseType: types.CashCountResponse{},
-		RequestType: types.CashCountRequest{},
+		RequestType:  types.CashCountRequest{},
 		Note:         "Adds a cash count bill to the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var cashCountReq core.CashCountRequest
+		var cashCountReq types.CashCountRequest
 		if err := ctx.Bind(&cashCountReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -217,7 +217,7 @@ func CashCountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-count",
 		Method:       "PUT",
 		ResponseType: types.CashCountResponse{},
-		RequestType: types.CashCountRequest{},
+		RequestType:  types.CashCountRequest{},
 		Note:         "Updates cash count bills in the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -240,10 +240,10 @@ func CashCountController(service *horizon.HorizonService) {
 		}
 		type CashCountBatchRequest struct {
 			CashCounts        []types.CashCountRequest `json:"cash_counts" validate:"required"`
-			DeletedCashCounts *uuid.UUIDs             `json:"deleted_cash_counts,omitempty"`
-			DepositInBank     *float64                `json:"deposit_in_bank,omitempty"`
-			CashCountTotal    *float64                `json:"cash_count_total,omitempty"`
-			GrandTotal        *float64                `json:"grand_total,omitempty"`
+			DeletedCashCounts *uuid.UUIDs              `json:"deleted_cash_counts,omitempty"`
+			DepositInBank     *float64                 `json:"deposit_in_bank,omitempty"`
+			CashCountTotal    *float64                 `json:"cash_count_total,omitempty"`
+			GrandTotal        *float64                 `json:"grand_total,omitempty"`
 		}
 		var batchRequest CashCountBatchRequest
 		if err := ctx.Bind(&batchRequest); err != nil {
@@ -396,7 +396,7 @@ func CashCountController(service *horizon.HorizonService) {
 
 		var responseRequests []types.CashCountRequest
 		for _, cashCount := range updatedCashCounts {
-			responseRequests = append(responseRequests, core.CashCountRequest{
+			responseRequests = append(responseRequests, types.CashCountRequest{
 				ID:                 &cashCount.ID,
 				TransactionBatchID: cashCount.TransactionBatchID,
 				EmployeeUserID:     cashCount.EmployeeUserID,

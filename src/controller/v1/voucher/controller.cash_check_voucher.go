@@ -189,7 +189,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cash check voucher for the current user's organization and branch.",
-		RequestType: types.CashCheckVoucherRequest{},
+		RequestType:  types.CashCheckVoucherRequest{},
 		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -345,7 +345,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cash check voucher by its ID.",
-		RequestType: types.CashCheckVoucherRequest{},
+		RequestType:  types.CashCheckVoucherRequest{},
 		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -631,7 +631,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a cash check voucher as printed by ID and updates print count.",
-		RequestType: types.CashCheckVoucherPrintRequest{},
+		RequestType:  types.CashCheckVoucherPrintRequest{},
 		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -674,7 +674,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		cashCheckVoucher.EntryDate = &timeNow
 		cashCheckVoucher.PrintCount++
 		cashCheckVoucher.PrintedDate = &timeNow
-		cashCheckVoucher.Status = core.CashCheckVoucherStatusPrinted
+		cashCheckVoucher.Status = types.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
@@ -727,7 +727,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 
 		timeNow := userOrg.UserOrgTime()
 		cashCheckVoucher.ApprovedDate = &timeNow
-		cashCheckVoucher.Status = core.CashCheckVoucherStatusApproved
+		cashCheckVoucher.Status = types.CashCheckVoucherStatusApproved
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ApprovedByID = &userOrg.UserID
@@ -799,7 +799,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		}
 		timeNow := userOrg.UserOrgTime()
 		cashCheckVoucher.ReleasedDate = &timeNow
-		cashCheckVoucher.Status = core.CashCheckVoucherStatusReleased
+		cashCheckVoucher.Status = types.CashCheckVoucherStatusReleased
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.ReleasedByID = &userOrg.UserID
@@ -906,7 +906,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 
 		cashCheckVoucher.PrintCount = 0
 		cashCheckVoucher.PrintedDate = nil
-		cashCheckVoucher.Status = core.CashCheckVoucherStatusPending
+		cashCheckVoucher.Status = types.CashCheckVoucherStatusPending
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = nil
@@ -955,7 +955,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 
 		cashCheckVoucher.PrintCount++
 		cashCheckVoucher.PrintedDate = helpers.Ptr(time.Now().UTC())
-		cashCheckVoucher.Status = core.CashCheckVoucherStatusPrinted
+		cashCheckVoucher.Status = types.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
@@ -1011,9 +1011,9 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		}
 
 		cashCheckVoucher.ApprovedDate = nil
-		cashCheckVoucher.Status = core.CashCheckVoucherStatusPrinted // Or pending if not printed
+		cashCheckVoucher.Status = types.CashCheckVoucherStatusPrinted // Or pending if not printed
 		if cashCheckVoucher.PrintedDate == nil {
-			cashCheckVoucher.Status = core.CashCheckVoucherStatusPending
+			cashCheckVoucher.Status = types.CashCheckVoucherStatusPending
 		}
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
