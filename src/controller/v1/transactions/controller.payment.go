@@ -42,7 +42,7 @@ func PaymentController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Transaction not found: " + err.Error()})
 		}
-		var req []core.PaymentRequest
+		var req []types.PaymentRequest
 		if err := ctx.Bind(&req); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "multipayment-bind-error",

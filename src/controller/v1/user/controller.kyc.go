@@ -207,7 +207,7 @@ func KYCController(service *horizon.HorizonService) {
 		Note:        "Verify one or more addresses (verification only)",
 		RequestType: types.KYCVerifyAddressesRequest{},
 	}, func(ctx echo.Context) error {
-		var req []core.KYCVerifyAddressesRequest
+		var req []types.KYCVerifyAddressesRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{
 				"error": "Invalid request format",
@@ -235,7 +235,7 @@ func KYCController(service *horizon.HorizonService) {
 		Note:        "Submit government ID or benefits proof",
 		RequestType: types.KYCVerifyGovernmentBenefitsRequest{},
 	}, func(ctx echo.Context) error {
-		var req []core.KYCVerifyGovernmentBenefitsRequest
+		var req []types.KYCVerifyGovernmentBenefitsRequest
 
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{

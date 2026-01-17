@@ -81,7 +81,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive",
 		Method:       "POST",
 		Note:         "Creates a new member profile archive for the current user's organization and branch.",
-		RequestType: types.MemberProfileArchiveRequest{},
+		RequestType:  types.MemberProfileArchiveRequest{},
 		ResponseType: types.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -155,7 +155,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "PUT",
 		Note:         "Update a member profile archive by ID.",
-		RequestType: types.MemberProfileArchiveRequest{},
+		RequestType:  types.MemberProfileArchiveRequest{},
 		ResponseType: types.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -316,7 +316,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile archive for a specific member profile.",
-		RequestType: types.MemberProfileArchiveBulkRequest{},
+		RequestType:  types.MemberProfileArchiveBulkRequest{},
 		ResponseType: types.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -462,11 +462,11 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 			normDefault[normalize(d)] = d
 		}
 
-		result := make([]core.MemberProfileArchiveCategoryResponse, 0, len(defaultCategories))
+		result := make([]types.MemberProfileArchiveCategoryResponse, 0, len(defaultCategories))
 		seen := make(map[string]bool)
 		for _, name := range defaultCategories {
 			n := normalize(name)
-			result = append(result, core.MemberProfileArchiveCategoryResponse{
+			result = append(result, types.MemberProfileArchiveCategoryResponse{
 				Name:  normDefault[n],
 				Count: int64(counts[n]),
 			})
@@ -482,7 +482,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 			} else {
 				display = titleize(display)
 			}
-			result = append(result, core.MemberProfileArchiveCategoryResponse{
+			result = append(result, types.MemberProfileArchiveCategoryResponse{
 				Name:  display,
 				Count: int64(cnt),
 			})
