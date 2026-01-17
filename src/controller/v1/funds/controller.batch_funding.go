@@ -19,7 +19,7 @@ func BatchFundingController(service *horizon.HorizonService) {
 		Route:        "/api/v1/batch-funding",
 		Method:       "POST",
 		Note:         "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
-		RequestType: types.BatchFundingRequest{},
+		RequestType:  types.BatchFundingRequest{},
 		ResponseType: types.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

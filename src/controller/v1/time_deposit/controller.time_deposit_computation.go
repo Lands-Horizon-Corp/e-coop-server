@@ -19,7 +19,7 @@ func TimeDepositComputationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-computation/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation for the current user's organization and branch.",
-		RequestType: types.TimeDepositComputationRequest{},
+		RequestType:  types.TimeDepositComputationRequest{},
 		ResponseType: types.TimeDepositComputationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -102,7 +102,7 @@ func TimeDepositComputationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation by its ID.",
-		RequestType: types.TimeDepositComputationRequest{},
+		RequestType:  types.TimeDepositComputationRequest{},
 		ResponseType: types.TimeDepositComputationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

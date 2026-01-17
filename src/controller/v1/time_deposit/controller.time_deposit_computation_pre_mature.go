@@ -19,7 +19,7 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 		Route:        "/api/v1/time-deposit-computation-pre-mature/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation pre mature for the current user's organization and branch.",
-		RequestType: types.TimeDepositComputationPreMatureRequest{},
+		RequestType:  types.TimeDepositComputationPreMatureRequest{},
 		ResponseType: types.TimeDepositComputationPreMatureResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -93,7 +93,7 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 		Route:        "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation pre mature by its ID.",
-		RequestType: types.TimeDepositComputationPreMatureRequest{},
+		RequestType:  types.TimeDepositComputationPreMatureRequest{},
 		ResponseType: types.TimeDepositComputationPreMatureResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

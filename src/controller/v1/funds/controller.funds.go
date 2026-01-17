@@ -58,7 +58,7 @@ func FundsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/funds",
 		Method:       "POST",
 		ResponseType: types.FundsResponse{},
-		RequestType: types.FundsRequest{},
+		RequestType:  types.FundsRequest{},
 		Note:         "Creates a new funds record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -117,7 +117,7 @@ func FundsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/funds/:funds_id",
 		Method:       "PUT",
 		ResponseType: types.FundsResponse{},
-		RequestType: types.FundsRequest{},
+		RequestType:  types.FundsRequest{},
 		Note:         "Updates an existing funds record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

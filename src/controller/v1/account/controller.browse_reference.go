@@ -20,7 +20,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "PUT",
 		ResponseType: types.BrowseReferenceResponse{},
-		RequestType: types.BrowseReferenceRequest{},
+		RequestType:  types.BrowseReferenceRequest{},
 		Note:         "Updates an existing browse reference with nested interest rates.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -315,7 +315,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/browse-reference",
 		Method:       "POST",
 		ResponseType: types.BrowseReferenceResponse{},
-		RequestType: types.BrowseReferenceRequest{},
+		RequestType:  types.BrowseReferenceRequest{},
 		Note:         "Creates a new browse reference with nested interest rates.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

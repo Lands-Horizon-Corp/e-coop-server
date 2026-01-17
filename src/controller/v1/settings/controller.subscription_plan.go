@@ -53,7 +53,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		Route:        "/api/v1/subscription-plan",
 		Method:       "POST",
 		ResponseType: types.SubscriptionPlanResponse{},
-		RequestType: types.SubscriptionPlanRequest{},
+		RequestType:  types.SubscriptionPlanRequest{},
 		Note:         "Creates a new subscription plan.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -110,7 +110,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "PUT",
 		ResponseType: types.SubscriptionPlanResponse{},
-		RequestType: types.SubscriptionPlanRequest{},
+		RequestType:  types.SubscriptionPlanRequest{},
 		Note:         "Updates an existing subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

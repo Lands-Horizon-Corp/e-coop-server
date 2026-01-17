@@ -124,7 +124,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-gender",
 		Method:       "POST",
 		ResponseType: types.MemberGenderResponse{},
-		RequestType: types.MemberGenderRequest{},
+		RequestType:  types.MemberGenderRequest{},
 		Note:         "Creates a new member gender record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -180,7 +180,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-gender/:member_gender_id",
 		Method:       "PUT",
 		ResponseType: types.MemberGenderResponse{},
-		RequestType: types.MemberGenderRequest{},
+		RequestType:  types.MemberGenderRequest{},
 		Note:         "Updates an existing member gender record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

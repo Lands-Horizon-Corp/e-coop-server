@@ -82,7 +82,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher-tag",
 		Method:       "POST",
 		Note:         "Creates a new cash check voucher tag for the current user's organization and branch.",
-		RequestType: types.CashCheckVoucherTagRequest{},
+		RequestType:  types.CashCheckVoucherTagRequest{},
 		ResponseType: types.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -148,7 +148,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cash check voucher tag by its ID.",
-		RequestType: types.CashCheckVoucherTagRequest{},
+		RequestType:  types.CashCheckVoucherTagRequest{},
 		ResponseType: types.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

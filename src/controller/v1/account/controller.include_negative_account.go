@@ -77,7 +77,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/include-negative-accounts",
 		Method:       "POST",
 		ResponseType: types.IncludeNegativeAccountResponse{},
-		RequestType: types.IncludeNegativeAccountRequest{},
+		RequestType:  types.IncludeNegativeAccountRequest{},
 		Note:         "Creates a new include negative account for the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -140,7 +140,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
 		ResponseType: types.IncludeNegativeAccountResponse{},
-		RequestType: types.IncludeNegativeAccountRequest{},
+		RequestType:  types.IncludeNegativeAccountRequest{},
 		Note:         "Updates an existing include negative account by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

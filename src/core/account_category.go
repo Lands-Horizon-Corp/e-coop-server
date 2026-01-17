@@ -16,7 +16,7 @@ import (
 func AccountCategoryManager(service *horizon.HorizonService) *registry.Registry[types.AccountCategory, types.AccountCategoryResponse, types.AccountCategoryRequest] {
 	return registry.GetRegistry(
 		registry.RegistryParams[types.AccountCategory, types.AccountCategoryResponse, types.AccountCategoryRequest]{
-			Preloads: []string{"CreatedBy", "UpdatedBy", },
+			Preloads: []string{"CreatedBy", "UpdatedBy"},
 			Database: service.Database.Client(),
 			Dispatch: func(topics registry.Topics, payload any) error {
 				return service.Broker.Dispatch(topics, payload)

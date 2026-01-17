@@ -19,7 +19,7 @@ func MemberContactReferenceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-contact-reference/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: types.MemberContactReferenceResponse{},
-		RequestType: types.MemberContactReferenceRequest{},
+		RequestType:  types.MemberContactReferenceRequest{},
 		Note:         "Creates a new contact reference entry for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -86,7 +86,7 @@ func MemberContactReferenceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-contact-reference/:member_contact_reference_id",
 		Method:       "PUT",
 		ResponseType: types.MemberContactReferenceResponse{},
-		RequestType: types.MemberContactReferenceRequest{},
+		RequestType:  types.MemberContactReferenceRequest{},
 		Note:         "Updates an existing contact reference by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

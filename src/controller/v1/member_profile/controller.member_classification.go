@@ -102,7 +102,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-classification",
 		Method:       "POST",
 		ResponseType: types.MemberClassificationResponse{},
-		RequestType: types.MemberClassificationRequest{},
+		RequestType:  types.MemberClassificationRequest{},
 		Note:         "Creates a new member classification record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -159,7 +159,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-classification/:member_classification_id",
 		Method:       "PUT",
 		ResponseType: types.MemberClassificationResponse{},
-		RequestType: types.MemberClassificationRequest{},
+		RequestType:  types.MemberClassificationRequest{},
 		Note:         "Updates an existing member classification record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

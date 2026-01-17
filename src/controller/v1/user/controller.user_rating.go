@@ -91,7 +91,7 @@ func UserRatingController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-rating",
 		Method:       "POST",
 		ResponseType: types.UserRatingResponse{},
-		RequestType: types.UserRatingRequest{},
+		RequestType:  types.UserRatingRequest{},
 		Note:         "Creates a new user rating in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

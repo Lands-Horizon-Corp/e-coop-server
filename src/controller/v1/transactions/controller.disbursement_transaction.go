@@ -20,7 +20,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific/current transaction batch.",
 		ResponseType: types.DisbursementTransactionResponse{},
-		RequestType: types.DisbursementTransactionRequest{},
+		RequestType:  types.DisbursementTransactionRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.DisbursementTransactionManager(service).Validate(ctx)

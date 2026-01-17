@@ -37,7 +37,7 @@ func UserController(service *horizon.HorizonService) {
 		Method:       "PUT",
 		Note:         "Changes the profile of the current user.",
 		ResponseType: types.UserResponse{},
-		RequestType: types.UserSettingsChangeProfileRequest{},
+		RequestType:  types.UserSettingsChangeProfileRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.UserSettingsChangeProfileRequest
@@ -68,7 +68,7 @@ func UserController(service *horizon.HorizonService) {
 		Method:       "PUT",
 		Note:         "Changes the user's password from profile settings.",
 		ResponseType: types.UserResponse{},
-		RequestType: types.UserSettingsChangePasswordRequest{},
+		RequestType:  types.UserSettingsChangePasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.UserSettingsChangePasswordRequest
@@ -143,7 +143,7 @@ func UserController(service *horizon.HorizonService) {
 		Route:        "/api/v1/profile/profile-picture",
 		Method:       "PUT",
 		Note:         "Changes the user's profile picture.",
-		RequestType: types.UserSettingsChangeProfilePictureRequest{},
+		RequestType:  types.UserSettingsChangeProfilePictureRequest{},
 		ResponseType: types.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -202,7 +202,7 @@ func UserController(service *horizon.HorizonService) {
 		Route:        "/api/v1/profile/general",
 		Method:       "PUT",
 		Note:         "Changes the user's general profile settings.",
-		RequestType: types.UserSettingsChangeGeneralRequest{},
+		RequestType:  types.UserSettingsChangeGeneralRequest{},
 		ResponseType: types.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -592,7 +592,7 @@ func KYCController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/kyc/login",
 		Method:       "POST",
-		RequestType: types.KYCLoginRequest{},
+		RequestType:  types.KYCLoginRequest{},
 		ResponseType: types.CurrentUserResponse{},
 		Note:         "Authenticates a KYC user using email, username, or phone and returns user details.",
 	}, func(ctx echo.Context) error {

@@ -636,7 +636,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "PUT",
 		ResponseType: types.LoanTransactionResponse{},
-		RequestType: types.LoanTransactionRequest{},
+		RequestType:  types.LoanTransactionRequest{},
 		Note:         "Updates an existing loan transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1387,7 +1387,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/print",
 		Method:       "PUT",
 		Note:         "Marks a loan transaction as printed by ID.",
-		RequestType: types.LoanTransactionPrintRequest{},
+		RequestType:  types.LoanTransactionPrintRequest{},
 		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1677,7 +1677,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/signature",
 		Method:       "PUT",
 		Note:         "Updates the signature of a loan transaction by ID.",
-		RequestType: types.LoanTransactionSignatureRequest{},
+		RequestType:  types.LoanTransactionSignatureRequest{},
 		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1804,7 +1804,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/suggested",
 		Method:       "POST",
-		RequestType: types.LoanTransactionSuggestedRequest{},
+		RequestType:  types.LoanTransactionSuggestedRequest{},
 		ResponseType: types.LoanTransactionSuggestedResponse{},
 		Note:         "Updates the suggested payment details for a loan transaction by ID.",
 	}, func(ctx echo.Context) error {
@@ -1863,7 +1863,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/adjustment",
 		Method:       "POST",
-		RequestType: types.LoanTransactionAdjustmentRequest{},
+		RequestType:  types.LoanTransactionAdjustmentRequest{},
 		ResponseType: types.LoanTransaction{},
 		Note:         "Creates a loan transaction adjustment.",
 	}, func(ctx echo.Context) error {

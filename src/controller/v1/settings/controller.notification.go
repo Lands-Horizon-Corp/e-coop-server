@@ -38,7 +38,7 @@ func NotificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/view",
 		Method:       "PUT",
-		RequestType: types.IDSRequest{},
+		RequestType:  types.IDSRequest{},
 		ResponseType: types.NotificationResponse{},
 		Note:         "Marks multiple notifications as viewed for the current user.",
 	}, func(ctx echo.Context) error {

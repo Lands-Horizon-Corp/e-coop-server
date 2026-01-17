@@ -93,7 +93,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement",
 		Method:       "POST",
 		Note:         "Creates a new disbursement for the current user's organization and branch.",
-		RequestType: types.DisbursementRequest{},
+		RequestType:  types.DisbursementRequest{},
 		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -157,7 +157,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "PUT",
 		Note:         "Updates an existing disbursement by its ID.",
-		RequestType: types.DisbursementRequest{},
+		RequestType:  types.DisbursementRequest{},
 		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

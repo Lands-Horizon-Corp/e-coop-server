@@ -18,7 +18,7 @@ func MemberRelativeAccountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-relative-account/member-profile/:member_profile_id",
 		Method:       "POST",
-		RequestType: types.MemberRelativeAccountRequest{},
+		RequestType:  types.MemberRelativeAccountRequest{},
 		ResponseType: types.MemberRelativeAccountResponse{},
 		Note:         "Creates a new relative account record for the specified member profile.",
 	}, func(ctx echo.Context) error {
@@ -85,7 +85,7 @@ func MemberRelativeAccountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-relative-account/:member_relative_account_id",
 		Method:       "PUT",
-		RequestType: types.MemberRelativeAccountRequest{},
+		RequestType:  types.MemberRelativeAccountRequest{},
 		ResponseType: types.MemberRelativeAccountResponse{},
 		Note:         "Updates an existing relative account record by its ID.",
 	}, func(ctx echo.Context) error {

@@ -77,7 +77,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/automatic-loan-deduction",
 		Method:       "POST",
 		Note:         "Creates a new automatic loan deduction for the current user's org/branch.",
-		RequestType: types.AutomaticLoanDeductionRequest{},
+		RequestType:  types.AutomaticLoanDeductionRequest{},
 		ResponseType: types.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -166,7 +166,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method:       "PUT",
 		Note:         "Updates an existing automatic loan deduction by its ID.",
-		RequestType: types.AutomaticLoanDeductionRequest{},
+		RequestType:  types.AutomaticLoanDeductionRequest{},
 		ResponseType: types.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

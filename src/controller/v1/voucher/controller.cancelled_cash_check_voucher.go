@@ -82,7 +82,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cancelled cash check voucher for the current user's organization and branch.",
-		RequestType: types.CancelledCashCheckVoucherRequest{},
+		RequestType:  types.CancelledCashCheckVoucherRequest{},
 		ResponseType: types.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -145,7 +145,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cancelled cash check voucher by its ID.",
-		RequestType: types.CancelledCashCheckVoucherRequest{},
+		RequestType:  types.CancelledCashCheckVoucherRequest{},
 		ResponseType: types.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

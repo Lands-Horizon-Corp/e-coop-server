@@ -102,7 +102,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "POST",
-		RequestType: types.MemberTypeRequest{},
+		RequestType:  types.MemberTypeRequest{},
 		ResponseType: types.MemberTypeResponse{},
 		Note:         "Creates a new member type record.",
 	}, func(ctx echo.Context) error {
@@ -159,7 +159,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type/:member_type_id",
 		Method:       "PUT",
-		RequestType: types.MemberTypeRequest{},
+		RequestType:  types.MemberTypeRequest{},
 		ResponseType: types.MemberTypeResponse{},
 		Note:         "Updates an existing member type record by its ID.",
 	}, func(ctx echo.Context) error {

@@ -19,7 +19,7 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme model of payment for the current user's organization and branch.",
-		RequestType: types.ChargesRateSchemeModeOfPaymentRequest{},
+		RequestType:  types.ChargesRateSchemeModeOfPaymentRequest{},
 		ResponseType: types.ChargesRateSchemeModeOfPaymentResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -113,7 +113,7 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme model of payment by its ID.",
-		RequestType: types.ChargesRateSchemeModeOfPaymentRequest{},
+		RequestType:  types.ChargesRateSchemeModeOfPaymentRequest{},
 		ResponseType: types.ChargesRateSchemeModeOfPaymentResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

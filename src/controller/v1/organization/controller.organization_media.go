@@ -73,7 +73,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/organization-media",
 		Method:       "POST",
 		Note:         "Creates a new organization media for the current user's organization and branch.",
-		RequestType: types.OrganizationMediaRequest{},
+		RequestType:  types.OrganizationMediaRequest{},
 		ResponseType: types.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -144,7 +144,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/organization-media/:organization_media_id",
 		Method:       "PUT",
 		Note:         "Update an organization media by ID.",
-		RequestType: types.OrganizationMediaRequest{},
+		RequestType:  types.OrganizationMediaRequest{},
 		ResponseType: types.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -287,7 +287,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/organization-media/bulk/organization/:organization_id",
 		Method:       "POST",
 		Note:         "Bulk create organization media for a specific organization.",
-		RequestType: types.IDSRequest{},
+		RequestType:  types.IDSRequest{},
 		ResponseType: types.OrganizationMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

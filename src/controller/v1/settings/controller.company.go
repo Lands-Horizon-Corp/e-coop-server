@@ -82,7 +82,7 @@ func CompanyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/company",
 		Method:       "POST",
 		Note:         "Creates a new company for the current user's organization and branch.",
-		RequestType: types.CompanyRequest{},
+		RequestType:  types.CompanyRequest{},
 		ResponseType: types.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -145,7 +145,7 @@ func CompanyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/company/:company_id",
 		Method:       "PUT",
 		Note:         "Updates an existing company by its ID.",
-		RequestType: types.CompanyRequest{},
+		RequestType:  types.CompanyRequest{},
 		ResponseType: types.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

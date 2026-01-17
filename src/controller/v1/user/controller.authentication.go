@@ -83,7 +83,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/login",
 		Method:       "POST",
-		RequestType: types.UserLoginRequest{},
+		RequestType:  types.UserLoginRequest{},
 		ResponseType: types.CurrentUserResponse{},
 		Note:         "Authenticates a user and returns user details.",
 	}, func(ctx echo.Context) error {
@@ -137,7 +137,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/authentication/register",
 		Method:       "POST",
 		ResponseType: types.CurrentUserResponse{},
-		RequestType: types.UserRegisterRequest{},
+		RequestType:  types.UserRegisterRequest{},
 		Note:         "Registers a new user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -422,7 +422,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/verify-contact-number",
 		Method:       "POST",
-		RequestType: types.UserVerifyContactNumberRequest{},
+		RequestType:  types.UserVerifyContactNumberRequest{},
 		ResponseType: types.UserResponse{},
 		Note:         "Verifies OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
@@ -556,7 +556,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Verifies the user's password for protected self actions.",
 		ResponseType: types.UserResponse{},
-		RequestType: types.UserVerifyWithPasswordRequest{},
+		RequestType:  types.UserVerifyWithPasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.UserVerifyWithPasswordRequest
@@ -619,7 +619,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Verifies OTP for email verification.",
 		ResponseType: types.UserResponse{},
-		RequestType: types.UserVerifyEmailRequest{},
+		RequestType:  types.UserVerifyEmailRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.UserVerifyEmailRequest

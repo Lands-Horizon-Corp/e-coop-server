@@ -102,7 +102,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-occupation",
 		Method:       "POST",
 		ResponseType: types.MemberOccupationResponse{},
-		RequestType: types.MemberOccupationRequest{},
+		RequestType:  types.MemberOccupationRequest{},
 		Note:         "Creates a new member occupation record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -158,7 +158,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-occupation/:member_occupation_id",
 		Method:       "PUT",
 		ResponseType: types.MemberOccupationResponse{},
-		RequestType: types.MemberOccupationRequest{},
+		RequestType:  types.MemberOccupationRequest{},
 		Note:         "Updates an existing member occupation record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

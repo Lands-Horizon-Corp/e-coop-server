@@ -84,7 +84,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "POST",
 		Note:         "Creates a new adjustment entry for the current user's organization and branch.",
-		RequestType: types.AdjustmentEntryRequest{},
+		RequestType:  types.AdjustmentEntryRequest{},
 		ResponseType: types.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

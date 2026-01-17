@@ -82,7 +82,7 @@ func BankController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bank",
 		Method:       "POST",
 		Note:         "Creates a new bank for the current user's organization and branch.",
-		RequestType: types.BankRequest{},
+		RequestType:  types.BankRequest{},
 		ResponseType: types.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -145,7 +145,7 @@ func BankController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "PUT",
 		Note:         "Updates an existing bank by its ID.",
-		RequestType: types.BankRequest{},
+		RequestType:  types.BankRequest{},
 		ResponseType: types.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

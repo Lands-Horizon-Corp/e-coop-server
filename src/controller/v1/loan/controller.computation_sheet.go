@@ -113,7 +113,7 @@ func ComputationSheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/computation-sheet",
 		Method:       "POST",
-		RequestType: types.ComputationSheetRequest{},
+		RequestType:  types.ComputationSheetRequest{},
 		ResponseType: types.ComputationSheetResponse{},
 		Note:         "Creates a new computation sheet for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
@@ -181,7 +181,7 @@ func ComputationSheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "PUT",
-		RequestType: types.ComputationSheetRequest{},
+		RequestType:  types.ComputationSheetRequest{},
 		ResponseType: types.ComputationSheetResponse{},
 		Note:         "Updates an existing computation sheet by its ID.",
 	}, func(ctx echo.Context) error {

@@ -19,7 +19,7 @@ func ChargesRateByTermController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-by-term/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by term for the current user's organization and branch.",
-		RequestType: types.ChargesRateByTermRequest{},
+		RequestType:  types.ChargesRateByTermRequest{},
 		ResponseType: types.ChargesRateByTermResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -114,7 +114,7 @@ func ChargesRateByTermController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by term by its ID.",
-		RequestType: types.ChargesRateByTermRequest{},
+		RequestType:  types.ChargesRateByTermRequest{},
 		ResponseType: types.ChargesRateByTermResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -19,7 +19,7 @@ func MemberGovernmentBenefitController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-government-benefit/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: types.MemberGovernmentBenefitResponse{},
-		RequestType: types.MemberGovernmentBenefitRequest{},
+		RequestType:  types.MemberGovernmentBenefitRequest{},
 		Note:         "Creates a new government benefit record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -90,7 +90,7 @@ func MemberGovernmentBenefitController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-government-benefit/:member_government_benefit_id",
 		Method:       "PUT",
 		ResponseType: types.MemberGovernmentBenefitResponse{},
-		RequestType: types.MemberGovernmentBenefitRequest{},
+		RequestType:  types.MemberGovernmentBenefitRequest{},
 		Note:         "Updates an existing government benefit record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

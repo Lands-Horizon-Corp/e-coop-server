@@ -54,7 +54,7 @@ func FeedbackController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Creates a new feedback record.",
 		ResponseType: types.FeedbackResponse{},
-		RequestType: types.FeedbackRequest{},
+		RequestType:  types.FeedbackRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.FeedbackManager(service).Validate(ctx)

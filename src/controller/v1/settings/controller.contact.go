@@ -51,7 +51,7 @@ func ContactController(service *horizon.HorizonService) {
 		Route:        "/api/v1/contact",
 		Method:       "POST",
 		ResponseType: types.ContactUsResponse{},
-		RequestType: types.ContactUsRequest{},
+		RequestType:  types.ContactUsRequest{},
 		Note:         "Creates a new contact record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

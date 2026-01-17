@@ -83,7 +83,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-tag",
 		Method:       "POST",
 		Note:         "Creates a new adjustment tag for the current user's organization and branch.",
-		RequestType: types.AdjustmentTagRequest{},
+		RequestType:  types.AdjustmentTagRequest{},
 		ResponseType: types.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -185,7 +185,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing adjustment tag by its ID.",
-		RequestType: types.AdjustmentTagRequest{},
+		RequestType:  types.AdjustmentTagRequest{},
 		ResponseType: types.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

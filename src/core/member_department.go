@@ -16,7 +16,7 @@ import (
 func MemberDepartmentManager(service *horizon.HorizonService) *registry.Registry[
 	types.MemberDepartment, types.MemberDepartmentResponse, types.MemberDepartmentRequest] {
 	return registry.NewRegistry(registry.RegistryParams[types.MemberDepartment, types.MemberDepartmentResponse, types.MemberDepartmentRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", },
+		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)

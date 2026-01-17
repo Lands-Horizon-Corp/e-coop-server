@@ -102,7 +102,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-department",
 		Method:       "POST",
 		ResponseType: types.MemberDepartmentResponse{},
-		RequestType: types.MemberDepartmentRequest{},
+		RequestType:  types.MemberDepartmentRequest{},
 		Note:         "Creates a new member department record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -159,7 +159,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-department/:member_department_id",
 		Method:       "PUT",
 		ResponseType: types.MemberDepartmentResponse{},
-		RequestType: types.MemberDepartmentRequest{},
+		RequestType:  types.MemberDepartmentRequest{},
 		Note:         "Updates an existing member department record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -53,7 +53,7 @@ func CategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/category",
 		Method:       "POST",
 		Note:         "Creates a new category.",
-		RequestType: types.CategoryRequest{},
+		RequestType:  types.CategoryRequest{},
 		ResponseType: types.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -98,7 +98,7 @@ func CategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/category/:category_id",
 		Method:       "PUT",
 		Note:         "Updates an existing category by its ID.",
-		RequestType: types.CategoryRequest{},
+		RequestType:  types.CategoryRequest{},
 		ResponseType: types.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

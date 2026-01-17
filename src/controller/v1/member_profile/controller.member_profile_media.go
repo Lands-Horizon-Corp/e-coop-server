@@ -80,7 +80,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-media",
 		Method:       "POST",
 		Note:         "Creates a new member profile media for the current user's organization and branch.",
-		RequestType: types.MemberProfileMediaRequest{},
+		RequestType:  types.MemberProfileMediaRequest{},
 		ResponseType: types.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -153,7 +153,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "PUT",
 		Note:         "Update a member profile media by ID.",
-		RequestType: types.MemberProfileMediaRequest{},
+		RequestType:  types.MemberProfileMediaRequest{},
 		ResponseType: types.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -317,7 +317,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-media/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile media for a specific member profile.",
-		RequestType: types.IDSRequest{},
+		RequestType:  types.IDSRequest{},
 		ResponseType: types.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

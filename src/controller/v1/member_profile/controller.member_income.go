@@ -19,7 +19,7 @@ func MemberIncomeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-income/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: types.MemberIncomeResponse{},
-		RequestType: types.MemberIncomeRequest{},
+		RequestType:  types.MemberIncomeRequest{},
 		Note:         "Creates a new income record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -88,7 +88,7 @@ func MemberIncomeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-income/:member_income_id",
 		Method:       "PUT",
 		ResponseType: types.MemberIncomeResponse{},
-		RequestType: types.MemberIncomeRequest{},
+		RequestType:  types.MemberIncomeRequest{},
 		Note:         "Updates an existing income record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

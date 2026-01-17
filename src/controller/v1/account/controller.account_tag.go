@@ -114,7 +114,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Creates a new account tag for the user's organization and branch.",
 		ResponseType: types.AccountTagResponse{},
-		RequestType: types.AccountTagRequest{},
+		RequestType:  types.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountTagManager(service).Validate(ctx)
@@ -182,7 +182,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		Method:       "PUT",
 		Note:         "Updates an existing account tag by its ID.",
 		ResponseType: types.AccountTagResponse{},
-		RequestType: types.AccountTagRequest{},
+		RequestType:  types.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountTagID, err := helpers.EngineUUIDParam(ctx, "account_tag_id")

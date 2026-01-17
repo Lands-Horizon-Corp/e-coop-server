@@ -82,7 +82,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher tag for the current user's organization and branch.",
-		RequestType: types.JournalVoucherTagRequest{},
+		RequestType:  types.JournalVoucherTagRequest{},
 		ResponseType: types.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -148,7 +148,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher tag by its ID.",
-		RequestType: types.JournalVoucherTagRequest{},
+		RequestType:  types.JournalVoucherTagRequest{},
 		ResponseType: types.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

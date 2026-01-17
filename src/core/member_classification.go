@@ -17,7 +17,7 @@ func MemberClassificationManager(service *horizon.HorizonService) *registry.Regi
 	types.MemberClassification, types.MemberClassificationResponse, types.MemberClassificationRequest] {
 	return registry.NewRegistry(registry.RegistryParams[
 		types.MemberClassification, types.MemberClassificationResponse, types.MemberClassificationRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", },
+		Preloads: []string{"CreatedBy", "UpdatedBy"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)

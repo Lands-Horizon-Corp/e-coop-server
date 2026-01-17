@@ -18,7 +18,7 @@ func MemberAddressController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-address/member-profile/:member_profile_id",
 		Method:       "POST",
-		RequestType: types.MemberAddress{},
+		RequestType:  types.MemberAddress{},
 		ResponseType: types.MemberAddress{},
 		Note:         "Creates a new address record for a member profile.",
 	}, func(ctx echo.Context) error {
@@ -96,7 +96,7 @@ func MemberAddressController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-address/:member_address_id",
 		Method:       "PUT",
-		RequestType: types.MemberAddress{},
+		RequestType:  types.MemberAddress{},
 		ResponseType: types.MemberAddress{},
 		Note:         "Updates an existing address record for a member in the current branch.",
 	}, func(ctx echo.Context) error {

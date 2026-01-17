@@ -81,7 +81,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "POST",
-		RequestType: types.LoanPurposeRequest{},
+		RequestType:  types.LoanPurposeRequest{},
 		ResponseType: types.LoanPurposeResponse{},
 		Note:         "Creates a new loan purpose record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
@@ -141,7 +141,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "PUT",
-		RequestType: types.LoanPurposeRequest{},
+		RequestType:  types.LoanPurposeRequest{},
 		ResponseType: types.LoanPurposeResponse{},
 		Note:         "Updates an existing loan purpose record by its ID.",
 	}, func(ctx echo.Context) error {

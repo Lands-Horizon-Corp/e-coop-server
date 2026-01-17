@@ -76,7 +76,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/payment-type",
 		Method:       "POST",
 		ResponseType: types.PaymentTypeResponse{},
-		RequestType: types.PaymentTypeRequest{},
+		RequestType:  types.PaymentTypeRequest{},
 		Note:         "Creates a new payment type record for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -134,7 +134,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "PUT",
 		ResponseType: types.PaymentTypeResponse{},
-		RequestType: types.PaymentTypeRequest{},
+		RequestType:  types.PaymentTypeRequest{},
 		Note:         "Updates an existing payment type by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

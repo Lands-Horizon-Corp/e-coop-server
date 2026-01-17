@@ -79,7 +79,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		Route:        "/api/v1/tag-template",
 		Method:       "POST",
 		ResponseType: types.TagTemplateResponse{},
-		RequestType: types.TagTemplateRequest{},
+		RequestType:  types.TagTemplateRequest{},
 		Note:         "Creates a new tag template for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -138,7 +138,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "PUT",
 		ResponseType: types.TagTemplateResponse{},
-		RequestType: types.TagTemplateRequest{},
+		RequestType:  types.TagTemplateRequest{},
 		Note:         "Updates an existing tag template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

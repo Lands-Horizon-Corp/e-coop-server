@@ -59,7 +59,7 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/online-remittance",
 		Method:       "POST",
 		ResponseType: types.OnlineRemittanceResponse{},
-		RequestType: types.OnlineRemittanceRequest{},
+		RequestType:  types.OnlineRemittanceRequest{},
 		Note:         "Creates a new online remittance record for the current transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -164,7 +164,7 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/online-remittance/:online_remittance_id",
 		Method:       "PUT",
 		ResponseType: types.OnlineRemittanceResponse{},
-		RequestType: types.OnlineRemittanceRequest{},
+		RequestType:  types.OnlineRemittanceRequest{},
 		Note:         "Updates an existing online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

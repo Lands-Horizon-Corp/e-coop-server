@@ -102,7 +102,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-center",
 		Method:       "POST",
 		ResponseType: types.MemberCenterResponse{},
-		RequestType: types.MemberCenterRequest{},
+		RequestType:  types.MemberCenterRequest{},
 		Note:         "Creates a new member center record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -158,7 +158,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-center/:member_center_id",
 		Method:       "PUT",
 		ResponseType: types.MemberCenterResponse{},
-		RequestType: types.MemberCenterRequest{},
+		RequestType:  types.MemberCenterRequest{},
 		Note:         "Updates an existing member center record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

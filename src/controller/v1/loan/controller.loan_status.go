@@ -82,7 +82,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-status",
 		Method:       "POST",
 		ResponseType: types.LoanStatusResponse{},
-		RequestType: types.LoanStatusRequest{},
+		RequestType:  types.LoanStatusRequest{},
 		Note:         "Creates a new loan status record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -144,7 +144,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-status/:loan_status_id",
 		Method:       "PUT",
 		ResponseType: types.LoanStatusResponse{},
-		RequestType: types.LoanStatusRequest{},
+		RequestType:  types.LoanStatusRequest{},
 		Note:         "Updates an existing loan status record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

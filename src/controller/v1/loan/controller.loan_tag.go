@@ -111,7 +111,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-tag",
 		Method:       "POST",
 		Note:         "Creates a new loan tag for the current user's organization and branch.",
-		RequestType: types.LoanTagRequest{},
+		RequestType:  types.LoanTagRequest{},
 		ResponseType: types.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -177,7 +177,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing loan tag by its ID.",
-		RequestType: types.LoanTagRequest{},
+		RequestType:  types.LoanTagRequest{},
 		ResponseType: types.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

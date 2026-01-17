@@ -59,7 +59,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/check-remittance",
 		Method:       "POST",
 		ResponseType: types.CheckRemittanceResponse{},
-		RequestType: types.CheckRemittanceRequest{},
+		RequestType:  types.CheckRemittanceRequest{},
 		Note:         "Creates a new check remittance for the current active transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -164,7 +164,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 		Method:       "PUT",
 		Note:         "Updates an existing check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
 		ResponseType: types.CheckRemittanceResponse{},
-		RequestType: types.CheckRemittanceRequest{},
+		RequestType:  types.CheckRemittanceRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		checkRemittanceID, err := helpers.EngineUUIDParam(ctx, "check_remittance_id")

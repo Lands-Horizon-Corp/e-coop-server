@@ -132,7 +132,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/currency",
 		Method:       "POST",
 		ResponseType: types.CurrencyResponse{},
-		RequestType: types.CurrencyRequest{},
+		RequestType:  types.CurrencyRequest{},
 		Note:         "Creates a new currency.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -179,7 +179,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "PUT",
 		ResponseType: types.CurrencyResponse{},
-		RequestType: types.CurrencyRequest{},
+		RequestType:  types.CurrencyRequest{},
 		Note:         "Updates an existing currency by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

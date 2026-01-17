@@ -81,7 +81,7 @@ func CollateralController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "POST",
-		RequestType: types.CollateralRequest{},
+		RequestType:  types.CollateralRequest{},
 		ResponseType: types.CollateralResponse{},
 		Note:         "Creates a new collateral record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
@@ -145,7 +145,7 @@ func CollateralController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "PUT",
-		RequestType: types.CollateralRequest{},
+		RequestType:  types.CollateralRequest{},
 		ResponseType: types.CollateralResponse{},
 		Note:         "Updates an existing collateral record by its ID.",
 	}, func(ctx echo.Context) error {

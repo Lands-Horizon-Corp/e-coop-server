@@ -18,7 +18,7 @@ func MemberEducationalAttainmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-educational-attainment/member-profile/:member_profile_id",
 		Method:       "POST",
-		RequestType: types.MemberEducationalAttainmentRequest{},
+		RequestType:  types.MemberEducationalAttainmentRequest{},
 		ResponseType: types.MemberEducationalAttainmentResponse{},
 		Note:         "Creates a new educational attainment record for the specified member profile.",
 	}, func(ctx echo.Context) error {
@@ -87,7 +87,7 @@ func MemberEducationalAttainmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method:       "PUT",
-		RequestType: types.MemberEducationalAttainmentRequest{},
+		RequestType:  types.MemberEducationalAttainmentRequest{},
 		ResponseType: types.MemberEducationalAttainmentResponse{},
 		Note:         "Updates an existing educational attainment record by its ID.",
 	}, func(ctx echo.Context) error {

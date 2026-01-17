@@ -143,7 +143,7 @@ func MediaController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "PUT",
-		RequestType: types.MediaRequest{},
+		RequestType:  types.MediaRequest{},
 		ResponseType: types.MediaResponse{},
 		Note:         "Updates the file name of a media record.",
 	}, func(ctx echo.Context) error {

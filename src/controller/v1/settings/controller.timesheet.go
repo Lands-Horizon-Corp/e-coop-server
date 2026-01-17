@@ -40,7 +40,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/time-in-and-out",
 		Method:       "POST",
-		RequestType: types.TimesheetRequest{},
+		RequestType:  types.TimesheetRequest{},
 		ResponseType: types.TimesheetResponse{},
 		Note:         "Records a time-in or time-out for the current user depending on the last timesheet entry.",
 	}, func(ctx echo.Context) error {

@@ -42,7 +42,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		Route:        "/api/v1/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id",
 		Method:       "PUT",
 		ResponseType: types.GeneralLedgerAccountsGroupingResponse{},
-		RequestType: types.GeneralLedgerAccountsGroupingRequest{},
+		RequestType:  types.GeneralLedgerAccountsGroupingRequest{},
 		Note:         "Updates an existing general ledger account grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -142,7 +142,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-definition",
 		Method:       "POST",
-		RequestType: types.GeneralLedgerDefinitionRequest{},
+		RequestType:  types.GeneralLedgerDefinitionRequest{},
 		ResponseType: types.GeneralLedgerDefinitionResponse{},
 		Note:         "Creates a new general ledger definition for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
@@ -210,7 +210,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id",
 		Method:       "PUT",
-		RequestType: types.GeneralLedgerDefinitionRequest{},
+		RequestType:  types.GeneralLedgerDefinitionRequest{},
 		ResponseType: types.GeneralLedgerDefinitionResponse{},
 		Note:         "Updates an existing general ledger definition by its ID.",
 	}, func(ctx echo.Context) error {

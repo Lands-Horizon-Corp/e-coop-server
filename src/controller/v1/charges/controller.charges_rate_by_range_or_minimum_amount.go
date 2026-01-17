@@ -19,7 +19,7 @@ func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by range or minimum amount for the current user's organization and branch.",
-		RequestType: types.ChargesRateByRangeOrMinimumAmountRequest{},
+		RequestType:  types.ChargesRateByRangeOrMinimumAmountRequest{},
 		ResponseType: types.ChargesRateByRangeOrMinimumAmountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -94,7 +94,7 @@ func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by range or minimum amount by its ID.",
-		RequestType: types.ChargesRateByRangeOrMinimumAmountRequest{},
+		RequestType:  types.ChargesRateByRangeOrMinimumAmountRequest{},
 		ResponseType: types.ChargesRateByRangeOrMinimumAmountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

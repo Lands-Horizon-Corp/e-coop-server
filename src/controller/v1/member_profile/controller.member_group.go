@@ -83,7 +83,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group/search",
 		Method:       "GET",
-		RequestType: types.MemberGroupRequest{},
+		RequestType:  types.MemberGroupRequest{},
 		ResponseType: types.MemberGroupResponse{},
 		Note:         "Returns paginated member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
@@ -106,7 +106,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-group",
 		Method:       "POST",
 		ResponseType: types.MemberGroupResponse{},
-		RequestType: types.MemberGroupRequest{},
+		RequestType:  types.MemberGroupRequest{},
 		Note:         "Creates a new member group record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -162,7 +162,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-group/:member_group_id",
 		Method:       "PUT",
 		ResponseType: types.MemberGroupResponse{},
-		RequestType: types.MemberGroupRequest{},
+		RequestType:  types.MemberGroupRequest{},
 		Note:         "Updates an existing member group record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

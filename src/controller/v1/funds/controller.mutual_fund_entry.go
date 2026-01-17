@@ -133,7 +133,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry/mutual-fund/:mutual_fund_id",
 		Method:       "POST",
 		Note:         "Creates a new mutual fund entry for the current user's organization and branch.",
-		RequestType: types.MutualFundEntryRequest{},
+		RequestType:  types.MutualFundEntryRequest{},
 		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -210,7 +210,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry/:entry_id",
 		Method:       "PUT",
 		Note:         "Updates an existing mutual fund entry by its ID.",
-		RequestType: types.MutualFundEntryRequest{},
+		RequestType:  types.MutualFundEntryRequest{},
 		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
