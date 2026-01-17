@@ -146,7 +146,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", userOrg.User.FullName),
 			Title:            "Journal Vouchers - Approved List Accessed",
-			NotificationType: core.NotificationSystem,
+			NotificationType: types.NotificationSystem,
 		})
 		return ctx.JSON(http.StatusCreated, core.AdjustmentTagManager(service).ToModel(tag))
 	})

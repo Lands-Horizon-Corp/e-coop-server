@@ -86,7 +86,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher for the current user's organization and branch.",
-		RequestType: types.JournalVoucherRequest{},
+		RequestType:  types.JournalVoucherRequest{},
 		ResponseType: types.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -210,7 +210,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher by its ID.",
-		RequestType: types.JournalVoucherRequest{},
+		RequestType:  types.JournalVoucherRequest{},
 		ResponseType: types.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -464,7 +464,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a journal voucher as printed by ID.",
-		RequestType: types.JournalVoucherPrintRequest{},
+		RequestType:  types.JournalVoucherPrintRequest{},
 		ResponseType: types.JournalVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -934,7 +934,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 				LoanTransactionID:     entry.LoanTransactionID,
 			}
 
-			if err := event.RecordTransaction(context, service, transactionRequest, core.GeneralLedgerSourceJournalVoucher, userOrg); err != nil {
+			if err := event.RecordTransaction(context, service, transactionRequest, types.GeneralLedgerSourceJournalVoucher, userOrg); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "journal-voucher-transaction-recording-failed",
 					Description: "Failed to record journal voucher entry transaction in general ledger for voucher " + journalVoucher.CashVoucherNumber + ": " + err.Error(),
@@ -974,7 +974,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", *userOrg.User.FirstName),
 			Title:            "Journal Vouchers - Approved List Accessed",
-			NotificationType: core.NotificationSystem,
+			NotificationType: types.NotificationSystem,
 		})
 
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModel(journalVoucher))
@@ -1050,7 +1050,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Journal vouchers approved list has been accessed by %s", *userOrg.User.FirstName),
 			Title:            "Journal Vouchers - Approved List Accessed",
-			NotificationType: core.NotificationInfo,
+			NotificationType: types.NotificationInfo,
 		})
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModels(journalVouchers))
 	})

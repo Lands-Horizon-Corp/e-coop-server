@@ -687,7 +687,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 				}(),
 			),
 			Title:            "New Member Joined via Invitation",
-			NotificationType: core.NotificationInfo,
+			NotificationType: types.NotificationInfo,
 		})
 
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrg))
@@ -817,7 +817,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 				}(),
 			),
 			Title:            "New Member Application",
-			NotificationType: core.NotificationInfo,
+			NotificationType: types.NotificationInfo,
 		})
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrg))
 	})
@@ -1004,7 +1004,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		event.OrganizationDirectNotification(ctx, service, userOrganization.OrganizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("Your %s application has been accepted", string(userOrganization.UserType)),
 			Title:            "Application Accepted",
-			NotificationType: core.NotificationSuccess,
+			NotificationType: types.NotificationSuccess,
 		})
 
 		return ctx.NoContent(http.StatusNoContent)

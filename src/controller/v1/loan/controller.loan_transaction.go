@@ -1571,7 +1571,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Loan transaction has been approved by %s and is waiting to be released", *userOrg.User.FirstName),
 			Title:            "Loan Transaction Approved - Pending Release",
-			NotificationType: core.NotificationInfo,
+			NotificationType: types.NotificationInfo,
 		})
 		return ctx.JSON(http.StatusOK, newLoanTransaction)
 	})
@@ -1668,7 +1668,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Description:      fmt.Sprintf("Loan transaction has been released by %s", *userOrg.User.FirstName),
 			Title:            "Loan Transaction Released",
-			NotificationType: core.NotificationInfo,
+			NotificationType: types.NotificationInfo,
 		})
 		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModel(newLoanTransaction))
 	})

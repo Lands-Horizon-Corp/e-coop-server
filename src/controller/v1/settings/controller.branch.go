@@ -286,7 +286,7 @@ func BranchController(service *horizon.HorizonService) {
 		event.OrganizationDirectNotification(ctx, service, userOrganization.OrganizationID, event.NotificationEvent{
 			Description:      fmt.Sprintf("New branch '%s' has been created by %s %s", branch.Name, *user.FirstName, *user.LastName),
 			Title:            "New Branch Created",
-			NotificationType: core.NotificationInfo,
+			NotificationType: types.NotificationInfo,
 		})
 
 		event.Footstep(ctx, service, event.FootstepEvent{
@@ -899,7 +899,7 @@ func BranchController(service *horizon.HorizonService) {
 		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Title:            "Branch Settings Updated",
 			Description:      "Branch settings have been successfully updated",
-			NotificationType: core.NotificationAlert,
+			NotificationType: types.NotificationAlert,
 		})
 		return ctx.JSON(http.StatusOK, core.BranchSettingManager(service).ToModel(branchSetting))
 	})
