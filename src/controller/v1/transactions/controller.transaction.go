@@ -102,7 +102,6 @@ func TransactionController(service *horizon.HorizonService) {
 			Amount:      0,
 
 			ReferenceNumber: req.ReferenceNumber,
-			Description:     req.Description,
 		}
 		if req.IsReferenceNumberChecked {
 			if err := event.IncrementOfficialReceipt(context, service, tx, transaction.ReferenceNumber, core.GeneralLedgerSourcePayment, userOrg); err != nil {
