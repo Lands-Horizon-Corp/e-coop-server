@@ -625,7 +625,7 @@ func KYCController(service *horizon.HorizonService) {
 		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &types.UserOrganization{
 			UserID:         user.ID,
 			OrganizationID: org.ID,
-			UserType:       core.UserOrganizationTypeMember,
+			UserType:       types.UserOrganizationTypeMember,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})

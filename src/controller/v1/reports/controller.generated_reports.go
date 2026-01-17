@@ -171,7 +171,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
 		Method:       "PUT",
-		RequestType: types.GeneratedReportUpdateRequest{},
+		RequestType:  types.GeneratedReportUpdateRequest{},
 		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Update an existing generated report.",
 	}, func(ctx echo.Context) error {
@@ -231,7 +231,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-report/download-user",
 		Method:       "POST",
 		Note:         "Creates a new generated report download user entry for the current user's organization and branch.",
-		RequestType: types.GeneratedReportsDownloadUsersRequest{},
+		RequestType:  types.GeneratedReportsDownloadUsersRequest{},
 		ResponseType: types.GeneratedReportsDownloadUsersResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -397,7 +397,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
-			GeneratedReportType: core.GeneratedReportTypePDF,
+			GeneratedReportType: types.GeneratedReportTypePDF,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
@@ -423,7 +423,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
-			GeneratedReportType: core.GeneratedReportTypePDF,
+			GeneratedReportType: types.GeneratedReportTypePDF,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
@@ -448,7 +448,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
-			GeneratedReportType: core.GeneratedReportTypeExcel,
+			GeneratedReportType: types.GeneratedReportTypeExcel,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
@@ -473,7 +473,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
-			GeneratedReportType: core.GeneratedReportTypeExcel,
+			GeneratedReportType: types.GeneratedReportTypeExcel,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No generated reports found for the current branch: " + err.Error()})
@@ -625,7 +625,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
-			GeneratedReportType: core.GeneratedReportTypePDF,
+			GeneratedReportType: types.GeneratedReportTypePDF,
 			Model:               model,
 		})
 		if err != nil {
@@ -653,7 +653,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
-			GeneratedReportType: core.GeneratedReportTypePDF,
+			GeneratedReportType: types.GeneratedReportTypePDF,
 			Model:               model,
 		})
 		if err != nil {
@@ -680,7 +680,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
-			GeneratedReportType: core.GeneratedReportTypeExcel,
+			GeneratedReportType: types.GeneratedReportTypeExcel,
 			Model:               model,
 		})
 		if err != nil {
@@ -708,7 +708,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
-			GeneratedReportType: core.GeneratedReportTypeExcel,
+			GeneratedReportType: types.GeneratedReportTypeExcel,
 			Model:               model,
 		})
 		if err != nil {

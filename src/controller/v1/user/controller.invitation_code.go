@@ -127,7 +127,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Only owners and employees can create invitation codes"})
 		}
-		if core.UserOrganizationType(req.UserType) == core.UserOrganizationTypeOwner {
+		if core.UserOrganizationType(req.UserType) == types.UserOrganizationTypeOwner {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Invitation code creation failed (/invitation-code), attempted to create user type 'owner'",

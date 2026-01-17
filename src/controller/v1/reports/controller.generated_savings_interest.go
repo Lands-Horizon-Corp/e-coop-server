@@ -101,7 +101,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Route:        "/api/v1/generated-savings-interest/view",
 		ResponseType: types.GeneratedSavingsInterestViewResponse{},
-		RequestType: types.GeneratedSavingsInterestRequest{},
+		RequestType:  types.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -125,7 +125,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Branch settings not found"})
 		}
 		annualDivisor := branch.BranchSetting.AnnualDivisor
-		entries, err := event.GenerateSavingsInterestEntries(context, service, userOrg, core.GeneratedSavingsInterest{
+		entries, err := event.GenerateSavingsInterestEntries(context, service, userOrg, types.GeneratedSavingsInterest{
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
 			AccountID:                       request.AccountID,
@@ -157,7 +157,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Route:        "/api/v1/generated-savings-interest",
 		ResponseType: types.GeneratedSavingsInterestEntry{},
-		RequestType: types.GeneratedSavingsInterestRequest{},
+		RequestType:  types.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -206,7 +206,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create generated savings interest: " + err.Error()})
 		}
 		annualDivisor := branch.BranchSetting.AnnualDivisor
-		entries, err := event.GenerateSavingsInterestEntries(context, service, userOrg, core.GeneratedSavingsInterest{
+		entries, err := event.GenerateSavingsInterestEntries(context, service, userOrg, types.GeneratedSavingsInterest{
 			LastComputationDate:             request.LastComputationDate,
 			NewComputationDate:              request.NewComputationDate,
 			AccountID:                       request.AccountID,

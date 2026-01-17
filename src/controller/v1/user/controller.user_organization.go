@@ -226,7 +226,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &types.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
-			UserType:       core.UserOrganizationTypeEmployee,
+			UserType:       types.UserOrganizationTypeEmployee,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
@@ -248,7 +248,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &types.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
-			UserType:       core.UserOrganizationTypeOwner,
+			UserType:       types.UserOrganizationTypeOwner,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve employee user organizations: " + err.Error()})
@@ -270,7 +270,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &types.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
-			UserType:       core.UserOrganizationTypeMember,
+			UserType:       types.UserOrganizationTypeMember,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve member user organizations: " + err.Error()})
@@ -296,7 +296,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 				return db.Model(&types.UserOrganization{}).
 					Where("organization_id = ?", userOrg.OrganizationID).
 					Where("branch_id = ?", userOrg.BranchID).
-					Where("user_type = ?", core.UserOrganizationTypeMember).
+					Where("user_type = ?", types.UserOrganizationTypeMember).
 					Where(`NOT EXISTS (
 				SELECT 1 FROM member_profiles mp
 				WHERE mp.user_id = user_organizations.user_id
@@ -576,7 +576,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Invitation code not found"})
 		}
 		switch invitationCode.UserType {
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			if !core.UserOrganizationMemberCanJoin(context, service, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
@@ -585,7 +585,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 				})
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 			}
-		case core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeEmployee:
 			if !core.UserOrganizationEmployeeCanJoin(context, service, user.ID, invitationCode.OrganizationID, invitationCode.BranchID) {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
@@ -737,7 +737,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
-		if req.UserType == core.UserOrganizationTypeMember {
+		if req.UserType == types.UserOrganizationTypeMember {
 			if !core.UserOrganizationMemberCanJoin(context, service, user.ID, *organizationID, *branchID) {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
@@ -747,7 +747,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot join as member"})
 			}
 		}
-		if req.UserType == core.UserOrganizationTypeEmployee {
+		if req.UserType == types.UserOrganizationTypeEmployee {
 			if !core.UserOrganizationEmployeeCanJoin(context, service, user.ID, *organizationID, *branchID) {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "create-error",
@@ -775,12 +775,12 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			OrganizationID:         *organizationID,
 			BranchID:               branchID,
 			UserID:                 user.ID,
-			UserType:               core.UserOrganizationTypeMember,
+			UserType:               types.UserOrganizationTypeMember,
 			Description:            req.Description,
 			ApplicationDescription: "",
 			ApplicationStatus:      "pending",
 			DeveloperSecretKey:     developerKey,
-			PermissionName:         string(core.UserOrganizationTypeMember),
+			PermissionName:         string(types.UserOrganizationTypeMember),
 			PermissionDescription:  "just a member",
 			Permissions:            []string{},
 			UserSettingDescription: "users settings description",
@@ -838,7 +838,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: " + err.Error()})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Leave organization failed: forbidden for owner or employee",
@@ -1463,7 +1463,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			BranchID:              userOrg.BranchID,
 			OrganizationID:        userOrg.OrganizationID,
 			UserID:                user.ID,
-			UserType:              core.UserOrganizationTypeEmployee,
+			UserType:              types.UserOrganizationTypeEmployee,
 			ApplicationStatus:     "accepted",
 			DeveloperSecretKey:    fmt.Sprintf("%s-%s-employee-horizon", developerKey, uuid.NewString()),
 			Status:                core.UserOrganizationStatusOffline,

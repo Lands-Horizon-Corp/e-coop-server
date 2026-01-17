@@ -91,7 +91,7 @@ func PaymentController(service *horizon.HorizonService) {
 				MemberJointAccountID: transaction.MemberJointAccountID,
 				ReferenceNumber:      transaction.ReferenceNumber,
 
-				Source:                core.GeneralLedgerSourcePayment,
+				Source:                types.GeneralLedgerSourcePayment,
 				Amount:                payment.Amount,
 				AccountID:             payment.AccountID,
 				PaymentTypeID:         payment.PaymentTypeID,
@@ -243,7 +243,7 @@ func PaymentController(service *horizon.HorizonService) {
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
 
-			Source:                core.GeneralLedgerSourcePayment,
+			Source:                types.GeneralLedgerSourcePayment,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -322,7 +322,7 @@ func PaymentController(service *horizon.HorizonService) {
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
 
-			Source:                core.GeneralLedgerSourceWithdraw,
+			Source:                types.GeneralLedgerSourceWithdraw,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -397,7 +397,7 @@ func PaymentController(service *horizon.HorizonService) {
 			MemberJointAccountID: nil,
 			ReferenceNumber:      "",
 
-			Source:                core.GeneralLedgerSourceDeposit,
+			Source:                types.GeneralLedgerSourceDeposit,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -462,7 +462,7 @@ func PaymentController(service *horizon.HorizonService) {
 			MemberJointAccountID: req.MemberJointAccountID,
 			ReferenceNumber:      req.BankReferenceNumber,
 
-			Source:                core.GeneralLedgerSourcePayment,
+			Source:                types.GeneralLedgerSourcePayment,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -528,7 +528,7 @@ func PaymentController(service *horizon.HorizonService) {
 			MemberJointAccountID: req.MemberJointAccountID,
 			ReferenceNumber:      req.BankReferenceNumber,
 
-			Source:                core.GeneralLedgerSourceWithdraw,
+			Source:                types.GeneralLedgerSourceWithdraw,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,
@@ -594,7 +594,7 @@ func PaymentController(service *horizon.HorizonService) {
 			MemberJointAccountID: req.MemberJointAccountID,
 			ReferenceNumber:      req.BankReferenceNumber,
 
-			Source:                core.GeneralLedgerSourceDeposit,
+			Source:                types.GeneralLedgerSourceDeposit,
 			Amount:                req.Amount,
 			AccountID:             req.AccountID,
 			PaymentTypeID:         req.PaymentTypeID,

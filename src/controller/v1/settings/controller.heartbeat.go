@@ -164,11 +164,11 @@ func Heartbeat(service *horizon.HorizonService) {
 			switch org.Status {
 			case core.UserOrganizationStatusOnline:
 				onlineUsers = append(onlineUsers, org)
-				if org.UserType == core.UserOrganizationTypeMember {
+				if org.UserType == types.UserOrganizationTypeMember {
 					onlineMembers++
 					totalMembers++
 				}
-				if org.UserType == core.UserOrganizationTypeEmployee {
+				if org.UserType == types.UserOrganizationTypeEmployee {
 					onlineEmployees++
 					totalEmployees++
 				}

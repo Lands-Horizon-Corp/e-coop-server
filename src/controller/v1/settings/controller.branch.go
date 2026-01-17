@@ -252,10 +252,10 @@ func BranchController(service *horizon.HorizonService) {
 				OrganizationID:     userOrganization.OrganizationID,
 				BranchID:           &branch.ID,
 				UserID:             user.ID,
-				UserType:           core.UserOrganizationTypeOwner,
+				UserType:           types.UserOrganizationTypeOwner,
 				ApplicationStatus:  "accepted",
 				DeveloperSecretKey: developerKey + uuid.NewString() + "-horizon",
-				PermissionName:     string(core.UserOrganizationTypeOwner),
+				PermissionName:     string(types.UserOrganizationTypeOwner),
 				Permissions:        []string{},
 			}
 

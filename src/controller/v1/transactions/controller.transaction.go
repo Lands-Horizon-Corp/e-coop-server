@@ -105,7 +105,7 @@ func TransactionController(service *horizon.HorizonService) {
 			ReferenceNumber: req.ReferenceNumber,
 		}
 		if req.IsReferenceNumberChecked {
-			if err := event.IncrementOfficialReceipt(context, service, tx, transaction.ReferenceNumber, core.GeneralLedgerSourcePayment, userOrg); err != nil {
+			if err := event.IncrementOfficialReceipt(context, service, tx, transaction.ReferenceNumber, types.GeneralLedgerSourcePayment, userOrg); err != nil {
 				return ctx.JSON(http.StatusConflict, echo.Map{"error": endTx(err).Error()})
 			}
 		}
@@ -248,7 +248,7 @@ func TransactionController(service *horizon.HorizonService) {
 			})
 		}
 		var filter core.Transaction
-		if userOrg.UserType == core.UserOrganizationTypeMember {
+		if userOrg.UserType == types.UserOrganizationTypeMember {
 			memberProfile, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID: &userOrg.UserID,
 			})
@@ -287,7 +287,7 @@ func TransactionController(service *horizon.HorizonService) {
 			})
 		}
 		var filter core.Transaction
-		if userOrg.UserType == core.UserOrganizationTypeMember {
+		if userOrg.UserType == types.UserOrganizationTypeMember {
 			memberProfile, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID: &userOrg.UserID,
 			})

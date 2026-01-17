@@ -177,7 +177,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:          *userOrg.BranchID,
 			OrganizationID:    userOrganization.OrganizationID,
-			TypeOfPaymentType: core.PaymentTypeCheck,
+			TypeOfPaymentType: types.PaymentTypeCheck,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -206,7 +206,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:          *userOrg.BranchID,
 			OrganizationID:    userOrganization.OrganizationID,
-			TypeOfPaymentType: core.PaymentTypeOnline,
+			TypeOfPaymentType: types.PaymentTypeOnline,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -235,7 +235,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:          *userOrg.BranchID,
 			OrganizationID:    userOrganization.OrganizationID,
-			TypeOfPaymentType: core.PaymentTypeCash,
+			TypeOfPaymentType: types.PaymentTypeCash,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -264,7 +264,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
-			Source:         core.GeneralLedgerSourcePayment,
+			Source:         types.GeneralLedgerSourcePayment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -293,7 +293,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
-			Source:         core.GeneralLedgerSourceWithdraw,
+			Source:         types.GeneralLedgerSourceWithdraw,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -322,7 +322,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
-			Source:         core.GeneralLedgerSourceDeposit,
+			Source:         types.GeneralLedgerSourceDeposit,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -351,7 +351,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
-			Source:         core.GeneralLedgerSourceJournalVoucher,
+			Source:         types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -380,7 +380,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
-			Source:         core.GeneralLedgerSourceAdjustment,
+			Source:         types.GeneralLedgerSourceAdjustment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -409,7 +409,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
-			Source:         core.GeneralLedgerSourceJournalVoucher,
+			Source:         types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -438,7 +438,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
-			Source:         core.GeneralLedgerSourceCheckVoucher,
+			Source:         types.GeneralLedgerSourceCheckVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -462,7 +462,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
@@ -473,7 +473,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -513,19 +513,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
-				TypeOfPaymentType: core.PaymentTypeCheck,
+				TypeOfPaymentType: types.PaymentTypeCheck,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -538,7 +538,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID:   &member.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
-				TypeOfPaymentType: core.PaymentTypeCheck,
+				TypeOfPaymentType: types.PaymentTypeCheck,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -566,19 +566,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
-				TypeOfPaymentType: core.PaymentTypeOnline,
+				TypeOfPaymentType: types.PaymentTypeOnline,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -591,7 +591,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID:   &member.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
-				TypeOfPaymentType: core.PaymentTypeOnline,
+				TypeOfPaymentType: types.PaymentTypeOnline,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -619,19 +619,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
-				TypeOfPaymentType: core.PaymentTypeCash,
+				TypeOfPaymentType: types.PaymentTypeCash,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -644,7 +644,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID:   &member.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
-				TypeOfPaymentType: core.PaymentTypeCash,
+				TypeOfPaymentType: types.PaymentTypeCash,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -672,19 +672,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
-				Source:         core.GeneralLedgerSourcePayment,
+				Source:         types.GeneralLedgerSourcePayment,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -697,7 +697,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourcePayment,
+				Source:          types.GeneralLedgerSourcePayment,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -728,7 +728,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(
 				context,
 				ctx,
@@ -736,7 +736,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 					EmployeeUserID: &userOrg.UserID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
-					Source:         core.GeneralLedgerSourceWithdraw,
+					Source:         types.GeneralLedgerSourceWithdraw,
 				},
 			)
 			if err != nil {
@@ -747,7 +747,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(
 				context,
 				&types.MemberProfile{
@@ -768,7 +768,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 					MemberProfileID: &member.ID,
 					OrganizationID:  userOrg.OrganizationID,
 					BranchID:        *userOrg.BranchID,
-					Source:          core.GeneralLedgerSourceWithdraw,
+					Source:          types.GeneralLedgerSourceWithdraw,
 				},
 			)
 			if err != nil {
@@ -801,19 +801,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
-				Source:         core.GeneralLedgerSourceDeposit,
+				Source:         types.GeneralLedgerSourceDeposit,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -826,7 +826,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceDeposit,
+				Source:          types.GeneralLedgerSourceDeposit,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -854,19 +854,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
-				Source:         core.GeneralLedgerSourceJournalVoucher,
+				Source:         types.GeneralLedgerSourceJournalVoucher,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -879,7 +879,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceJournalVoucher,
+				Source:          types.GeneralLedgerSourceJournalVoucher,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -907,19 +907,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
-				Source:         core.GeneralLedgerSourceAdjustment,
+				Source:         types.GeneralLedgerSourceAdjustment,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -932,7 +932,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceAdjustment,
+				Source:          types.GeneralLedgerSourceAdjustment,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -960,19 +960,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
-				Source:         core.GeneralLedgerSourceJournalVoucher,
+				Source:         types.GeneralLedgerSourceJournalVoucher,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -985,7 +985,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceJournalVoucher,
+				Source:          types.GeneralLedgerSourceJournalVoucher,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1013,19 +1013,19 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 		switch userOrg.UserType {
-		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
+		case types.UserOrganizationTypeOwner, types.UserOrganizationTypeEmployee:
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
-				Source:         core.GeneralLedgerSourceCheckVoucher,
+				Source:         types.GeneralLedgerSourceCheckVoucher,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
 			}
 			return ctx.JSON(http.StatusOK, entries)
 
-		case core.UserOrganizationTypeMember:
+		case types.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
@@ -1038,7 +1038,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceCheckVoucher,
+				Source:          types.GeneralLedgerSourceCheckVoucher,
 			})
 			if err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1109,7 +1109,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID:    &userOrganization.UserID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeCheck,
+			TypeOfPaymentType: types.PaymentTypeCheck,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1143,7 +1143,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID:    &userOrganization.UserID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeOnline,
+			TypeOfPaymentType: types.PaymentTypeOnline,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1177,7 +1177,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID:    &userOrganization.UserID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeCash,
+			TypeOfPaymentType: types.PaymentTypeCash,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1211,7 +1211,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourcePayment,
+			Source:         types.GeneralLedgerSourcePayment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1245,7 +1245,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceWithdraw,
+			Source:         types.GeneralLedgerSourceWithdraw,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1279,7 +1279,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceDeposit,
+			Source:         types.GeneralLedgerSourceDeposit,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1313,7 +1313,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceJournalVoucher,
+			Source:         types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1347,7 +1347,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceAdjustment,
+			Source:         types.GeneralLedgerSourceAdjustment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1381,7 +1381,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceJournalVoucher,
+			Source:         types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1415,7 +1415,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceCheckVoucher,
+			Source:         types.GeneralLedgerSourceCheckVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1499,7 +1499,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.PaymentTypeCheck,
+			types.PaymentTypeCheck,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1537,7 +1537,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.PaymentTypeOnline,
+			types.PaymentTypeOnline,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1575,7 +1575,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.PaymentTypeCash,
+			types.PaymentTypeCash,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1613,7 +1613,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.GeneralLedgerSourcePayment,
+			types.GeneralLedgerSourcePayment,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1651,7 +1651,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.GeneralLedgerSourceWithdraw,
+			types.GeneralLedgerSourceWithdraw,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1689,7 +1689,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.GeneralLedgerSourceDeposit,
+			types.GeneralLedgerSourceDeposit,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1727,7 +1727,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.GeneralLedgerSourceJournalVoucher,
+			types.GeneralLedgerSourceJournalVoucher,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1765,7 +1765,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.GeneralLedgerSourceAdjustment,
+			types.GeneralLedgerSourceAdjustment,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1803,7 +1803,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.GeneralLedgerSourceJournalVoucher,
+			types.GeneralLedgerSourceJournalVoucher,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1841,7 +1841,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
-			core.GeneralLedgerSourceCheckVoucher,
+			types.GeneralLedgerSourceCheckVoucher,
 		)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -1876,7 +1876,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			AccountID:         accountID,
-			TypeOfPaymentType: core.PaymentTypeCheck,
+			TypeOfPaymentType: types.PaymentTypeCheck,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -1911,7 +1911,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			AccountID:         accountID,
-			TypeOfPaymentType: core.PaymentTypeOnline,
+			TypeOfPaymentType: types.PaymentTypeOnline,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -1946,7 +1946,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
 			AccountID:         accountID,
-			TypeOfPaymentType: core.PaymentTypeCash,
+			TypeOfPaymentType: types.PaymentTypeCash,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -1981,7 +1981,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			AccountID:       accountID,
-			Source:          core.GeneralLedgerSourcePayment,
+			Source:          types.GeneralLedgerSourcePayment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2016,7 +2016,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			AccountID:       accountID,
-			Source:          core.GeneralLedgerSourceWithdraw,
+			Source:          types.GeneralLedgerSourceWithdraw,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2051,7 +2051,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			AccountID:       accountID,
-			Source:          core.GeneralLedgerSourceDeposit,
+			Source:          types.GeneralLedgerSourceDeposit,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2086,7 +2086,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			AccountID:       accountID,
-			Source:          core.GeneralLedgerSourceJournalVoucher,
+			Source:          types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2121,7 +2121,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			AccountID:       accountID,
-			Source:          core.GeneralLedgerSourceAdjustment,
+			Source:          types.GeneralLedgerSourceAdjustment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2156,7 +2156,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			AccountID:       accountID,
-			Source:          core.GeneralLedgerSourceJournalVoucher,
+			Source:          types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2191,7 +2191,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			AccountID:       accountID,
-			Source:          core.GeneralLedgerSourceCheckVoucher,
+			Source:          types.GeneralLedgerSourceCheckVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2250,7 +2250,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			TypeOfPaymentType:  core.PaymentTypeCheck,
+			TypeOfPaymentType:  types.PaymentTypeCheck,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2280,7 +2280,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			TypeOfPaymentType:  core.PaymentTypeOnline,
+			TypeOfPaymentType:  types.PaymentTypeOnline,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2310,7 +2310,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			TypeOfPaymentType:  core.PaymentTypeCash,
+			TypeOfPaymentType:  types.PaymentTypeCash,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2340,7 +2340,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			Source:             core.GeneralLedgerSourcePayment,
+			Source:             types.GeneralLedgerSourcePayment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2370,7 +2370,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			Source:             core.GeneralLedgerSourceWithdraw,
+			Source:             types.GeneralLedgerSourceWithdraw,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2400,7 +2400,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			Source:             core.GeneralLedgerSourceDeposit,
+			Source:             types.GeneralLedgerSourceDeposit,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2430,7 +2430,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			Source:             core.GeneralLedgerSourceJournalVoucher,
+			Source:             types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2460,7 +2460,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			Source:             core.GeneralLedgerSourceAdjustment,
+			Source:             types.GeneralLedgerSourceAdjustment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2490,7 +2490,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			Source:             core.GeneralLedgerSourceJournalVoucher,
+			Source:             types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2520,7 +2520,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
-			Source:             core.GeneralLedgerSourceCheckVoucher,
+			Source:             types.GeneralLedgerSourceCheckVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2576,7 +2576,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeCheck,
+			TypeOfPaymentType: types.PaymentTypeCheck,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2606,7 +2606,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeOnline,
+			TypeOfPaymentType: types.PaymentTypeOnline,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2636,7 +2636,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeCash,
+			TypeOfPaymentType: types.PaymentTypeCash,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2666,7 +2666,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionID:  transactionID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourcePayment,
+			Source:         types.GeneralLedgerSourcePayment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2696,7 +2696,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			TransactionID:  transactionID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceWithdraw,
+			Source:         types.GeneralLedgerSourceWithdraw,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2722,7 +2722,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		source := core.GeneralLedgerSourceDeposit
+		source := types.GeneralLedgerSourceDeposit
 		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2748,7 +2748,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		source := core.GeneralLedgerSourceJournalVoucher
+		source := types.GeneralLedgerSourceJournalVoucher
 		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2774,7 +2774,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		source := core.GeneralLedgerSourceAdjustment
+		source := types.GeneralLedgerSourceAdjustment
 		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2800,7 +2800,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		source := core.GeneralLedgerSourceJournalVoucher
+		source := types.GeneralLedgerSourceJournalVoucher
 		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(
 			context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
@@ -2827,7 +2827,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		source := core.GeneralLedgerSourceCheckVoucher
+		source := types.GeneralLedgerSourceCheckVoucher
 		entries, err := core.GeneralLedgerExcludeCashonHandWithSource(context, service, *transactionID, userOrg.OrganizationID, *userOrg.BranchID, &source)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve general ledger entries: " + err.Error()})
@@ -2886,7 +2886,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:         accountID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeCheck,
+			TypeOfPaymentType: types.PaymentTypeCheck,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -2916,7 +2916,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:         accountID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeOnline,
+			TypeOfPaymentType: types.PaymentTypeOnline,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -2946,7 +2946,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:         accountID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
-			TypeOfPaymentType: core.PaymentTypeCash,
+			TypeOfPaymentType: types.PaymentTypeCash,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -2976,7 +2976,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourcePayment,
+			Source:         types.GeneralLedgerSourcePayment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -3006,7 +3006,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceWithdraw,
+			Source:         types.GeneralLedgerSourceWithdraw,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -3036,7 +3036,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceDeposit,
+			Source:         types.GeneralLedgerSourceDeposit,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -3066,7 +3066,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceJournalVoucher,
+			Source:         types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -3096,7 +3096,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceAdjustment,
+			Source:         types.GeneralLedgerSourceAdjustment,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -3126,7 +3126,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceJournalVoucher,
+			Source:         types.GeneralLedgerSourceJournalVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})
@@ -3156,7 +3156,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
-			Source:         core.GeneralLedgerSourceCheckVoucher,
+			Source:         types.GeneralLedgerSourceCheckVoucher,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve ledger entries: " + err.Error()})

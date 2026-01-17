@@ -83,7 +83,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest-entry/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "POST",
 		Note:         "Creates a new generated savings interest entry for the current user's organization and branch.",
-		RequestType: types.GeneratedSavingsInterestEntryRequest{},
+		RequestType:  types.GeneratedSavingsInterestEntryRequest{},
 		ResponseType: types.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -161,19 +161,19 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 
 		var savingsType usecase.SavingsType
 		switch generatedSavingsInterest.SavingsComputationType {
-		case core.SavingsComputationTypeDailyLowestBalance:
+		case types.SavingsComputationTypeDailyLowestBalance:
 			savingsType = usecase.SavingsTypeLowest
-		case core.SavingsComputationTypeAverageDailyBalance:
+		case types.SavingsComputationTypeAverageDailyBalance:
 			savingsType = usecase.SavingsTypeAverage
-		case core.SavingsComputationTypeMonthlyEndLowestBalance:
+		case types.SavingsComputationTypeMonthlyEndLowestBalance:
 			savingsType = usecase.SavingsTypeLowest
-		case core.SavingsComputationTypeADBEndBalance:
+		case types.SavingsComputationTypeADBEndBalance:
 			savingsType = usecase.SavingsTypeEnd
-		case core.SavingsComputationTypeMonthlyLowestBalanceAverage:
+		case types.SavingsComputationTypeMonthlyLowestBalanceAverage:
 			savingsType = usecase.SavingsTypeLowest
-		case core.SavingsComputationTypeMonthlyEndBalanceAverage:
+		case types.SavingsComputationTypeMonthlyEndBalanceAverage:
 			savingsType = usecase.SavingsTypeAverage
-		case core.SavingsComputationTypeMonthlyEndBalanceTotal:
+		case types.SavingsComputationTypeMonthlyEndBalanceTotal:
 			savingsType = usecase.SavingsTypeEnd
 		default:
 			savingsType = usecase.SavingsTypeLowest
@@ -221,7 +221,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method:       "PUT",
 		Note:         "Updates an existing generated savings interest entry by its ID.",
-		RequestType: types.GeneratedSavingsInterestEntryRequest{},
+		RequestType:  types.GeneratedSavingsInterestEntryRequest{},
 		ResponseType: types.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -300,19 +300,19 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		}
 		var savingsType usecase.SavingsType
 		switch generatedSavingsInterest.SavingsComputationType {
-		case core.SavingsComputationTypeDailyLowestBalance:
+		case types.SavingsComputationTypeDailyLowestBalance:
 			savingsType = usecase.SavingsTypeLowest
-		case core.SavingsComputationTypeAverageDailyBalance:
+		case types.SavingsComputationTypeAverageDailyBalance:
 			savingsType = usecase.SavingsTypeAverage
-		case core.SavingsComputationTypeMonthlyEndLowestBalance:
+		case types.SavingsComputationTypeMonthlyEndLowestBalance:
 			savingsType = usecase.SavingsTypeLowest
-		case core.SavingsComputationTypeADBEndBalance:
+		case types.SavingsComputationTypeADBEndBalance:
 			savingsType = usecase.SavingsTypeEnd
-		case core.SavingsComputationTypeMonthlyLowestBalanceAverage:
+		case types.SavingsComputationTypeMonthlyLowestBalanceAverage:
 			savingsType = usecase.SavingsTypeLowest
-		case core.SavingsComputationTypeMonthlyEndBalanceAverage:
+		case types.SavingsComputationTypeMonthlyEndBalanceAverage:
 			savingsType = usecase.SavingsTypeAverage
-		case core.SavingsComputationTypeMonthlyEndBalanceTotal:
+		case types.SavingsComputationTypeMonthlyEndBalanceTotal:
 			savingsType = usecase.SavingsTypeEnd
 		default:
 			savingsType = usecase.SavingsTypeLowest
