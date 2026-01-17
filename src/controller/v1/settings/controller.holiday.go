@@ -66,7 +66,7 @@ func HolidayController(service *horizon.HorizonService) {
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "GET",
 		ResponseType: types.HolidayResponse{},
-		RequestType: types.HolidayRequest{},
+		RequestType:  types.HolidayRequest{},
 		Note:         "Returns a holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -85,7 +85,7 @@ func HolidayController(service *horizon.HorizonService) {
 		Route:        "/api/v1/holiday",
 		Method:       "POST",
 		ResponseType: types.HolidayResponse{},
-		RequestType: types.HolidayRequest{},
+		RequestType:  types.HolidayRequest{},
 		Note:         "Creates a new holiday record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -147,7 +147,7 @@ func HolidayController(service *horizon.HorizonService) {
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "PUT",
 		ResponseType: types.HolidayResponse{},
-		RequestType: types.HolidayRequest{},
+		RequestType:  types.HolidayRequest{},
 		Note:         "Updates an existing holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -347,7 +347,7 @@ func HolidayController(service *horizon.HorizonService) {
 
 		var response []types.HoldayYearAvaiable
 		for year, count := range yearCount {
-			response = append(response, core.HoldayYearAvaiable{
+			response = append(response, types.HoldayYearAvaiable{
 				Year:  year,
 				Count: count,
 			})
@@ -405,7 +405,7 @@ func HolidayController(service *horizon.HorizonService) {
 
 		var response []types.HoldayYearAvaiable
 		for year, count := range yearCount {
-			response = append(response, core.HoldayYearAvaiable{
+			response = append(response, types.HoldayYearAvaiable{
 				Year:  year,
 				Count: count,
 			})

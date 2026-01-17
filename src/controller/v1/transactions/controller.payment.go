@@ -19,7 +19,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Processes multiple payments for the specified transaction by transaction_id and records them in the general ledger.",
 		ResponseType: types.GeneralLedgerResponse{},
-		RequestType: types.PaymentRequest{},
+		RequestType:  types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -126,7 +126,7 @@ func PaymentController(service *horizon.HorizonService) {
 
 		var response []types.GeneralLedgerResponse
 		for _, gl := range generalLedgers {
-			response = append(response, *types.GeneralLedgerManager(service).ToModel(gl))
+			response = append(response, *core.GeneralLedgerManager(service).ToModel(gl))
 		}
 
 		return ctx.JSON(http.StatusOK, response)
@@ -194,7 +194,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
 		ResponseType: types.GeneralLedgerResponse{},
-		RequestType: types.PaymentRequest{},
+		RequestType:  types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -275,7 +275,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Processes a withdrawal for the specified transaction by transaction_id and updates the general ledger accordingly.",
 		ResponseType: types.GeneralLedgerResponse{},
-		RequestType: types.PaymentRequest{},
+		RequestType:  types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.PaymentRequest
@@ -350,7 +350,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Processes a deposit for the specified transaction by transaction_id and updates the general ledger accordingly.",
 		ResponseType: types.GeneralLedgerResponse{},
-		RequestType: types.PaymentRequest{},
+		RequestType:  types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.PaymentRequest
@@ -425,7 +425,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Processes a payment for a transaction without specifying transaction_id in the route. Used for general payments.",
 		ResponseType: types.GeneralLedger{},
-		RequestType: types.PaymentQuickRequest{},
+		RequestType:  types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.PaymentQuickRequest
@@ -491,7 +491,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Processes a withdrawal for a transaction without specifying transaction_id in the route. Used for general withdrawals.",
 		ResponseType: types.GeneralLedgerResponse{},
-		RequestType: types.PaymentQuickRequest{},
+		RequestType:  types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.PaymentQuickRequest
@@ -557,7 +557,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Processes a deposit for a transaction without specifying transaction_id in the route. Used for general deposits.",
 		ResponseType: types.GeneralLedgerResponse{},
-		RequestType: types.PaymentQuickRequest{},
+		RequestType:  types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req types.PaymentQuickRequest

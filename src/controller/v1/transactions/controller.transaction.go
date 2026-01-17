@@ -18,7 +18,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction",
 		Method:       "POST",
-		RequestType: types.TransactionRequest{},
+		RequestType:  types.TransactionRequest{},
 		ResponseType: types.TransactionResponse{},
 		Note:         "Creates a new transaction record with provided details, allowing subsequent deposit or withdrawal actions.",
 	}, func(ctx echo.Context) error {
@@ -138,7 +138,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "PUT",
-		RequestType: types.TransactionRequestEdit{},
+		RequestType:  types.TransactionRequestEdit{},
 		ResponseType: types.TransactionResponse{},
 		Note:         "Modifies the description of an existing transaction, allowing updates to its memo or comment field.",
 	}, func(ctx echo.Context) error {
@@ -247,7 +247,7 @@ func TransactionController(service *horizon.HorizonService) {
 				"error": "Failed to get user organization: " + err.Error(),
 			})
 		}
-		var filter core.Transaction
+		var filter types.Transaction
 		if userOrg.UserType == types.UserOrganizationTypeMember {
 			memberProfile, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID: &userOrg.UserID,
@@ -286,7 +286,7 @@ func TransactionController(service *horizon.HorizonService) {
 				"error": "Failed to get user organization: " + err.Error(),
 			})
 		}
-		var filter core.Transaction
+		var filter types.Transaction
 		if userOrg.UserType == types.UserOrganizationTypeMember {
 			memberProfile, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID: &userOrg.UserID,

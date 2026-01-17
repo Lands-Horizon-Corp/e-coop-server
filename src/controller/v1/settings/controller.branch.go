@@ -81,7 +81,7 @@ func BranchController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
 		Private:      true,
-		RequestType: types.BranchRequest{},
+		RequestType:  types.BranchRequest{},
 		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -303,7 +303,7 @@ func BranchController(service *horizon.HorizonService) {
 		Method:       "PUT",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
 		Private:      true,
-		RequestType: types.BranchRequest{},
+		RequestType:  types.BranchRequest{},
 		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -544,12 +544,12 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
-		RequestType: types.BranchSettingRequest{},
+		RequestType:  types.BranchSettingRequest{},
 		ResponseType: types.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		var settingsReq core.BranchSettingRequest
+		var settingsReq types.BranchSettingRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
@@ -769,11 +769,11 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch-settings/currency",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
-		RequestType: types.BranchSettingsCurrencyRequest{},
+		RequestType:  types.BranchSettingsCurrencyRequest{},
 		ResponseType: types.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var settingsReq core.BranchSettingsCurrencyRequest
+		var settingsReq types.BranchSettingsCurrencyRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",

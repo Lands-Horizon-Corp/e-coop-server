@@ -29,10 +29,10 @@ func Heartbeat(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.Status == core.UserOrganizationStatusOnline {
+		if userOrg.Status == types.UserOrganizationStatusOnline {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		userOrg.Status = core.UserOrganizationStatusOnline
+		userOrg.Status = types.UserOrganizationStatusOnline
 		userOrg.LastOnlineAt = time.Now()
 		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -70,10 +70,10 @@ func Heartbeat(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.Status == core.UserOrganizationStatusOffline {
+		if userOrg.Status == types.UserOrganizationStatusOffline {
 			return ctx.NoContent(http.StatusNoContent)
 		}
-		userOrg.Status = core.UserOrganizationStatusOffline
+		userOrg.Status = types.UserOrganizationStatusOffline
 		userOrg.LastOnlineAt = time.Now()
 		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -162,7 +162,7 @@ func Heartbeat(service *horizon.HorizonService) {
 		totalMembers, totalEmployees := 0, 0
 		for _, org := range statuses {
 			switch org.Status {
-			case core.UserOrganizationStatusOnline:
+			case types.UserOrganizationStatusOnline:
 				onlineUsers = append(onlineUsers, org)
 				if org.UserType == types.UserOrganizationTypeMember {
 					onlineMembers++
@@ -172,13 +172,13 @@ func Heartbeat(service *horizon.HorizonService) {
 					onlineEmployees++
 					totalEmployees++
 				}
-			case core.UserOrganizationStatusOffline:
+			case types.UserOrganizationStatusOffline:
 				offlineUsers = append(offlineUsers, org)
-			case core.UserOrganizationStatusCommuting:
+			case types.UserOrganizationStatusCommuting:
 				commutingUsers = append(commutingUsers, org)
-			case core.UserOrganizationStatusBusy:
+			case types.UserOrganizationStatusBusy:
 				busyUsers = append(busyUsers, org)
-			case core.UserOrganizationStatusVacation:
+			case types.UserOrganizationStatusVacation:
 				vacationUsers = append(vacationUsers, org)
 			}
 		}
