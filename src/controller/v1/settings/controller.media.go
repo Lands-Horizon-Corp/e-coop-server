@@ -240,7 +240,7 @@ func MediaController(service *horizon.HorizonService) {
 		Note:        "Deletes multiple media records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody core.IDSRequest
+		var reqBody types.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{

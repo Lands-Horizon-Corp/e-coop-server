@@ -1129,7 +1129,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Note:        "Deletes multiple user organizations by providing an array of IDs in the request body.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody core.IDSRequest
+		var reqBody types.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{

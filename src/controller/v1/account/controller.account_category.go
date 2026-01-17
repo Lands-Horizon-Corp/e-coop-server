@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,7 +26,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
@@ -50,7 +51,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 		categories, err := core.AccountCategoryManager(service).Find(context, &types.AccountCategory{
@@ -86,7 +87,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Create a new account category for the current branch.",
 		ResponseType: types.AccountCategoryResponse{},
-		RequestType: types.AccountCategoryRequest{},
+		RequestType:  types.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountCategoryManager(service).Validate(ctx)
@@ -107,7 +108,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
 				Description: "Unauthorized create account category attempt (/account-category)",
@@ -149,7 +150,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		Method:       "PUT",
 		Note:         "Update an account category by ID.",
 		ResponseType: types.AccountCategoryResponse{},
-		RequestType: types.AccountCategoryRequest{},
+		RequestType:  types.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountCategoryManager(service).Validate(ctx)
@@ -170,7 +171,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
 				Description: "Unauthorized update account category attempt (/account-category/:account_category_id)",
@@ -187,7 +188,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		accountCategory, err := core.AccountCategoryManager(service).GetByID(context, *types.AccountCategoryID)
+		accountCategory, err := core.AccountCategoryManager(service).GetByID(context, accountCategoryID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",
@@ -233,7 +234,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
 				Description: "Unauthorized delete account category attempt (/account-category/:account_category_id)",
@@ -250,7 +251,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account category ID: " + err.Error()})
 		}
-		accountCategory, err := core.AccountCategoryManager(service).GetByID(context, *types.AccountCategoryID)
+		accountCategory, err := core.AccountCategoryManager(service).GetByID(context, accountCategoryID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "delete-error",
@@ -282,7 +283,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody core.IDSRequest
+		var reqBody types.IDSRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "bulk-delete-error",

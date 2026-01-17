@@ -145,7 +145,7 @@ func FeedbackController(service *horizon.HorizonService) {
 		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		var reqBody core.IDSRequest
+		var reqBody types.IDSRequest
 
 		if err := ctx.Bind(&reqBody); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{

@@ -296,7 +296,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid organization ID"})
 		}
 
-		var req core.IDSRequest
+		var req types.IDSRequest
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
 		}
