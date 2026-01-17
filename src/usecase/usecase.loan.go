@@ -15,7 +15,7 @@ func LoanChargesRateComputation(
 	ald types.LoanTransaction,
 ) float64 {
 
-	result := decimal.Zero
+	var result decimal.Decimal
 	applied := decimal.NewFromFloat(ald.Applied1)
 
 	termHeaders := []int{
@@ -43,7 +43,7 @@ func LoanChargesRateComputation(
 	findLastRate := func(rates []decimal.Decimal, headers []int, terms int) decimal.Decimal {
 		last := decimal.Zero
 		limit := min(len(rates), len(headers))
-		for i := 0; i < limit; i++ {
+		for i := range limit {
 			if headers[i] > terms || rates[i].LessThanOrEqual(decimal.Zero) {
 				break
 			}
@@ -388,10 +388,7 @@ func SuggestedNumberOfTerms(
 		return 0, errors.New("unsupported mode of payment")
 	}
 
-	numberOfTerms := int(math.Ceil(terms.InexactFloat64()))
-	if numberOfTerms < 1 {
-		numberOfTerms = 1
-	}
+	numberOfTerms := max(int(math.Ceil(terms.InexactFloat64())), 1)
 
 	return numberOfTerms, nil
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"math/big"
 	"net/http"
 	"net/mail"
@@ -465,4 +466,18 @@ func GeneratePassbookNumber() string {
 	short := strings.ToUpper(compact[:12])
 	year := time.Now().Year()
 	return fmt.Sprintf("PB-%d-%s", year, short)
+}
+
+func Int64ToUint32(v int64, name string) (uint32, error) {
+	if v < 0 || v > math.MaxUint32 {
+		return 0, fmt.Errorf("%s out of range: %d", name, v)
+	}
+	return uint32(v), nil
+}
+
+func Int64ToUint8(v int64, name string) (uint8, error) {
+	if v < 0 || v > math.MaxUint8 {
+		return 0, fmt.Errorf("%s out of range: %d", name, v)
+	}
+	return uint8(v), nil
 }

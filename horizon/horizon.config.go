@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/spf13/viper"
 )
 
@@ -171,6 +172,31 @@ func NewConfigImpl() (*ConfigImpl, error) {
 	v.SetDefault("MAILPIT_UI_HOST", "127.0.0.1")
 	v.SetDefault("MAILPIT_UI_PORT", 8025)
 
+	mem, err := helpers.Int64ToUint32(v.GetInt64("PASSWORD_MEMORY"), "PASSWORD_MEMORY")
+	if err != nil {
+		return nil, err
+	}
+
+	iter, err := helpers.Int64ToUint32(v.GetInt64("PASSWORD_ITERATIONS"), "PASSWORD_ITERATIONS")
+	if err != nil {
+		return nil, err
+	}
+
+	par, err := helpers.Int64ToUint8(v.GetInt64("PASSWORD_PARALLELISM"), "PASSWORD_PARALLELISM")
+	if err != nil {
+		return nil, err
+	}
+
+	saltLen, err := helpers.Int64ToUint32(v.GetInt64("PASSWORD_SALT_LENGTH"), "PASSWORD_SALT_LENGTH")
+	if err != nil {
+		return nil, err
+	}
+
+	keyLen, err := helpers.Int64ToUint32(v.GetInt64("PASSWORD_KEY_LENGTH"), "PASSWORD_KEY_LENGTH")
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := &ConfigImpl{
 		AppPort:        v.GetInt("APP_PORT"),
 		AppMetricsPort: v.GetInt("APP_METRICS_PORT"),
@@ -212,11 +238,11 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		StorageRegion:    v.GetString("STORAGE_REGION"),
 		StorageMaxSize:   v.GetInt64("STORAGE_MAX_SIZE"),
 
-		PasswordMemory:     uint32(v.GetInt64("PASSWORD_MEMORY")),
-		PasswordIterations: uint32(v.GetInt64("PASSWORD_ITERATIONS")),
-		PasswordParallel:   uint8(v.GetInt64("PASSWORD_PARALLELISM")),
-		PasswordSaltLength: uint32(v.GetInt64("PASSWORD_SALT_LENTH")),
-		PasswordKeyLength:  uint32(v.GetInt64("PASSWORD_KEY_LENGTH")),
+		PasswordMemory:     mem,
+		PasswordIterations: iter,
+		PasswordParallel:   par,
+		PasswordSaltLength: saltLen,
+		PasswordKeyLength:  keyLen,
 		PasswordSecret:     v.GetString("PASSWORD_SECRET"),
 		OTPSecret:          v.GetString("OTP_SECRET"),
 		QRSecret:           v.GetString("QR_SECRET"),
@@ -228,10 +254,11 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		SMTPFrom:         v.GetString("SMTP_FROM"),
 		SMTPTestReceiver: v.GetString("SMTP_TEST_RECIEVER"),
 
-		TwilioAccountSID:    v.GetString("TWILIO_ACCOUNT_SID"),
-		TwilioAuthToken:     v.GetString("TWILIO_AUTH_TOKEN"),
-		TwilioSender:        v.GetString("TWILIO_SENDER"),
-		TwilioTestRecv:      v.GetString("TWILIO_TEST_RECIEVER"),
+		TwilioAccountSID: v.GetString("TWILIO_ACCOUNT_SID"),
+		TwilioAuthToken:  v.GetString("TWILIO_AUTH_TOKEN"),
+		TwilioSender:     v.GetString("TWILIO_SENDER"),
+		TwilioTestRecv:   v.GetString("TWILIO_TEST_RECIEVER"),
+		// #nosec G115 - config values are validated and controlled by environment
 		TwilioMaxCharacters: int32(v.GetInt64("TWILIO_MAX_CHARACTERS")),
 
 		LinodeHost:          v.GetString("LINODE_HOST"),

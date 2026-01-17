@@ -130,6 +130,7 @@ var standaloneCommands = []CommandConfig{
 		Use:   "server",
 		Short: "Start the main server",
 		RunFunc: func(_ *cobra.Command, _ []string) error {
-				if err := startServer(); err != nil {
-					return err
-				}
+			return startServer()
+		},
+	},
+}

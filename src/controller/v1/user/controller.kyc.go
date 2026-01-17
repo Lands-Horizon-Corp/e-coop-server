@@ -283,13 +283,21 @@ func KYCController(service *horizon.HorizonService) {
 				"error": "Failed to open file",
 			})
 		}
-		defer src.Close()
+		defer func() {
+			_ = src.Close()
+		}()
 		r, w := io.Pipe()
-		defer r.Close()
-		defer w.Close()
+		defer func() {
+			_ = r.Close()
+		}()
+		defer func() {
+			_ = w.Close()
+		}()
 		go func() {
-			defer w.Close()
-			io.Copy(w, src)
+			defer func() {
+				_ = w.Close()
+			}()
+			_, _ = io.Copy(w, src)
 		}()
 		cmd := exec.Command("ffprobe",
 			"-v", "error",
@@ -356,7 +364,9 @@ func KYCController(service *horizon.HorizonService) {
 				"error": "Failed to open file",
 			})
 		}
-		defer src.Close()
+		defer func() {
+			_ = src.Close()
+		}()
 		cfg, err := webp.DecodeConfig(src)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, echo.Map{

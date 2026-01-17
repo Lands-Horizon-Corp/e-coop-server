@@ -156,18 +156,10 @@ func SetUserOrganization(context context.Context, service *horizon.HorizonServic
 func GetOrganization(service *horizon.HorizonService, ctx echo.Context) (*types.Organization, bool) {
 	orgID := ctx.Request().Header.Get("X-Organization-ID")
 	if orgID == "" {
-		ctx.JSON(http.StatusBadRequest, map[string]string{
-			"error": "organization ID not provided",
-		})
 		return nil, false
 	}
 	org, err := core.OrganizationManager(service).GetByID(ctx.Request().Context(), orgID)
 	if err != nil || org == nil {
-		if err := ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": "organization not found",
-		}); err != nil {
-			return nil, false
-		}
 		return nil, false
 	}
 	return org, true

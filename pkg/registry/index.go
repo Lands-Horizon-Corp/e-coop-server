@@ -44,7 +44,7 @@ type Registry[TData any, TResponse any, TRequest any] struct {
 // --------------------
 // Singleton cache
 // --------------------
-var registryCache sync.Map // map[string]interface{}
+var registryCache sync.Map
 
 // GetRegistry returns a singleton instance for the given generic type
 func GetRegistry[TData any, TResponse any, TRequest any](params RegistryParams[TData, TResponse, TRequest]) *Registry[TData, TResponse, TRequest] {

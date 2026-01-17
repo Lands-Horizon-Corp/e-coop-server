@@ -159,6 +159,7 @@ func (h *StorageImpl) Upload(ctx context.Context, file any, onProgress ProgressC
 }
 
 func (h *StorageImpl) UploadFromPath(ctx context.Context, path string, cb ProgressCallback) (*Storage, error) {
+	// #nosec G304 - path is intentionally provided by caller for upload
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to open %s", path)

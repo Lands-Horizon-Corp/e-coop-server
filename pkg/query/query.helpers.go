@@ -168,7 +168,7 @@ func parseTime(value any) (time.Time, error) {
 		}
 	default:
 		if timeVal := reflect.ValueOf(value); timeVal.Kind() == reflect.Struct {
-			if timeField := timeVal.FieldByName("Time"); timeField.IsValid() && timeField.Type() == reflect.TypeOf(time.Time{}) {
+			if timeField := timeVal.FieldByName("Time"); timeField.IsValid() && timeField.Type() == reflect.TypeFor[time.Time]() {
 				t = timeField.Interface().(time.Time)
 			} else {
 				return time.Time{}, fmt.Errorf("invalid type for time: %T", value)
@@ -252,7 +252,7 @@ func parseRangeDateTime(value any) (RangeDate, error) {
 			return RangeDate{}, fmt.Errorf("range from date cannot be after to date")
 		}
 		return RangeDate{From: from, To: to}, nil
-	case map[string]interface{}:
+	case map[string]any:
 		fromVal, hasFrom := v["from"]
 		toVal, hasTo := v["to"]
 		if !hasFrom || !hasTo {
