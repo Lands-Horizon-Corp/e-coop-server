@@ -19,7 +19,7 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization",
 		Method:       "GET",
-		ResponseType: core.OrganizationResponse{},
+		ResponseType: types.OrganizationResponse{},
 		Note:         "Returns all public organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -33,7 +33,7 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "GET",
-		ResponseType: core.OrganizationResponse{},
+		ResponseType: types.OrganizationResponse{},
 
 		Note: "Returns a specific organization by its ID.",
 	}, func(ctx echo.Context) error {
@@ -52,8 +52,8 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization",
 		Method:       "POST",
-		RequestType:  core.OrganizationRequest{},
-		ResponseType: core.CreateOrganizationResponse{},
+		RequestType: types.OrganizationRequest{},
+		ResponseType: types.CreateOrganizationResponse{},
 		Note:         "Creates a new organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -287,8 +287,8 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "PUT",
-		RequestType:  core.OrganizationRequest{},
-		ResponseType: core.OrganizationResponse{},
+		RequestType: types.OrganizationRequest{},
+		ResponseType: types.OrganizationResponse{},
 		Note:         "Updates an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -566,7 +566,7 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/featured",
 		Method:       "GET",
-		ResponseType: core.OrganizationResponse{},
+		ResponseType: types.OrganizationResponse{},
 		Note:         "Returns featured organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -580,7 +580,7 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/recently",
 		Method:       "GET",
-		ResponseType: core.OrganizationResponse{},
+		ResponseType: types.OrganizationResponse{},
 		Note:         "Returns recently added organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -594,7 +594,7 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/category",
 		Method:       "GET",
-		ResponseType: core.OrganizationPerCategoryResponse{},
+		ResponseType: types.OrganizationPerCategoryResponse{},
 		Note:         "Returns all organization categories.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

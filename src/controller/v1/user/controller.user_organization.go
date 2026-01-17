@@ -24,8 +24,8 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/:user_organization_id/permission",
 		Method:       "PUT",
 		Note:         "Updates the permission fields of a user organization.",
-		RequestType:  core.UserOrganizationPermissionPayload{},
-		ResponseType: core.UserOrganizationResponse{},
+		RequestType: types.UserOrganizationPermissionPayload{},
+		ResponseType: types.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrgID, err := helpers.EngineUUIDParam(ctx, "user_organization_id")
@@ -215,7 +215,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/employee/search",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns paginated employee user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -237,7 +237,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/owner/search",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns paginated employee user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -259,7 +259,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/member/search",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns paginated member user organizations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -281,7 +281,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/none-member-profile/search",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns paginated member user organizations without a member profile for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -316,7 +316,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/user/:user_id",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for a specific user. Use quer	y param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -339,7 +339,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/current",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for the currently logged-in user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -358,7 +358,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/join-request/paginated",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns paginated join requests for user organizations (pending applications) for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -380,7 +380,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/join-request",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns all join requests for user organizations (pending applications) for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -402,7 +402,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/organization/:organization_id",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for a specific organization. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -428,7 +428,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/branch/:branch_id",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns all user organizations for a specific branch. Use query param `pending=true` to include pending organizations.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -450,7 +450,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id/switch",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Method:       "GET",
 		Note:         "Switches organization and branch in Cache for the current user. No database impact.",
 	}, func(ctx echo.Context) error {
@@ -501,7 +501,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/developer-key-refresh",
 		Method:       "POST",
 		Note:         "Refreshes the developer key associated with the current user organization.",
-		ResponseType: core.DeveloperSecretKeyResponse{},
+		ResponseType: types.DeveloperSecretKeyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -545,7 +545,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/invitation-code/:code/join",
 		Method:       "POST",
 		Note:         "Joins an organization and branch using an invitation code.",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
@@ -697,8 +697,8 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/join",
 		Method:       "POST",
 		Note:         "Joins an existing organization and branch.",
-		ResponseType: core.UserOrganizationResponse{},
-		RequestType:  core.UserOrganizationRequest{},
+		ResponseType: types.UserOrganizationResponse{},
+		RequestType: types.UserOrganizationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationID, err := helpers.EngineUUIDParam(ctx, "organization_id")
@@ -917,7 +917,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/:user_organization_id",
 		Method:       "GET",
 		Note:         "Returns a specific user organization by ID.",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrgID, err := helpers.EngineUUIDParam(ctx, "user_organization_id")
@@ -1125,7 +1125,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/user-organization/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 		Note:        "Deletes multiple user organizations by providing an array of IDs in the request body.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1174,7 +1174,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/employee",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns all employees of the current user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1192,7 +1192,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/members",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Returns all members of the current user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1210,8 +1210,8 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/settings/:user_organization_id",
 		Method:       "PUT",
-		RequestType:  core.UserOrganizationSettingsRequest{},
-		ResponseType: core.UserOrganizationResponse{},
+		RequestType: types.UserOrganizationSettingsRequest{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Updates the user organization settings.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1287,8 +1287,8 @@ func UserOrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/settings/current",
 		Method:       "PUT",
-		RequestType:  core.UserOrganizationSelfSettingsRequest{},
-		ResponseType: core.UserOrganizationResponse{},
+		RequestType: types.UserOrganizationSelfSettingsRequest{},
+		ResponseType: types.UserOrganizationResponse{},
 		Note:         "Updates the user organization settings.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1361,7 +1361,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/time-machine/cancel",
 		Method:       "PUT",
 		Note:         "Cancels time machine by setting TimeMachineTime to nil for current user organization.",
-		ResponseType: core.UserOrganizationResponse{},
+		ResponseType: types.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -1399,8 +1399,8 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/user-organization/employee",
 		Method:       "POST",
 		Note:         "Creates a new employee user and user organization record.",
-		RequestType:  core.EmployeeCreateRequest{},
-		ResponseType: core.UserOrganizationResponse{},
+		RequestType: types.EmployeeCreateRequest{},
+		ResponseType: types.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
 
 		context := ctx.Request().Context()

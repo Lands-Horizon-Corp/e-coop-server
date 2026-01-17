@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,7 +18,7 @@ func OrganizationDailyUsageController(service *horizon.HorizonService) {
 		Route:        "/api/v1/organization-daily-usage",
 		Method:       "GET",
 		Note:         "Returns all daily usage records for the current user's organization.",
-		ResponseType: core.OrganizationDailyUsageResponse{},
+		ResponseType: types.OrganizationDailyUsageResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -35,7 +36,7 @@ func OrganizationDailyUsageController(service *horizon.HorizonService) {
 		Route:        "/api/v1/organization-daily-usage/:organization_daily_usage_id",
 		Method:       "GET",
 		Note:         "Returns a specific organization daily usage record by its ID.",
-		ResponseType: core.OrganizationDailyUsageResponse{},
+		ResponseType: types.OrganizationDailyUsageResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		dailyUsageID, err := helpers.EngineUUIDParam(ctx, "organization_daily_usage_id")

@@ -20,7 +20,7 @@ func NotificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/me",
 		Method:       "GET",
-		ResponseType: core.NotificationResponse{},
+		ResponseType: types.NotificationResponse{},
 		Note:         "Returns all notifications for the currently logged-in user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -38,8 +38,8 @@ func NotificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/view",
 		Method:       "PUT",
-		RequestType:  core.IDSRequest{},
-		ResponseType: core.NotificationResponse{},
+		RequestType: types.IDSRequest{},
+		ResponseType: types.NotificationResponse{},
 		Note:         "Marks multiple notifications as viewed for the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -122,7 +122,7 @@ func NotificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/view-all",
 		Method:       "PUT",
-		ResponseType: core.NotificationResponse{},
+		ResponseType: types.NotificationResponse{},
 		Note:         "Marks all user notifications as viewed",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -20,7 +20,7 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "GET",
-		ResponseType: core.HolidayResponse{},
+		ResponseType: types.HolidayResponse{},
 		Note:         "Returns all holiday records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -41,7 +41,7 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/search",
 		Method:       "GET",
-		ResponseType: core.HolidayResponse{},
+		ResponseType: types.HolidayResponse{},
 		Note:         "Returns a paginated list of holiday records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -65,8 +65,8 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "GET",
-		ResponseType: core.HolidayResponse{},
-		RequestType:  core.HolidayRequest{},
+		ResponseType: types.HolidayResponse{},
+		RequestType: types.HolidayRequest{},
 		Note:         "Returns a holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -84,8 +84,8 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "POST",
-		ResponseType: core.HolidayResponse{},
-		RequestType:  core.HolidayRequest{},
+		ResponseType: types.HolidayResponse{},
+		RequestType: types.HolidayRequest{},
 		Note:         "Creates a new holiday record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -146,8 +146,8 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "PUT",
-		ResponseType: core.HolidayResponse{},
-		RequestType:  core.HolidayRequest{},
+		ResponseType: types.HolidayResponse{},
+		RequestType: types.HolidayRequest{},
 		Note:         "Updates an existing holiday record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -261,7 +261,7 @@ func HolidayController(service *horizon.HorizonService) {
 		Route:       "/api/v1/holiday/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple holiday records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -308,7 +308,7 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/year-available",
 		Method:       "GET",
-		ResponseType: core.HoldayYearAvaiable{},
+		ResponseType: types.HoldayYearAvaiable{},
 		Note:         "Returns years with available holiday records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -361,7 +361,7 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id/year-available",
 		Method:       "GET",
-		ResponseType: core.HoldayYearAvaiable{},
+		ResponseType: types.HoldayYearAvaiable{},
 		Note:         "Returns years with available holiday records for a specific currency for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -419,7 +419,7 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/year/:year",
 		Method:       "GET",
-		ResponseType: core.HolidayResponse{},
+		ResponseType: types.HolidayResponse{},
 		Note:         "Returns holiday records for a specific year for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -454,7 +454,7 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id",
 		Method:       "GET",
-		ResponseType: core.HolidayResponse{},
+		ResponseType: types.HolidayResponse{},
 		Note:         "Returns holiday records for a specific currency for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -486,7 +486,7 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id",
 		Method:       "GET",
-		ResponseType: core.HolidayResponse{},
+		ResponseType: types.HolidayResponse{},
 		Note:         "Returns holiday records for a specific year and currency for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -529,7 +529,7 @@ func HolidayController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id/copy/:source_year",
 		Method:       "POST",
-		ResponseType: core.HolidayResponse{},
+		ResponseType: types.HolidayResponse{},
 		Note:         "Copies holiday records from source year to target year for a specific currency in the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -20,8 +20,8 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction-entry/loan-transaction/:loan_transaction_id/deduction",
 		Method:       "POST",
 		Note:         "Adds a deduction to a loan transaction by ID.",
-		RequestType:  core.LoanTransactionDeductionRequest{},
-		ResponseType: core.LoanTransaction{},
+		RequestType: types.LoanTransactionDeductionRequest{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -106,8 +106,8 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/deduction",
 		Method:       "PUT",
 		Note:         "Adds a deduction to a loan transaction by ID.",
-		RequestType:  core.LoanTransactionDeductionRequest{},
-		ResponseType: core.LoanTransaction{},
+		RequestType: types.LoanTransactionDeductionRequest{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionEntryID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_entry_id")

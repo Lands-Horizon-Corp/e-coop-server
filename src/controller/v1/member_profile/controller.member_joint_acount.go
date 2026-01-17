@@ -18,8 +18,8 @@ func MemberJointAccountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-joint-account/member-profile/:member_profile_id",
 		Method:       "POST",
-		ResponseType: core.MemberJointAccountResponse{},
-		RequestType:  core.MemberJointAccountRequest{},
+		ResponseType: types.MemberJointAccountResponse{},
+		RequestType: types.MemberJointAccountRequest{},
 		Note:         "Creates a new joint account record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -92,8 +92,8 @@ func MemberJointAccountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-joint-account/:member_joint_account_id",
 		Method:       "PUT",
-		ResponseType: core.MemberJointAccountResponse{},
-		RequestType:  core.MemberJointAccountRequest{},
+		ResponseType: types.MemberJointAccountResponse{},
+		RequestType: types.MemberJointAccountRequest{},
 		Note:         "Updates an existing joint account record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

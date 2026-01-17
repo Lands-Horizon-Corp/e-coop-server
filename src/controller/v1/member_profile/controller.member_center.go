@@ -18,7 +18,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center-history",
 		Method:       "GET",
-		ResponseType: core.MemberCenterResponse{},
+		ResponseType: types.MemberCenterResponse{},
 		Note:         "Returns all member center history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberCenterHistoryResponse{},
+		ResponseType: types.MemberCenterHistoryResponse{},
 		Note:         "Returns member center history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -62,7 +62,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "GET",
-		ResponseType: core.MemberCenterResponse{},
+		ResponseType: types.MemberCenterResponse{},
 		Note:         "Returns all member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -80,7 +80,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center/search",
 		Method:       "GET",
-		ResponseType: core.MemberCenterResponse{},
+		ResponseType: types.MemberCenterResponse{},
 		Note:         "Returns paginated member centers for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -101,8 +101,8 @@ func MemberCenterController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "POST",
-		ResponseType: core.MemberCenterResponse{},
-		RequestType:  core.MemberCenterRequest{},
+		ResponseType: types.MemberCenterResponse{},
+		RequestType: types.MemberCenterRequest{},
 		Note:         "Creates a new member center record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -157,8 +157,8 @@ func MemberCenterController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center/:member_center_id",
 		Method:       "PUT",
-		ResponseType: core.MemberCenterResponse{},
-		RequestType:  core.MemberCenterRequest{},
+		ResponseType: types.MemberCenterResponse{},
+		RequestType: types.MemberCenterRequest{},
 		Note:         "Updates an existing member center record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -269,7 +269,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		Route:       "/api/v1/member-center/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member center records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

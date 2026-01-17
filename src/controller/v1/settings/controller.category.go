@@ -19,7 +19,7 @@ func CategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/category",
 		Method:       "GET",
 		Note:         "Returns all categories in the system.",
-		ResponseType: core.CategoryResponse{},
+		ResponseType: types.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		categories, err := core.CategoryManager(service).List(context)
@@ -33,7 +33,7 @@ func CategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/category/:category_id",
 		Method:       "GET",
 		Note:         "Returns a single category by its ID.",
-		ResponseType: core.CategoryResponse{},
+		ResponseType: types.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		categoryID, err := helpers.EngineUUIDParam(ctx, "category_id")
@@ -53,8 +53,8 @@ func CategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/category",
 		Method:       "POST",
 		Note:         "Creates a new category.",
-		RequestType:  core.CategoryRequest{},
-		ResponseType: core.CategoryResponse{},
+		RequestType: types.CategoryRequest{},
+		ResponseType: types.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.CategoryManager(service).Validate(ctx)
@@ -98,8 +98,8 @@ func CategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/category/:category_id",
 		Method:       "PUT",
 		Note:         "Updates an existing category by its ID.",
-		RequestType:  core.CategoryRequest{},
-		ResponseType: core.CategoryResponse{},
+		RequestType: types.CategoryRequest{},
+		ResponseType: types.CategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		categoryID, err := helpers.EngineUUIDParam(ctx, "category_id")
@@ -204,7 +204,7 @@ func CategoryController(service *horizon.HorizonService) {
 		Route:       "/api/v1/category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple categories by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

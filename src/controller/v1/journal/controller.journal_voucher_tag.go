@@ -19,7 +19,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "GET",
 		Note:         "Returns all journal voucher tags for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.JournalVoucherTagResponse{},
+		ResponseType: types.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -40,7 +40,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of journal voucher tags for the current user's organization and branch.",
-		ResponseType: core.JournalVoucherTagResponse{},
+		ResponseType: types.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -64,7 +64,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "GET",
 		Note:         "Returns a single journal voucher tag by its ID.",
-		ResponseType: core.JournalVoucherTagResponse{},
+		ResponseType: types.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		tagID, err := helpers.EngineUUIDParam(ctx, "tag_id")
@@ -82,8 +82,8 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher tag for the current user's organization and branch.",
-		RequestType:  core.JournalVoucherTagRequest{},
-		ResponseType: core.JournalVoucherTagResponse{},
+		RequestType: types.JournalVoucherTagRequest{},
+		ResponseType: types.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.JournalVoucherTagManager(service).Validate(ctx)
@@ -148,8 +148,8 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher tag by its ID.",
-		RequestType:  core.JournalVoucherTagRequest{},
-		ResponseType: core.JournalVoucherTagResponse{},
+		RequestType: types.JournalVoucherTagRequest{},
+		ResponseType: types.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		tagID, err := helpers.EngineUUIDParam(ctx, "tag_id")
@@ -217,7 +217,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/journal-voucher-tag/journal-voucher/:journal_voucher_id",
 		Method:       "GET",
 		Note:         "Returns all journal voucher tags associated with the specified journal voucher ID.",
-		ResponseType: core.JournalVoucherTagResponse{},
+		ResponseType: types.JournalVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		journalVoucherID, err := helpers.EngineUUIDParam(ctx, "journal_voucher_id")
@@ -287,7 +287,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		Route:       "/api/v1/journal-voucher-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple journal voucher tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

@@ -19,8 +19,8 @@ func TimeDepositComputationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-computation/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation for the current user's organization and branch.",
-		RequestType:  core.TimeDepositComputationRequest{},
-		ResponseType: core.TimeDepositComputationResponse{},
+		RequestType: types.TimeDepositComputationRequest{},
+		ResponseType: types.TimeDepositComputationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := helpers.EngineUUIDParam(ctx, "time_deposit_type_id")
@@ -102,8 +102,8 @@ func TimeDepositComputationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation by its ID.",
-		RequestType:  core.TimeDepositComputationRequest{},
-		ResponseType: core.TimeDepositComputationResponse{},
+		RequestType: types.TimeDepositComputationRequest{},
+		ResponseType: types.TimeDepositComputationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositComputationID, err := helpers.EngineUUIDParam(ctx, "time_deposit_computation_id")
@@ -218,7 +218,7 @@ func TimeDepositComputationController(service *horizon.HorizonService) {
 		Route:       "/api/v1/time-deposit-computation/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computations by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

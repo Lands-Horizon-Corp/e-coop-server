@@ -19,7 +19,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "GET",
-		ResponseType: core.TransactionBatchResponse{},
+		ResponseType: types.TransactionBatchResponse{},
 		Note:         "Returns all transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -43,7 +43,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/search",
 		Method:       "GET",
-		ResponseType: core.TransactionBatchResponse{},
+		ResponseType: types.TransactionBatchResponse{},
 		Note:         "Returns paginated transaction batches for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -64,8 +64,8 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/signature",
 		Method:       "PUT",
-		ResponseType: core.TransactionBatchResponse{},
-		RequestType:  core.TransactionBatchSignatureRequest{},
+		ResponseType: types.TransactionBatchResponse{},
+		RequestType: types.TransactionBatchSignatureRequest{},
 		Note:         "Updates signature and position fields for a transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -175,7 +175,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/current",
 		Method:       "GET",
-		ResponseType: core.TransactionBatchResponse{},
+		ResponseType: types.TransactionBatchResponse{},
 		Note:         "Returns the current active transaction batch for the current user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -205,8 +205,8 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/deposit-in-bank",
 		Method:       "PUT",
-		ResponseType: core.TransactionBatchResponse{},
-		RequestType:  core.BatchFundingRequest{},
+		ResponseType: types.TransactionBatchResponse{},
+		RequestType: types.BatchFundingRequest{},
 		Note:         "Updates the deposit in bank amount for a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -316,8 +316,8 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "POST",
-		ResponseType: core.TransactionBatchResponse{},
-		RequestType:  core.TransactionBatchRequest{},
+		ResponseType: types.TransactionBatchResponse{},
+		RequestType: types.TransactionBatchRequest{},
 		Note:         "Creates and starts a new transaction batch for the current branch (will also populate cash count).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -484,8 +484,8 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/end",
 		Method:       "PUT",
-		RequestType:  core.TransactionBatchEndRequest{},
-		ResponseType: core.TransactionBatchResponse{},
+		RequestType: types.TransactionBatchEndRequest{},
+		ResponseType: types.TransactionBatchResponse{},
 		Note:         "Ends the current transaction batch for the authenticated user.",
 	}, func(ctx echo.Context) error {
 		c := ctx.Request().Context()
@@ -555,7 +555,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id",
 		Method:       "GET",
 		Note:         "Returns a transaction batch by its ID.",
-		ResponseType: core.TransactionBatchResponse{},
+		ResponseType: types.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -586,8 +586,8 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-request",
 		Method:       "PUT",
-		RequestType:  core.TransactionBatchEndRequest{},
-		ResponseType: core.TransactionBatchResponse{},
+		RequestType: types.TransactionBatchEndRequest{},
+		ResponseType: types.TransactionBatchResponse{},
 		Note:         "Submits a request to view (blotter) a specific transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -674,7 +674,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction-batch/view-request",
 		Method:       "GET",
 		Note:         "Returns all pending view (blotter) requests for transaction batches on the current branch.",
-		ResponseType: core.TransactionBatchResponse{},
+		ResponseType: types.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -695,7 +695,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction-batch/ended-batch",
 		Method:       "GET",
 		Note:         "Returns all ended (closed) transaction batches for the current day.",
-		ResponseType: core.TransactionBatchResponse{},
+		ResponseType: types.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -716,7 +716,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-accept",
 		Method:       "PUT",
 		Note:         "Accepts a view (blotter) request for a transaction batch by its ID.",
-		ResponseType: core.TransactionBatchResponse{},
+		ResponseType: types.TransactionBatchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -788,7 +788,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/employee/:user_organization_id/search",
 		Method:       "GET",
-		ResponseType: core.TransactionBatchResponse{},
+		ResponseType: types.TransactionBatchResponse{},
 		Note:         "Returns transaction batches for a specific employee (user_id) in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

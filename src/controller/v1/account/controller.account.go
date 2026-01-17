@@ -22,7 +22,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -68,7 +68,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch and currency. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -96,7 +96,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all deposit accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -122,7 +122,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/currency/:currency_id/paid-up-shared-capital/search",
 		Method:       "GET",
 		Note:         "Retrieve all paid-up shared capital accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -152,7 +152,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/loan/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -192,7 +192,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/currency/:currency_id/loan/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -237,7 +237,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/ar-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/R-Ledger accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -262,7 +262,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/ar-aging/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/R-Aging accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -289,7 +289,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/fines/search",
 		Method:       "GET",
 		Note:         "Retrieve all fines accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -316,7 +316,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/interest/search",
 		Method:       "GET",
 		Note:         "Retrieve all interest accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -342,7 +342,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/svf-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all SVF-Ledger accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -367,7 +367,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/w-off/search",
 		Method:       "GET",
 		Note:         "Retrieve all W-Off accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -392,7 +392,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/ap-ledger/search",
 		Method:       "GET",
 		Note:         "Retrieve all A/P-Ledger accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -418,7 +418,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/other/search",
 		Method:       "GET",
 		Note:         "Retrieve all other accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -444,7 +444,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/time-deposit/search",
 		Method:       "GET",
 		Note:         "Retrieve all time deposit accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -470,7 +470,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -494,8 +494,8 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account",
 		Method:       "POST",
 		Note:         "Create a new account for the current branch.",
-		ResponseType: core.AccountResponse{},
-		RequestType:  core.AccountRequest{},
+		ResponseType: types.AccountResponse{},
+		RequestType: types.AccountRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountManager(service).Validate(ctx)
@@ -673,7 +673,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id",
 		Method:       "GET",
 		Note:         "Retrieve a specific account by ID.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
@@ -691,8 +691,8 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id",
 		Method:       "PUT",
 		Note:         "Update an account by ID.",
-		ResponseType: core.AccountResponse{},
-		RequestType:  core.AccountRequest{},
+		ResponseType: types.AccountResponse{},
+		RequestType: types.AccountRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountManager(service).Validate(ctx)
@@ -957,7 +957,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:       "/api/v1/account/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple accounts by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -1049,7 +1049,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/index/:index",
 		Method:       "PUT",
 		Note:         "Update only the index field of an account using URL param.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1130,7 +1130,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/index/top",
 		Method:       "PUT",
 		Note:         "Negate the account index minus 1.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1201,7 +1201,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/index/bottom",
 		Method:       "PUT",
 		Note:         "Move the account index to the bottom (max index + 1).",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1269,7 +1269,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/general-ledger-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1339,7 +1339,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/financial-statement-definition/remove",
 		Method:       "PUT",
 		Note:         "Remove the GeneralLedgerDefinitionID from an account.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1409,7 +1409,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/withdraw/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1434,7 +1434,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/journal/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1459,7 +1459,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/payment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1484,7 +1484,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/currency/:currency_id/payment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch and currency. Only 'owner' and 'employee' roles are authorized. Returns paginated results.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1514,7 +1514,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/adjustment/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1539,7 +1539,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/journal-voucher/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1564,7 +1564,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/check-voucher/search",
 		Method:       "GET",
 		Note:         "Retrieve all accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1589,7 +1589,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/cash-and-cash-equivalence/search",
 		Method:       "GET",
 		Note:         "Retrieve all cash and cash equivalence accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1614,7 +1614,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/currency/:currency_id/cash-and-cash-equivalence/search",
 		Method:       "GET",
 		Note:         "Retrieve all cash and cash equivalence accounts for the current branch.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1644,7 +1644,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all accounts connected to a computation sheet.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		computationSheetID, err := helpers.EngineUUIDParam(ctx, "computation_sheet_id")
@@ -1670,7 +1670,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/computation-sheet/:computation_sheet_id/connect",
 		Method:       "PUT",
 		Note:         "Connect an account to a computation sheet.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
@@ -1711,7 +1711,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/computation-sheet/disconnect",
 		Method:       "PUT",
 		Note:         "Disconnect an account from a computation sheet.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
@@ -1748,7 +1748,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/connect-to-loan/:loan_id",
 		Method:       "POST",
 		Note:         "Connect an account to a loan.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
@@ -1796,7 +1796,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/disconnect-account",
 		Method:       "POST",
 		Note:         "Disconnect an account from a loan account.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
@@ -1833,7 +1833,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/loan-connectable-account-currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Retrieve all loan accounts for the current branch. Only Fines, Interest, SVF-Ledger",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -1867,7 +1867,7 @@ func AccountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account/:account_id/loan-accounts",
 		Method:       "GET",
 		Note:         "Retrieve loan account connected to an account.",
-		ResponseType: core.AccountResponse{},
+		ResponseType: types.AccountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")

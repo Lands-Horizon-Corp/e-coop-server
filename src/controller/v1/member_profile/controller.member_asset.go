@@ -18,8 +18,8 @@ func MemberAssetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-asset/member-profile/:member_profile_id",
 		Method:       "POST",
-		RequestType:  core.MemberAsset{},
-		ResponseType: core.MemberAsset{},
+		RequestType: types.MemberAsset{},
+		ResponseType: types.MemberAsset{},
 		Note:         "Creates a new asset record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -91,8 +91,8 @@ func MemberAssetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-asset/:member_asset_id",
 		Method:       "PUT",
-		RequestType:  core.MemberAsset{},
-		ResponseType: core.MemberAsset{},
+		RequestType: types.MemberAsset{},
+		ResponseType: types.MemberAsset{},
 		Note:         "Updates an existing asset record for a member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

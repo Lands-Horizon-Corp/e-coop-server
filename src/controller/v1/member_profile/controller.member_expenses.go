@@ -18,8 +18,8 @@ func MemberExpenseController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-expense/member-profile/:member_profile_id",
 		Method:       "POST",
-		ResponseType: core.MemberExpenseResponse{},
-		RequestType:  core.MemberExpenseRequest{},
+		ResponseType: types.MemberExpenseResponse{},
+		RequestType: types.MemberExpenseRequest{},
 		Note:         "Creates a new expense record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -85,8 +85,8 @@ func MemberExpenseController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-expense/:member_expense_id",
 		Method:       "PUT",
-		RequestType:  core.MemberExpenseRequest{},
-		ResponseType: core.MemberExpenseResponse{},
+		RequestType: types.MemberExpenseRequest{},
+		ResponseType: types.MemberExpenseResponse{},
 		Note:         "Updates an existing expense record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

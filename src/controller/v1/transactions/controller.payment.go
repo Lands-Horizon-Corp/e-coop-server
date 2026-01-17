@@ -18,8 +18,8 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/:transaction_id/multipayment",
 		Method:       "POST",
 		Note:         "Processes multiple payments for the specified transaction by transaction_id and records them in the general ledger.",
-		ResponseType: core.GeneralLedgerResponse{},
-		RequestType:  core.PaymentRequest{},
+		ResponseType: types.GeneralLedgerResponse{},
+		RequestType: types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -136,7 +136,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/general-ledger/:general_ledger_id/print",
 		Method:       "POST",
 		Note:         "Processes print number for the specified general ledger by general_ledger_id.",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generalLedgerID, err := helpers.EngineUUIDParam(ctx, "general_ledger_id")
@@ -193,8 +193,8 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/:transaction_id/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
-		ResponseType: core.GeneralLedgerResponse{},
-		RequestType:  core.PaymentRequest{},
+		ResponseType: types.GeneralLedgerResponse{},
+		RequestType: types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -274,8 +274,8 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/:transaction_id/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for the specified transaction by transaction_id and updates the general ledger accordingly.",
-		ResponseType: core.GeneralLedgerResponse{},
-		RequestType:  core.PaymentRequest{},
+		ResponseType: types.GeneralLedgerResponse{},
+		RequestType: types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.PaymentRequest
@@ -349,8 +349,8 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/:transaction_id/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for the specified transaction by transaction_id and updates the general ledger accordingly.",
-		ResponseType: core.GeneralLedgerResponse{},
-		RequestType:  core.PaymentRequest{},
+		ResponseType: types.GeneralLedgerResponse{},
+		RequestType: types.PaymentRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.PaymentRequest
@@ -424,8 +424,8 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for a transaction without specifying transaction_id in the route. Used for general payments.",
-		ResponseType: core.GeneralLedger{},
-		RequestType:  core.PaymentQuickRequest{},
+		ResponseType: types.GeneralLedger{},
+		RequestType: types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
@@ -490,8 +490,8 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for a transaction without specifying transaction_id in the route. Used for general withdrawals.",
-		ResponseType: core.GeneralLedgerResponse{},
-		RequestType:  core.PaymentQuickRequest{},
+		ResponseType: types.GeneralLedgerResponse{},
+		RequestType: types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
@@ -556,8 +556,8 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for a transaction without specifying transaction_id in the route. Used for general deposits.",
-		ResponseType: core.GeneralLedgerResponse{},
-		RequestType:  core.PaymentQuickRequest{},
+		ResponseType: types.GeneralLedgerResponse{},
+		RequestType: types.PaymentQuickRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.PaymentQuickRequest
@@ -684,7 +684,7 @@ func PaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/transaction/:transaction_id/reverse",
 		Method:       "POST",
 		Note:         "Reverses all general ledger entries for a specific transaction by transaction_id.",
-		ResponseType: core.TransactionResponse{},
+		ResponseType: types.TransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionID, err := helpers.EngineUUIDParam(ctx, "transaction_id")

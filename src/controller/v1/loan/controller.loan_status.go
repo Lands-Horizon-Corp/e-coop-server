@@ -18,7 +18,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status",
 		Method:       "GET",
-		ResponseType: core.LoanStatusResponse{},
+		ResponseType: types.LoanStatusResponse{},
 		Note:         "Returns all loan statuses for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -39,7 +39,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status/search",
 		Method:       "GET",
-		ResponseType: core.LoanStatusResponse{},
+		ResponseType: types.LoanStatusResponse{},
 		Note:         "Returns a paginated list of loan statuses for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -63,7 +63,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status/:loan_status_id",
 		Method:       "GET",
-		ResponseType: core.LoanStatusResponse{},
+		ResponseType: types.LoanStatusResponse{},
 		Note:         "Returns a loan status record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -81,8 +81,8 @@ func LoanStatusController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status",
 		Method:       "POST",
-		ResponseType: core.LoanStatusResponse{},
-		RequestType:  core.LoanStatusRequest{},
+		ResponseType: types.LoanStatusResponse{},
+		RequestType: types.LoanStatusRequest{},
 		Note:         "Creates a new loan status record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -143,8 +143,8 @@ func LoanStatusController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status/:loan_status_id",
 		Method:       "PUT",
-		ResponseType: core.LoanStatusResponse{},
-		RequestType:  core.LoanStatusRequest{},
+		ResponseType: types.LoanStatusResponse{},
+		RequestType: types.LoanStatusRequest{},
 		Note:         "Updates an existing loan status record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -258,7 +258,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		Route:       "/api/v1/loan-status/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan status records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

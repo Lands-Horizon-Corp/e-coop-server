@@ -19,7 +19,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping",
 		Method:       "GET",
-		ResponseType: core.FinancialStatementAccountsGroupingResponse{},
+		ResponseType: types.FinancialStatementAccountsGroupingResponse{},
 		Note:         "Returns all financial statement groupings for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -43,8 +43,8 @@ func FinancialStatementController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping/:financial_statement_grouping_id",
 		Method:       "PUT",
-		RequestType:  core.FinancialStatementAccountsGroupingRequest{},
-		ResponseType: core.FinancialStatementAccountsGroupingResponse{},
+		RequestType: types.FinancialStatementAccountsGroupingRequest{},
+		ResponseType: types.FinancialStatementAccountsGroupingResponse{},
 		Note:         "Updates an existing financial statement grouping by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -121,7 +121,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "GET",
-		ResponseType: core.FinancialStatementDefinitionResponse{},
+		ResponseType: types.FinancialStatementDefinitionResponse{},
 		Note:         "Returns all financial statement definitions for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -145,8 +145,8 @@ func FinancialStatementController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "POST",
-		RequestType:  core.FinancialStatementDefinitionRequest{},
-		ResponseType: core.FinancialStatementDefinitionResponse{},
+		RequestType: types.FinancialStatementDefinitionRequest{},
+		ResponseType: types.FinancialStatementDefinitionResponse{},
 		Note:         "Creates a new financial statement definition for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -214,8 +214,8 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method:       "PUT",
 		Note:         "Updates an existing financial statement definition by its ID.",
-		RequestType:  core.FinancialStatementDefinitionRequest{},
-		ResponseType: core.FinancialStatementDefinitionResponse{},
+		RequestType: types.FinancialStatementDefinitionRequest{},
+		ResponseType: types.FinancialStatementDefinitionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		fsDefinitionID, err := helpers.EngineUUIDParam(ctx, "financial_statement_definition_id")
@@ -293,7 +293,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect",
 		Method:       "POST",
-		ResponseType: core.FinancialStatementDefinitionResponse{},
+		ResponseType: types.FinancialStatementDefinitionResponse{},
 		Note:         "Connects an account to a financial statement definition by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -398,7 +398,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/index/:index",
 		Method:       "PUT",
-		ResponseType: core.FinancialStatementDefinitionResponse{},
+		ResponseType: types.FinancialStatementDefinitionResponse{},
 		Note:         "Updates the index of a financial statement definition by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -468,7 +468,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index",
 		Method:       "PUT",
-		ResponseType: core.FinancialStatementDefinitionResponse{},
+		ResponseType: types.FinancialStatementDefinitionResponse{},
 		Note:         "Updates the index of an account within a financial statement definition and reorders accordingly.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

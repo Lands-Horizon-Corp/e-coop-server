@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	v1 "github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/fatih/color"
 )
 
@@ -69,7 +70,7 @@ func migrateDatabase() error {
 			OnStopMessageText:  "Database migration completed.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
 
-				if err := service.Database.Client().AutoMigrate(core.Models()...); err != nil {
+				if err := service.Database.Client().AutoMigrate(types.Models()...); err != nil {
 					return err
 				}
 				return nil
@@ -120,7 +121,7 @@ func resetDatabase() error {
 				if err := service.Storage.RemoveAllFiles(ctx); err != nil {
 					return err
 				}
-				models := core.Models()
+				models := types.Models()
 				if err := service.Database.Client().Migrator().DropTable(models...); err != nil {
 					return err
 				}
@@ -157,7 +158,7 @@ func refreshDatabase() error {
 			OnStartMessageText: "Refreshing database...",
 			OnStopMessageText:  "Database refreshed successfully.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
-				models := core.Models()
+				models := types.Models()
 				if err := service.Cache.Flush(ctx); err != nil {
 					return err
 				}

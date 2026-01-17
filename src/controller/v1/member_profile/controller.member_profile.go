@@ -20,7 +20,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/pending",
 		Method:       "GET",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Returns all pending member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -45,8 +45,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/user-account",
 		Method:       "POST",
-		RequestType:  core.MemberProfileUserAccountRequest{},
-		ResponseType: core.MemberProfileResponse{},
+		RequestType: types.MemberProfileUserAccountRequest{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Links a minimal user account to a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -208,7 +208,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/approve",
 		Method:       "PUT",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Approve a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -268,7 +268,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/reject",
 		Method:       "PUT",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Reject a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -327,7 +327,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile",
 		Method:       "GET",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Returns all member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -345,7 +345,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/search",
 		Method:       "GET",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Returns paginated member profiles for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -366,7 +366,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id",
 		Method:       "GET",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Returns a specific member profile by its member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -443,7 +443,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		Route:       "/api/v1/member-profile/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member profiles and all their connections by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -491,8 +491,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect-user",
 		Method:       "POST",
-		RequestType:  core.MemberProfileAccountRequest{},
-		ResponseType: core.MemberProfileResponse{},
+		RequestType: types.MemberProfileAccountRequest{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Connects the specified member profile to a user account by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -550,8 +550,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/quick-create",
 		Method:       "POST",
-		RequestType:  core.MemberProfileQuickCreateRequest{},
-		ResponseType: core.MemberProfileResponse{},
+		RequestType: types.MemberProfileQuickCreateRequest{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Quickly creates a new member profile with minimal required fields.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -727,8 +727,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/personal-info",
 		Method:       "PUT",
-		RequestType:  core.MemberProfilePersonalInfoRequest{},
-		ResponseType: core.MemberProfileResponse{},
+		RequestType: types.MemberProfilePersonalInfoRequest{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Updates the personal information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -856,8 +856,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/membership-info",
 		Method:       "PUT",
-		RequestType:  core.MemberProfileMembershipInfoRequest{},
-		ResponseType: core.MemberProfileResponse{},
+		RequestType: types.MemberProfileMembershipInfoRequest{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Updates the membership information of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1041,7 +1041,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/disconnect",
 		Method:       "PUT",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
@@ -1074,7 +1074,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect-user/:user_id",
 		Method:       "PUT",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Connect the specified member profile to a user organization by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1159,8 +1159,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/close",
 		Method:       "POST",
-		RequestType:  core.MemberCloseRemarkRequest{},
-		ResponseType: core.MemberCloseRemarkResponse{},
+		RequestType: types.MemberCloseRemarkRequest{},
+		ResponseType: types.MemberCloseRemarkResponse{},
 		Note:         "Close the specified member profile by member_profile_id. Accepts multiple remarks for closing.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1229,8 +1229,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect",
 		Method:       "POST",
-		RequestType:  core.MemberProfileAccountRequest{},
-		ResponseType: core.MemberProfileResponse{},
+		RequestType: types.MemberProfileAccountRequest{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Connect the specified member profile to a user account using member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1259,8 +1259,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/coordinates",
 		Method:       "PUT",
-		RequestType:  core.MemberProfileCoordinatesRequest{},
-		ResponseType: core.MemberProfileResponse{},
+		RequestType: types.MemberProfileCoordinatesRequest{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Updates the coordinates (latitude and longitude) of a member profile by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1332,7 +1332,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/member-type/:member_type_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberProfileArchiveResponse{},
+		ResponseType: types.MemberProfileArchiveResponse{},
 		Note:         "Searches member profiles by member type ID with optional query parameters.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1358,7 +1358,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/member-type/:member_type_id/link",
 		Method:       "PUT",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Links a member profile to a member type by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1411,7 +1411,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/unlink",
 		Method:       "PUT",
-		ResponseType: core.MemberProfileResponse{},
+		ResponseType: types.MemberProfileResponse{},
 		Note:         "Unlinks a member profile from its member type by member_profile_id.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

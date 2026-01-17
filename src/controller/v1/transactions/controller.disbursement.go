@@ -19,7 +19,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement",
 		Method:       "GET",
 		Note:         "Returns all disbursements for the current user's organization and branch.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -51,7 +51,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of disbursements for the current user's organization and branch.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -75,7 +75,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "GET",
 		Note:         "Returns a single disbursement by its ID.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		disbursementID, err := helpers.EngineUUIDParam(ctx, "disbursement_id")
@@ -93,8 +93,8 @@ func DisbursementController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement",
 		Method:       "POST",
 		Note:         "Creates a new disbursement for the current user's organization and branch.",
-		RequestType:  core.DisbursementRequest{},
-		ResponseType: core.DisbursementResponse{},
+		RequestType: types.DisbursementRequest{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.DisbursementManager(service).Validate(ctx)
@@ -157,8 +157,8 @@ func DisbursementController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "PUT",
 		Note:         "Updates an existing disbursement by its ID.",
-		RequestType:  core.DisbursementRequest{},
-		ResponseType: core.DisbursementResponse{},
+		RequestType: types.DisbursementRequest{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		disbursementID, err := helpers.EngineUUIDParam(ctx, "disbursement_id")
@@ -264,7 +264,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		Route:       "/api/v1/disbursement/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple disbursements by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

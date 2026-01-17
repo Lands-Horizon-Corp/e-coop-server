@@ -18,8 +18,8 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction",
 		Method:       "POST",
-		RequestType:  core.TransactionRequest{},
-		ResponseType: core.TransactionResponse{},
+		RequestType: types.TransactionRequest{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Creates a new transaction record with provided details, allowing subsequent deposit or withdrawal actions.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -138,8 +138,8 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "PUT",
-		RequestType:  core.TransactionRequestEdit{},
-		ResponseType: core.TransactionResponse{},
+		RequestType: types.TransactionRequestEdit{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Modifies the description of an existing transaction, allowing updates to its memo or comment field.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -212,7 +212,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "GET",
-		ResponseType: core.TransactionResponse{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Retrieves detailed information for the specified transaction by its unique identifier.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -237,7 +237,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/current/search",
 		Method:       "GET",
-		ResponseType: core.TransactionResponse{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Lists all transactions associated with the currently authenticated user (automatically adjusted for employee, admin, and member) within their organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -276,7 +276,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/current",
 		Method:       "GET",
-		ResponseType: core.TransactionResponse{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Lists all transactions associated with the currently authenticated user (automatically adjusted for employee, admin, and member) within their organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -315,7 +315,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/employee/:user_organization_id/search",
 		Method:       "GET",
-		ResponseType: core.TransactionResponse{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Fetches all transactions handled by the specified employee, filtered by organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -348,7 +348,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.TransactionResponse{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Retrieves all transactions related to the given member profile within the user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -381,7 +381,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/branch/search",
 		Method:       "GET",
-		ResponseType: core.TransactionResponse{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Provides a paginated list of all transactions recorded for the current branch of the user's organization.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -405,7 +405,7 @@ func TransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
-		ResponseType: core.TransactionResponse{},
+		ResponseType: types.TransactionResponse{},
 		Note:         "Retrieves all transactions associated with a specific transaction batch, allowing for batch-level analysis.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

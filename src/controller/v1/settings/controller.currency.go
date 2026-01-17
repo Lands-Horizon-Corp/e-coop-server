@@ -21,7 +21,7 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency",
 		Method:       "GET",
-		ResponseType: core.CurrencyResponse{},
+		ResponseType: types.CurrencyResponse{},
 		Note:         "Returns all currencies.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -35,7 +35,7 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/blotter-available",
 		Method:       "GET",
-		ResponseType: core.CurrencyResponse{},
+		ResponseType: types.CurrencyResponse{},
 		Note:         "Returns all available currencies on unbalance accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -55,7 +55,7 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/available",
 		Method:       "GET",
-		ResponseType: core.CurrencyResponse{},
+		ResponseType: types.CurrencyResponse{},
 		Note:         "Returns all available currencies.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -91,7 +91,7 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "GET",
-		ResponseType: core.CurrencyResponse{},
+		ResponseType: types.CurrencyResponse{},
 		Note:         "Returns a specific currency by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -111,7 +111,7 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/code/:currency_code",
 		Method:       "GET",
-		ResponseType: core.CurrencyResponse{},
+		ResponseType: types.CurrencyResponse{},
 		Note:         "Returns a specific currency by its code (e.g., USD, EUR).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -131,8 +131,8 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency",
 		Method:       "POST",
-		ResponseType: core.CurrencyResponse{},
-		RequestType:  core.CurrencyRequest{},
+		ResponseType: types.CurrencyResponse{},
+		RequestType: types.CurrencyRequest{},
 		Note:         "Creates a new currency.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -178,8 +178,8 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "PUT",
-		ResponseType: core.CurrencyResponse{},
-		RequestType:  core.CurrencyRequest{},
+		ResponseType: types.CurrencyResponse{},
+		RequestType: types.CurrencyRequest{},
 		Note:         "Updates an existing currency by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -286,7 +286,7 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/currency/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 		Note:        "Deletes multiple currency records.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -373,7 +373,7 @@ func CurrencyController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/timezone/:timezone",
 		Method:       "GET",
-		ResponseType: core.CurrencyResponse{},
+		ResponseType: types.CurrencyResponse{},
 		Note:         "Returns the currency for a given timezone.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -19,7 +19,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type-history",
 		Method:       "GET",
-		ResponseType: core.MemberTypeHistoryResponse{},
+		ResponseType: types.MemberTypeHistoryResponse{},
 		Note:         "Returns all member type history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -37,7 +37,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberTypeHistoryResponse{},
+		ResponseType: types.MemberTypeHistoryResponse{},
 		Note:         "Returns member type history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -63,7 +63,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "GET",
-		ResponseType: core.MemberTypeResponse{},
+		ResponseType: types.MemberTypeResponse{},
 		Note:         "Returns all member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -81,7 +81,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type/search",
 		Method:       "GET",
-		ResponseType: core.MemberTypeResponse{},
+		ResponseType: types.MemberTypeResponse{},
 		Note:         "Returns paginated member types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -102,8 +102,8 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "POST",
-		RequestType:  core.MemberTypeRequest{},
-		ResponseType: core.MemberTypeResponse{},
+		RequestType: types.MemberTypeRequest{},
+		ResponseType: types.MemberTypeResponse{},
 		Note:         "Creates a new member type record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -159,8 +159,8 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type/:member_type_id",
 		Method:       "PUT",
-		RequestType:  core.MemberTypeRequest{},
-		ResponseType: core.MemberTypeResponse{},
+		RequestType: types.MemberTypeRequest{},
+		ResponseType: types.MemberTypeResponse{},
 		Note:         "Updates an existing member type record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -269,7 +269,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-type/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 		Note:        "Deletes multiple member type records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

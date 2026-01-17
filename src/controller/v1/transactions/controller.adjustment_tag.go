@@ -20,7 +20,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-tag",
 		Method:       "GET",
 		Note:         "Returns all adjustment tags for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.AdjustmentTagResponse{},
+		ResponseType: types.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -41,7 +41,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment tags for the current user's organization and branch.",
-		ResponseType: core.AdjustmentTagResponse{},
+		ResponseType: types.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -65,7 +65,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-tag/:tag_id",
 		Method:       "GET",
 		Note:         "Returns a single adjustment tag by its ID.",
-		ResponseType: core.AdjustmentTagResponse{},
+		ResponseType: types.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		tagID, err := helpers.EngineUUIDParam(ctx, "tag_id")
@@ -83,8 +83,8 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-tag",
 		Method:       "POST",
 		Note:         "Creates a new adjustment tag for the current user's organization and branch.",
-		RequestType:  core.AdjustmentTagRequest{},
-		ResponseType: core.AdjustmentTagResponse{},
+		RequestType: types.AdjustmentTagRequest{},
+		ResponseType: types.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AdjustmentTagManager(service).Validate(ctx)
@@ -155,7 +155,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-tag/adjustment-entry/:adjustment_entry_id",
 		Method:       "GET",
 		Note:         "Returns all adjustment tags for the given adjustment entry ID.",
-		ResponseType: core.AdjustmentTagResponse{},
+		ResponseType: types.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		adjustmentEntryID, err := helpers.EngineUUIDParam(ctx, "adjustment_entry_id")
@@ -185,8 +185,8 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing adjustment tag by its ID.",
-		RequestType:  core.AdjustmentTagRequest{},
-		ResponseType: core.AdjustmentTagResponse{},
+		RequestType: types.AdjustmentTagRequest{},
+		ResponseType: types.AdjustmentTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		tagID, err := helpers.EngineUUIDParam(ctx, "tag_id")
@@ -294,7 +294,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		Route:       "/api/v1/adjustment-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple adjustment tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

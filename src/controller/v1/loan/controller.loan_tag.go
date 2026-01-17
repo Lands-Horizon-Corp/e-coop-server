@@ -19,7 +19,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-tag",
 		Method:       "GET",
 		Note:         "Returns all loan tags for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.LoanTagResponse{},
+		ResponseType: types.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -40,7 +40,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-tag/loan-transaction/:loan_transaction_id",
 		Method:       "GET",
 		Note:         "Returns all loan tags for the specified loan transaction ID within the current user's organization and branch.",
-		ResponseType: core.LoanTagResponse{},
+		ResponseType: types.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -69,7 +69,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of loan tags for the current user's organization and branch.",
-		ResponseType: core.LoanTagResponse{},
+		ResponseType: types.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -93,7 +93,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "GET",
 		Note:         "Returns a single loan tag by its ID.",
-		ResponseType: core.LoanTagResponse{},
+		ResponseType: types.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTagID, err := helpers.EngineUUIDParam(ctx, "loan_tag_id")
@@ -111,8 +111,8 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-tag",
 		Method:       "POST",
 		Note:         "Creates a new loan tag for the current user's organization and branch.",
-		RequestType:  core.LoanTagRequest{},
-		ResponseType: core.LoanTagResponse{},
+		RequestType: types.LoanTagRequest{},
+		ResponseType: types.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.LoanTagManager(service).Validate(ctx)
@@ -177,8 +177,8 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing loan tag by its ID.",
-		RequestType:  core.LoanTagRequest{},
-		ResponseType: core.LoanTagResponse{},
+		RequestType: types.LoanTagRequest{},
+		ResponseType: types.LoanTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTagID, err := helpers.EngineUUIDParam(ctx, "loan_tag_id")
@@ -286,7 +286,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		Route:       "/api/v1/loan-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

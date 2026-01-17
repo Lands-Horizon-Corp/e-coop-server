@@ -19,8 +19,8 @@ func ChargesRateByTermController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-by-term/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by term for the current user's organization and branch.",
-		RequestType:  core.ChargesRateByTermRequest{},
-		ResponseType: core.ChargesRateByTermResponse{},
+		RequestType: types.ChargesRateByTermRequest{},
+		ResponseType: types.ChargesRateByTermResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
@@ -114,8 +114,8 @@ func ChargesRateByTermController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by term by its ID.",
-		RequestType:  core.ChargesRateByTermRequest{},
-		ResponseType: core.ChargesRateByTermResponse{},
+		RequestType: types.ChargesRateByTermRequest{},
+		ResponseType: types.ChargesRateByTermResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateByTermID, err := helpers.EngineUUIDParam(ctx, "charges_rate_by_term_id")
@@ -242,7 +242,7 @@ func ChargesRateByTermController(service *horizon.HorizonService) {
 		Route:       "/api/v1/charges-rate-by-term/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate by term by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

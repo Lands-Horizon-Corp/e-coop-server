@@ -20,7 +20,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest-entry",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest entries for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.GeneratedSavingsInterestEntryResponse{},
+		ResponseType: types.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -41,7 +41,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest-entry/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of generated savings interest entries for the current user's organization and branch.",
-		ResponseType: core.GeneratedSavingsInterestEntryResponse{},
+		ResponseType: types.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -65,7 +65,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method:       "GET",
 		Note:         "Returns a single generated savings interest entry by its ID.",
-		ResponseType: core.GeneratedSavingsInterestEntryResponse{},
+		ResponseType: types.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		entryID, err := helpers.EngineUUIDParam(ctx, "entry_id")
@@ -83,8 +83,8 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest-entry/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "POST",
 		Note:         "Creates a new generated savings interest entry for the current user's organization and branch.",
-		RequestType:  core.GeneratedSavingsInterestEntryRequest{},
-		ResponseType: core.GeneratedSavingsInterestEntryResponse{},
+		RequestType: types.GeneratedSavingsInterestEntryRequest{},
+		ResponseType: types.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generatedSavingsInterestID, err := helpers.EngineUUIDParam(ctx, "generated_savings_interest_id")
@@ -221,8 +221,8 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest-entry/:entry_id",
 		Method:       "PUT",
 		Note:         "Updates an existing generated savings interest entry by its ID.",
-		RequestType:  core.GeneratedSavingsInterestEntryRequest{},
-		ResponseType: core.GeneratedSavingsInterestEntryResponse{},
+		RequestType: types.GeneratedSavingsInterestEntryRequest{},
+		ResponseType: types.GeneratedSavingsInterestEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		entryID, err := helpers.EngineUUIDParam(ctx, "entry_id")
@@ -389,7 +389,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:       "/api/v1/generated-savings-interest-entry/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple generated savings interest entries by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -434,7 +434,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest-entry/:generated_savings_interest_entry_id/daily-balance",
 		Method:       "GET",
 		Note:         "Fetches daily ending balances for all entries under a specific generated savings interest record.",
-		ResponseType: core.GeneratedSavingsInterestEntryDailyBalanceResponse{},
+		ResponseType: types.GeneratedSavingsInterestEntryDailyBalanceResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generatedSavingsInterestEntryID, err := helpers.EngineUUIDParam(ctx, "generated_savings_interest_entry_id")

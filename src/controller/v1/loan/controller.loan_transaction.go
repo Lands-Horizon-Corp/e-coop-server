@@ -21,7 +21,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/account/:account_id",
 		Method:       "GET",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 		Note:         "Returns the latest loan transaction for a specific member profile and account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -49,7 +49,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/search",
 		Method:       "GET",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for the current user's branch with pagination and filtering. Query params: has_print_date, has_approved_date, has_release_date (true/false)",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -75,7 +75,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -107,7 +107,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id",
 		Method:       "GET",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -139,7 +139,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/member-profile/:member_profile_id/release/search",
 		Method:       "GET",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 		Note:         "Returns all loan transactions for a specific member profile with pagination and filtering.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -168,7 +168,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/draft",
 		Method:       "GET",
 		Note:         "Fetches draft loan transactions for the current user's organization and branch.",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -194,7 +194,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/printed",
 		Method:       "GET",
 		Note:         "Fetches printed loan transactions for the current user's organization and branch.",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -220,7 +220,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/approved",
 		Method:       "GET",
 		Note:         "Fetches approved loan transactions for the current user's organization and branch.",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -246,7 +246,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/released/today",
 		Method:       "GET",
 		Note:         "Fetches released loan transactions for the current user's organization and branch.",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -271,7 +271,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/released",
 		Method:       "GET",
 		Note:         "Fetches released loan transactions for the current user's organization and branch.",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -296,7 +296,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "GET",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 		Note:         "Returns a specific loan transaction by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -328,7 +328,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/total",
 		Method:       "GET",
-		ResponseType: core.LoanTransactionTotalResponse{},
+		ResponseType: types.LoanTransactionTotalResponse{},
 		Note:         "Returns total calculations for a specific loan transaction including total interest, debit, and credit.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -379,7 +379,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction",
 		Method:       "POST",
-		ResponseType: core.LoanTransactionResponse{},
+		ResponseType: types.LoanTransactionResponse{},
 		Note:         "Creates a new loan transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -635,8 +635,8 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id",
 		Method:       "PUT",
-		ResponseType: core.LoanTransactionResponse{},
-		RequestType:  core.LoanTransactionRequest{},
+		ResponseType: types.LoanTransactionResponse{},
+		RequestType: types.LoanTransactionRequest{},
 		Note:         "Updates an existing loan transaction.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1320,7 +1320,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:       "/api/v1/loan-transaction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan transactions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -1387,8 +1387,8 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/print",
 		Method:       "PUT",
 		Note:         "Marks a loan transaction as printed by ID.",
-		RequestType:  core.LoanTransactionPrintRequest{},
-		ResponseType: core.LoanTransaction{},
+		RequestType: types.LoanTransactionPrintRequest{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -1488,7 +1488,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/print-only",
 		Method:       "PUT",
 		Note:         "Marks a loan transaction as printed without additional details by ID.",
-		ResponseType: core.LoanTransaction{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -1528,7 +1528,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a loan transaction by ID.",
-		ResponseType: core.LoanTransaction{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -1580,7 +1580,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/approve-undo",
 		Method:       "PUT",
 		Note:         "Reverts the approval status of a loan transaction by ID.",
-		ResponseType: core.LoanTransaction{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -1625,7 +1625,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/release",
 		Method:       "PUT",
 		Note:         "Releases a loan transaction by ID. RELEASED SHOULD NOT BE UNAPPROVE",
-		ResponseType: core.LoanTransaction{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -1677,8 +1677,8 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/signature",
 		Method:       "PUT",
 		Note:         "Updates the signature of a loan transaction by ID.",
-		RequestType:  core.LoanTransactionSignatureRequest{},
-		ResponseType: core.LoanTransaction{},
+		RequestType: types.LoanTransactionSignatureRequest{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -1750,7 +1750,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/cash-and-cash-equivalence-account/:account_id/change",
 		Method:       "PUT",
 		Note:         "Changes the cash and cash equivalence account for a loan transaction by ID.",
-		ResponseType: core.LoanTransaction{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -1804,8 +1804,8 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/suggested",
 		Method:       "POST",
-		RequestType:  core.LoanTransactionSuggestedRequest{},
-		ResponseType: core.LoanTransactionSuggestedResponse{},
+		RequestType: types.LoanTransactionSuggestedRequest{},
+		ResponseType: types.LoanTransactionSuggestedResponse{},
 		Note:         "Updates the suggested payment details for a loan transaction by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1863,8 +1863,8 @@ func LoanTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction/adjustment",
 		Method:       "POST",
-		RequestType:  core.LoanTransactionAdjustmentRequest{},
-		ResponseType: core.LoanTransaction{},
+		RequestType: types.LoanTransactionAdjustmentRequest{},
+		ResponseType: types.LoanTransaction{},
 		Note:         "Creates a loan transaction adjustment.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1893,7 +1893,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/:loan_transaction_id/process",
 		Method:       "POST",
 		Note:         "Processes a loan transaction by ID.",
-		ResponseType: core.LoanTransaction{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		loanTransactionID, err := helpers.EngineUUIDParam(ctx, "loan_transaction_id")
@@ -1943,7 +1943,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-transaction/process",
 		Method:       "POST",
 		Note:         "All Loan transactions that are pending to be processed will be processed",
-		ResponseType: core.LoanTransaction{},
+		ResponseType: types.LoanTransaction{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)

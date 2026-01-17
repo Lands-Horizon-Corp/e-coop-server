@@ -20,7 +20,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-transaction/account/:account_id/year/:year",
 		Method:       "GET",
 		Note:         "Returns account transaction ledgers for a specific account and year.",
-		ResponseType: core.AccountTransactionLedgerResponse{},
+		ResponseType: types.AccountTransactionLedgerResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
@@ -46,7 +46,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/account-transaction/process-gl",
 		Method:      "POST",
-		RequestType: core.AccountTransactionProcessGLRequest{},
+		RequestType: types.AccountTransactionProcessGLRequest{},
 		Note:        "Processes account transactions for the specified date range.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -95,7 +95,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-transaction/year/:year/month/:month",
 		Method:       "GET",
 		Note:         "Returns account transactions for the specified year and month.",
-		ResponseType: core.AccountTransactionResponse{},
+		ResponseType: types.AccountTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		yearParam := ctx.Param("year")
@@ -130,7 +130,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-transaction",
 		Method:       "GET",
 		Note:         "Returns all account transactions for the current user's organization and branch.",
-		ResponseType: core.AccountTransactionResponse{},
+		ResponseType: types.AccountTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -155,7 +155,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-transaction/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of account transactions.",
-		ResponseType: core.AccountTransactionResponse{},
+		ResponseType: types.AccountTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -189,7 +189,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-transaction/:transaction_id",
 		Method:       "GET",
 		Note:         "Returns a single account transaction by ID.",
-		ResponseType: core.AccountTransactionResponse{},
+		ResponseType: types.AccountTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -215,8 +215,8 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-transaction/:transaction_id",
 		Method:       "PUT",
 		Note:         "Updates an account transaction.",
-		RequestType:  core.AccountTransactionRequest{},
-		ResponseType: core.AccountTransactionResponse{},
+		RequestType: types.AccountTransactionRequest{},
+		ResponseType: types.AccountTransactionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := helpers.EngineUUIDParam(ctx, "transaction_id")

@@ -19,7 +19,7 @@ func BankController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bank",
 		Method:       "GET",
 		Note:         "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.BankResponse{},
+		ResponseType: types.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -40,7 +40,7 @@ func BankController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bank/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of banks for the current user's organization and branch.",
-		ResponseType: core.BankResponse{},
+		ResponseType: types.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -64,7 +64,7 @@ func BankController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "GET",
 		Note:         "Returns a single bank by its ID.",
-		ResponseType: core.BankResponse{},
+		ResponseType: types.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := helpers.EngineUUIDParam(ctx, "bank_id")
@@ -82,8 +82,8 @@ func BankController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bank",
 		Method:       "POST",
 		Note:         "Creates a new bank for the current user's organization and branch.",
-		RequestType:  core.BankRequest{},
-		ResponseType: core.BankResponse{},
+		RequestType: types.BankRequest{},
+		ResponseType: types.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.BankManager(service).Validate(ctx)
@@ -145,8 +145,8 @@ func BankController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "PUT",
 		Note:         "Updates an existing bank by its ID.",
-		RequestType:  core.BankRequest{},
-		ResponseType: core.BankResponse{},
+		RequestType: types.BankRequest{},
+		ResponseType: types.BankResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		bankID, err := helpers.EngineUUIDParam(ctx, "bank_id")
@@ -251,7 +251,7 @@ func BankController(service *horizon.HorizonService) {
 		Route:       "/api/v1/bank/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

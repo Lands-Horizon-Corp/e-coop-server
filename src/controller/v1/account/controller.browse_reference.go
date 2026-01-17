@@ -19,8 +19,8 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "PUT",
-		ResponseType: core.BrowseReferenceResponse{},
-		RequestType:  core.BrowseReferenceRequest{},
+		ResponseType: types.BrowseReferenceResponse{},
+		RequestType: types.BrowseReferenceRequest{},
 		Note:         "Updates an existing browse reference with nested interest rates.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -264,7 +264,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "GET",
-		ResponseType: core.BrowseReferenceResponse{},
+		ResponseType: types.BrowseReferenceResponse{},
 		Note:         "Retrieves a specific browse reference by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -293,7 +293,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "GET",
-		ResponseType: core.BrowseReferenceResponse{},
+		ResponseType: types.BrowseReferenceResponse{},
 		Note:         "Retrieves all browse references for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -314,8 +314,8 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "POST",
-		ResponseType: core.BrowseReferenceResponse{},
-		RequestType:  core.BrowseReferenceRequest{},
+		ResponseType: types.BrowseReferenceResponse{},
+		RequestType: types.BrowseReferenceRequest{},
 		Note:         "Creates a new browse reference with nested interest rates.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -489,7 +489,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/by-member-type/:member_type_id",
 		Method:       "GET",
-		ResponseType: core.BrowseReferenceResponse{},
+		ResponseType: types.BrowseReferenceResponse{},
 		Note:         "Retrieves browse references for a specific member type.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -515,7 +515,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/account/:account_id/member-type/:member_type_id",
 		Method:       "GET",
-		ResponseType: core.BrowseReferenceResponse{},
+		ResponseType: types.BrowseReferenceResponse{},
 		Note:         "Retrieves browse references by account and member type for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

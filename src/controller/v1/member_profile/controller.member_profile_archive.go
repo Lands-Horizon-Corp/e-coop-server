@@ -21,7 +21,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Get all member profile archive for a specific member profile.",
-		ResponseType: core.MemberProfileArchiveResponse{},
+		ResponseType: types.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -81,8 +81,8 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive",
 		Method:       "POST",
 		Note:         "Creates a new member profile archive for the current user's organization and branch.",
-		RequestType:  core.MemberProfileArchiveRequest{},
-		ResponseType: core.MemberProfileArchiveResponse{},
+		RequestType: types.MemberProfileArchiveRequest{},
+		ResponseType: types.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -155,8 +155,8 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "PUT",
 		Note:         "Update a member profile archive by ID.",
-		RequestType:  core.MemberProfileArchiveRequest{},
-		ResponseType: core.MemberProfileArchiveResponse{},
+		RequestType: types.MemberProfileArchiveRequest{},
+		ResponseType: types.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -295,7 +295,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "GET",
 		Note:         "Get a specific member profile archive by ID.",
-		ResponseType: core.MemberProfileArchiveResponse{},
+		ResponseType: types.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -316,8 +316,8 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile archive for a specific member profile.",
-		RequestType:  core.MemberProfileArchiveBulkRequest{},
-		ResponseType: core.MemberProfileArchiveResponse{},
+		RequestType: types.MemberProfileArchiveBulkRequest{},
+		ResponseType: types.MemberProfileArchiveResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -368,7 +368,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id/category",
 		Method:       "GET",
 		Note:         "Get distinct categories of member profile archive for a specific member profile.",
-		ResponseType: core.MemberProfileArchiveCategoryResponse{},
+		ResponseType: types.MemberProfileArchiveCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 

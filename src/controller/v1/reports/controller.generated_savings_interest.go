@@ -22,7 +22,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest/search",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.GeneratedSavingsInterestResponse{},
+		ResponseType: types.GeneratedSavingsInterestResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -46,7 +46,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "GET",
 		Note:         "Returns a single generated savings interest by its ID.",
-		ResponseType: core.GeneratedSavingsInterestResponse{},
+		ResponseType: types.GeneratedSavingsInterestResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generatedSavingsInterestID, err := helpers.EngineUUIDParam(ctx, "generated_savings_interest_id")
@@ -63,7 +63,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id/view",
-		ResponseType: core.GeneratedSavingsInterestViewResponse{},
+		ResponseType: types.GeneratedSavingsInterestViewResponse{},
 		Note:         "Returns generated savings interest entries for a specific generated savings interest ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -100,8 +100,8 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generated-savings-interest/view",
-		ResponseType: core.GeneratedSavingsInterestViewResponse{},
-		RequestType:  core.GeneratedSavingsInterestRequest{},
+		ResponseType: types.GeneratedSavingsInterestViewResponse{},
+		RequestType: types.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -156,8 +156,8 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generated-savings-interest",
-		ResponseType: core.GeneratedSavingsInterestEntry{},
-		RequestType:  core.GeneratedSavingsInterestRequest{},
+		ResponseType: types.GeneratedSavingsInterestEntry{},
+		RequestType: types.GeneratedSavingsInterestRequest{},
 		Note:         "Generates savings interest for all applicable accounts.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -323,7 +323,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Method:      "PUT",
 		Route:       "/api/v1/generated-savings-interest/:generated_savings_interest_id/post",
-		RequestType: core.GenerateSavingsInterestPostRequest{},
+		RequestType: types.GenerateSavingsInterestPostRequest{},
 		Note:        "Posts generated savings interest entries.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

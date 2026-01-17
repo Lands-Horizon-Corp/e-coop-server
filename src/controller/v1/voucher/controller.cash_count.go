@@ -21,7 +21,7 @@ func CashCountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-count/search",
 		Method:       "GET",
 		Note:         "Returns all cash counts of the current branch",
-		ResponseType: core.CashCountResponse{},
+		ResponseType: types.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -45,7 +45,7 @@ func CashCountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-count/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Returns all cash counts for a specific transaction batch",
-		ResponseType: core.CashCountResponse{},
+		ResponseType: types.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -74,7 +74,7 @@ func CashCountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-count",
 		Method:       "GET",
 		Note:         "Returns all cash count bills for the current active transaction batch of the authenticated user's branch. Only allowed for 'owner' or 'employee'.",
-		ResponseType: core.CashCountResponse{},
+		ResponseType: types.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -108,8 +108,8 @@ func CashCountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-count",
 		Method:       "POST",
-		ResponseType: core.CashCountResponse{},
-		RequestType:  core.CashCountRequest{},
+		ResponseType: types.CashCountResponse{},
+		RequestType: types.CashCountRequest{},
 		Note:         "Adds a cash count bill to the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -216,8 +216,8 @@ func CashCountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-count",
 		Method:       "PUT",
-		ResponseType: core.CashCountResponse{},
-		RequestType:  core.CashCountRequest{},
+		ResponseType: types.CashCountResponse{},
+		RequestType: types.CashCountRequest{},
 		Note:         "Updates cash count bills in the current active transaction batch for the user's branch. Only allowed for 'owner' or 'employee'.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -507,7 +507,7 @@ func CashCountController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-count/:id",
 		Method:       "GET",
 		Note:         "Retrieves a specific cash count bill by its ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
-		ResponseType: core.CashCountResponse{},
+		ResponseType: types.CashCountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCountID, err := helpers.EngineUUIDParam(ctx, "id")

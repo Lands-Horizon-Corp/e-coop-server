@@ -18,7 +18,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "GET",
-		ResponseType: core.LoanPurposeResponse{},
+		ResponseType: types.LoanPurposeResponse{},
 		Note:         "Returns all loan purposes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -39,7 +39,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose/search",
 		Method:       "GET",
-		ResponseType: core.LoanPurposeResponse{},
+		ResponseType: types.LoanPurposeResponse{},
 		Note:         "Returns a paginated list of loan purposes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -64,7 +64,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "GET",
 		Note:         "Returns a loan purpose record by its ID.",
-		ResponseType: core.LoanPurposeResponse{},
+		ResponseType: types.LoanPurposeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := helpers.EngineUUIDParam(ctx, "loan_purpose_id")
@@ -81,8 +81,8 @@ func LoanPurposeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "POST",
-		RequestType:  core.LoanPurposeRequest{},
-		ResponseType: core.LoanPurposeResponse{},
+		RequestType: types.LoanPurposeRequest{},
+		ResponseType: types.LoanPurposeResponse{},
 		Note:         "Creates a new loan purpose record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -141,8 +141,8 @@ func LoanPurposeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "PUT",
-		RequestType:  core.LoanPurposeRequest{},
-		ResponseType: core.LoanPurposeResponse{},
+		RequestType: types.LoanPurposeRequest{},
+		ResponseType: types.LoanPurposeResponse{},
 		Note:         "Updates an existing loan purpose record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -254,7 +254,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		Route:       "/api/v1/loan-purpose/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan purpose records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

@@ -18,7 +18,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "GET",
-		ResponseType: core.PermissionTemplateResponse{},
+		ResponseType: types.PermissionTemplateResponse{},
 		Note:         "Returns all permission templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/search",
 		Method:       "GET",
-		ResponseType: core.PermissionTemplateResponse{},
+		ResponseType: types.PermissionTemplateResponse{},
 		Note:         "Returns all permission templates (paginated) for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -57,7 +57,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "GET",
-		ResponseType: core.PermissionTemplateResponse{},
+		ResponseType: types.PermissionTemplateResponse{},
 		Note:         "Returns a specific permission template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -77,8 +77,8 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "POST",
-		RequestType:  core.PermissionTemplateRequest{},
-		ResponseType: core.PermissionTemplateResponse{},
+		RequestType: types.PermissionTemplateRequest{},
+		ResponseType: types.PermissionTemplateResponse{},
 		Note:         "Creates a new permission template for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -136,8 +136,8 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "PUT",
-		RequestType:  core.PermissionTemplateRequest{},
-		ResponseType: core.PermissionTemplateResponse{},
+		RequestType: types.PermissionTemplateRequest{},
+		ResponseType: types.PermissionTemplateResponse{},
 		Note:         "Updates an existing permission template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

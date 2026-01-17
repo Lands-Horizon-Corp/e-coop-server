@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -16,7 +17,7 @@ func UserController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user/:user_id",
 		Method:       "GET",
-		ResponseType: core.UserResponse{},
+		ResponseType: types.UserResponse{},
 		Note:         "Returns a specific user by their ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -35,8 +36,8 @@ func UserController(service *horizon.HorizonService) {
 		Route:        "/api/v1/profile",
 		Method:       "PUT",
 		Note:         "Changes the profile of the current user.",
-		ResponseType: core.UserResponse{},
-		RequestType:  core.UserSettingsChangeProfileRequest{},
+		ResponseType: types.UserResponse{},
+		RequestType: types.UserSettingsChangeProfileRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.UserSettingsChangeProfileRequest
@@ -66,8 +67,8 @@ func UserController(service *horizon.HorizonService) {
 		Route:        "/api/v1/profile/password",
 		Method:       "PUT",
 		Note:         "Changes the user's password from profile settings.",
-		ResponseType: core.UserResponse{},
-		RequestType:  core.UserSettingsChangePasswordRequest{},
+		ResponseType: types.UserResponse{},
+		RequestType: types.UserSettingsChangePasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.UserSettingsChangePasswordRequest
@@ -142,8 +143,8 @@ func UserController(service *horizon.HorizonService) {
 		Route:        "/api/v1/profile/profile-picture",
 		Method:       "PUT",
 		Note:         "Changes the user's profile picture.",
-		RequestType:  core.UserSettingsChangeProfilePictureRequest{},
-		ResponseType: core.UserResponse{},
+		RequestType: types.UserSettingsChangeProfilePictureRequest{},
+		ResponseType: types.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.UserSettingsChangeProfilePictureRequest
@@ -201,8 +202,8 @@ func UserController(service *horizon.HorizonService) {
 		Route:        "/api/v1/profile/general",
 		Method:       "PUT",
 		Note:         "Changes the user's general profile settings.",
-		RequestType:  core.UserSettingsChangeGeneralRequest{},
-		ResponseType: core.UserResponse{},
+		RequestType: types.UserSettingsChangeGeneralRequest{},
+		ResponseType: types.UserResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.UserSettingsChangeGeneralRequest

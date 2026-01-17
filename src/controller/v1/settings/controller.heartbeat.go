@@ -100,7 +100,7 @@ func Heartbeat(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/heartbeat/status",
 		Method:      "POST",
-		RequestType: core.UserOrganizationStatusRequest{},
+		RequestType: types.UserOrganizationStatusRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -135,7 +135,7 @@ func Heartbeat(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/heartbeat/status",
 		Method:       "GET",
-		ResponseType: core.UserOrganizationStatusResponse{},
+		ResponseType: types.UserOrganizationStatusResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)

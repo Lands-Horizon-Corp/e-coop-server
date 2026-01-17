@@ -19,8 +19,8 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme model of payment for the current user's organization and branch.",
-		RequestType:  core.ChargesRateSchemeModeOfPaymentRequest{},
-		ResponseType: core.ChargesRateSchemeModeOfPaymentResponse{},
+		RequestType: types.ChargesRateSchemeModeOfPaymentRequest{},
+		ResponseType: types.ChargesRateSchemeModeOfPaymentResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
@@ -113,8 +113,8 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme model of payment by its ID.",
-		RequestType:  core.ChargesRateSchemeModeOfPaymentRequest{},
-		ResponseType: core.ChargesRateSchemeModeOfPaymentResponse{},
+		RequestType: types.ChargesRateSchemeModeOfPaymentRequest{},
+		ResponseType: types.ChargesRateSchemeModeOfPaymentResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeModeOfPaymentID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_model_of_payment_id")
@@ -240,7 +240,7 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 		Route:       "/api/v1/charges-rate-scheme-mode-of-payment/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate scheme mode of payment by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

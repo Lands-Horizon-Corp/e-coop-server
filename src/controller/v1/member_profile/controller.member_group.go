@@ -18,7 +18,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group-history",
 		Method:       "GET",
-		ResponseType: core.MemberGroupHistoryResponse{},
+		ResponseType: types.MemberGroupHistoryResponse{},
 		Note:         "Returns all member group history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberGroupHistoryResponse{},
+		ResponseType: types.MemberGroupHistoryResponse{},
 		Note:         "Returns member group history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -62,7 +62,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "GET",
-		ResponseType: core.MemberGroupResponse{},
+		ResponseType: types.MemberGroupResponse{},
 		Note:         "Returns all member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -83,8 +83,8 @@ func MemberGroupController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group/search",
 		Method:       "GET",
-		RequestType:  core.MemberGroupRequest{},
-		ResponseType: core.MemberGroupResponse{},
+		RequestType: types.MemberGroupRequest{},
+		ResponseType: types.MemberGroupResponse{},
 		Note:         "Returns paginated member groups for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -105,8 +105,8 @@ func MemberGroupController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "POST",
-		ResponseType: core.MemberGroupResponse{},
-		RequestType:  core.MemberGroupRequest{},
+		ResponseType: types.MemberGroupResponse{},
+		RequestType: types.MemberGroupRequest{},
 		Note:         "Creates a new member group record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -161,8 +161,8 @@ func MemberGroupController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group/:member_group_id",
 		Method:       "PUT",
-		ResponseType: core.MemberGroupResponse{},
-		RequestType:  core.MemberGroupRequest{},
+		ResponseType: types.MemberGroupResponse{},
+		RequestType: types.MemberGroupRequest{},
 		Note:         "Updates an existing member group record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -268,7 +268,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		Route:       "/api/v1/member-group/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member group records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

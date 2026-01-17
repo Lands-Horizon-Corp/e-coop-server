@@ -19,7 +19,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher-tag",
 		Method:       "GET",
 		Note:         "Returns all cash check voucher tags for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.CashCheckVoucherTagResponse{},
+		ResponseType: types.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -40,7 +40,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cash check voucher tags for the current user's organization and branch.",
-		ResponseType: core.CashCheckVoucherTagResponse{},
+		ResponseType: types.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -64,7 +64,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method:       "GET",
 		Note:         "Returns a single cash check voucher tag by its ID.",
-		ResponseType: core.CashCheckVoucherTagResponse{},
+		ResponseType: types.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		tagID, err := helpers.EngineUUIDParam(ctx, "tag_id")
@@ -82,8 +82,8 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher-tag",
 		Method:       "POST",
 		Note:         "Creates a new cash check voucher tag for the current user's organization and branch.",
-		RequestType:  core.CashCheckVoucherTagRequest{},
-		ResponseType: core.CashCheckVoucherTagResponse{},
+		RequestType: types.CashCheckVoucherTagRequest{},
+		ResponseType: types.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.CashCheckVoucherTagManager(service).Validate(ctx)
@@ -148,8 +148,8 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cash check voucher tag by its ID.",
-		RequestType:  core.CashCheckVoucherTagRequest{},
-		ResponseType: core.CashCheckVoucherTagResponse{},
+		RequestType: types.CashCheckVoucherTagRequest{},
+		ResponseType: types.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		tagID, err := helpers.EngineUUIDParam(ctx, "tag_id")
@@ -257,7 +257,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:       "/api/v1/cash-check-voucher-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cash check voucher tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -302,7 +302,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher-tag/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns all cash check voucher tags for the specified cash check voucher ID.",
-		ResponseType: core.CashCheckVoucherTagResponse{},
+		ResponseType: types.CashCheckVoucherTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")

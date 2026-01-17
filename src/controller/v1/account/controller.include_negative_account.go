@@ -18,7 +18,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
-		ResponseType: core.IncludeNegativeAccountResponse{},
+		ResponseType: types.IncludeNegativeAccountResponse{},
 		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -47,7 +47,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
-		ResponseType: core.IncludeNegativeAccountResponse{},
+		ResponseType: types.IncludeNegativeAccountResponse{},
 		Note:         "Returns all include negative accounts for a computation sheet in the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -76,8 +76,8 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts",
 		Method:       "POST",
-		ResponseType: core.IncludeNegativeAccountResponse{},
-		RequestType:  core.IncludeNegativeAccountRequest{},
+		ResponseType: types.IncludeNegativeAccountResponse{},
+		RequestType: types.IncludeNegativeAccountRequest{},
 		Note:         "Creates a new include negative account for the current user's org/branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -139,8 +139,8 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
-		ResponseType: core.IncludeNegativeAccountResponse{},
-		RequestType:  core.IncludeNegativeAccountRequest{},
+		ResponseType: types.IncludeNegativeAccountResponse{},
+		RequestType: types.IncludeNegativeAccountRequest{},
 		Note:         "Updates an existing include negative account by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -247,7 +247,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 		Route:       "/api/v1/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

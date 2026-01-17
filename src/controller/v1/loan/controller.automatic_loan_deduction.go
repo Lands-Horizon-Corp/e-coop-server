@@ -19,7 +19,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
-		ResponseType: core.AutomaticLoanDeductionResponse{},
+		ResponseType: types.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -48,7 +48,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
-		ResponseType: core.AutomaticLoanDeductionResponse{},
+		ResponseType: types.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -77,8 +77,8 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/automatic-loan-deduction",
 		Method:       "POST",
 		Note:         "Creates a new automatic loan deduction for the current user's org/branch.",
-		RequestType:  core.AutomaticLoanDeductionRequest{},
-		ResponseType: core.AutomaticLoanDeductionResponse{},
+		RequestType: types.AutomaticLoanDeductionRequest{},
+		ResponseType: types.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		request, err := core.AutomaticLoanDeductionManager(service).Validate(ctx)
@@ -166,8 +166,8 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method:       "PUT",
 		Note:         "Updates an existing automatic loan deduction by its ID.",
-		RequestType:  core.AutomaticLoanDeductionRequest{},
-		ResponseType: core.AutomaticLoanDeductionResponse{},
+		RequestType: types.AutomaticLoanDeductionRequest{},
+		ResponseType: types.AutomaticLoanDeductionResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := helpers.EngineUUIDParam(ctx, "automatic_loan_deduction_id")
@@ -300,7 +300,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		Route:       "/api/v1/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

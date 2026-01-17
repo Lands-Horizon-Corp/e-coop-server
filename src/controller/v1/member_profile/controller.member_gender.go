@@ -18,7 +18,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender-history",
 		Method:       "GET",
-		ResponseType: core.MemberGenderHistory{},
+		ResponseType: types.MemberGenderHistory{},
 		Note:         "Returns all member gender history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberGenderHistoryResponse{},
+		ResponseType: types.MemberGenderHistoryResponse{},
 		Note:         "Returns member gender history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -62,7 +62,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "GET",
-		ResponseType: core.MemberGenderResponse{},
+		ResponseType: types.MemberGenderResponse{},
 		Note:         "Returns all member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -80,7 +80,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender/branch/:branch_id",
 		Method:       "GET",
-		ResponseType: core.MemberGenderResponse{},
+		ResponseType: types.MemberGenderResponse{},
 		Note:         "Returns all member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -102,7 +102,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender/search",
 		Method:       "GET",
-		ResponseType: core.MemberGenderResponse{},
+		ResponseType: types.MemberGenderResponse{},
 		Note:         "Returns paginated member genders for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -123,8 +123,8 @@ func MemberGenderController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "POST",
-		ResponseType: core.MemberGenderResponse{},
-		RequestType:  core.MemberGenderRequest{},
+		ResponseType: types.MemberGenderResponse{},
+		RequestType: types.MemberGenderRequest{},
 		Note:         "Creates a new member gender record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -179,8 +179,8 @@ func MemberGenderController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender/:member_gender_id",
 		Method:       "PUT",
-		ResponseType: core.MemberGenderResponse{},
-		RequestType:  core.MemberGenderRequest{},
+		ResponseType: types.MemberGenderResponse{},
+		RequestType: types.MemberGenderRequest{},
 		Note:         "Updates an existing member gender record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -286,7 +286,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		Route:       "/api/v1/member-gender/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member gender records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

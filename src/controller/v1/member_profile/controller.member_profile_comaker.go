@@ -18,7 +18,7 @@ func MemberProfileComakerController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-comaker/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Retrieves comaker details for a specific member profile ID.",
-		ResponseType: core.ComakerMemberProfileResponse{},
+		ResponseType: types.ComakerMemberProfileResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")

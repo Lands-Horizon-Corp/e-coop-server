@@ -18,7 +18,7 @@ func UserRatingController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating/user-rater/:user_id",
 		Method:       "GET",
-		ResponseType: core.UserRatingResponse{},
+		ResponseType: types.UserRatingResponse{},
 		Note:         "Returns all user ratings given by the specified user (rater).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func UserRatingController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating/user-ratee/:user_id",
 		Method:       "GET",
-		ResponseType: core.UserRatingResponse{},
+		ResponseType: types.UserRatingResponse{},
 		Note:         "Returns all user ratings received by the specified user (ratee).",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -54,7 +54,7 @@ func UserRatingController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating/:user_rating_id",
 		Method:       "GET",
-		ResponseType: core.UserRatingResponse{},
+		ResponseType: types.UserRatingResponse{},
 		Note:         "Returns a specific user rating by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -72,7 +72,7 @@ func UserRatingController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating/branch",
 		Method:       "GET",
-		ResponseType: core.UserRatingResponse{},
+		ResponseType: types.UserRatingResponse{},
 		Note:         "Returns all user ratings in the current user's active branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -90,8 +90,8 @@ func UserRatingController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating",
 		Method:       "POST",
-		ResponseType: core.UserRatingResponse{},
-		RequestType:  core.UserRatingRequest{},
+		ResponseType: types.UserRatingResponse{},
+		RequestType: types.UserRatingRequest{},
 		Note:         "Creates a new user rating in the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

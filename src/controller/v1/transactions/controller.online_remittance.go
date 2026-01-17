@@ -18,7 +18,7 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/online-remittance",
 		Method:       "GET",
-		ResponseType: core.OnlineRemittanceResponse{},
+		ResponseType: types.OnlineRemittanceResponse{},
 		Note:         "Returns online remittance records for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -58,8 +58,8 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/online-remittance",
 		Method:       "POST",
-		ResponseType: core.OnlineRemittanceResponse{},
-		RequestType:  core.OnlineRemittanceRequest{},
+		ResponseType: types.OnlineRemittanceResponse{},
+		RequestType: types.OnlineRemittanceRequest{},
 		Note:         "Creates a new online remittance record for the current transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -163,8 +163,8 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/online-remittance/:online_remittance_id",
 		Method:       "PUT",
-		ResponseType: core.OnlineRemittanceResponse{},
-		RequestType:  core.OnlineRemittanceRequest{},
+		ResponseType: types.OnlineRemittanceResponse{},
+		RequestType: types.OnlineRemittanceRequest{},
 		Note:         "Updates an existing online remittance by its ID for the current active transaction batch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

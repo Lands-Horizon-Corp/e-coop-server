@@ -20,7 +20,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-media/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Get all member profile media for a specific member profile.",
-		ResponseType: core.MemberProfileMediaResponse{},
+		ResponseType: types.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -80,8 +80,8 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-media",
 		Method:       "POST",
 		Note:         "Creates a new member profile media for the current user's organization and branch.",
-		RequestType:  core.MemberProfileMediaRequest{},
-		ResponseType: core.MemberProfileMediaResponse{},
+		RequestType: types.MemberProfileMediaRequest{},
+		ResponseType: types.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -153,8 +153,8 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "PUT",
 		Note:         "Update a member profile media by ID.",
-		RequestType:  core.MemberProfileMediaRequest{},
-		ResponseType: core.MemberProfileMediaResponse{},
+		RequestType: types.MemberProfileMediaRequest{},
+		ResponseType: types.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -296,7 +296,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "GET",
 		Note:         "Get a specific member profile media by ID.",
-		ResponseType: core.MemberProfileMediaResponse{},
+		ResponseType: types.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -317,8 +317,8 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/member-profile-media/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile media for a specific member profile.",
-		RequestType:  core.IDSRequest{},
-		ResponseType: core.MemberProfileMediaResponse{},
+		RequestType: types.IDSRequest{},
+		ResponseType: types.MemberProfileMediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)

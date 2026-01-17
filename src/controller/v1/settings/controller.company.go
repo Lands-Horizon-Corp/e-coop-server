@@ -19,7 +19,7 @@ func CompanyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/company",
 		Method:       "GET",
 		Note:         "Returns all companies for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.CompanyResponse{},
+		ResponseType: types.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -40,7 +40,7 @@ func CompanyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/company/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of companies for the current user's organization and branch.",
-		ResponseType: core.CompanyResponse{},
+		ResponseType: types.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -64,7 +64,7 @@ func CompanyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/company/:company_id",
 		Method:       "GET",
 		Note:         "Returns a single company by its ID.",
-		ResponseType: core.CompanyResponse{},
+		ResponseType: types.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		companyID, err := helpers.EngineUUIDParam(ctx, "company_id")
@@ -82,8 +82,8 @@ func CompanyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/company",
 		Method:       "POST",
 		Note:         "Creates a new company for the current user's organization and branch.",
-		RequestType:  core.CompanyRequest{},
-		ResponseType: core.CompanyResponse{},
+		RequestType: types.CompanyRequest{},
+		ResponseType: types.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.CompanyManager(service).Validate(ctx)
@@ -145,8 +145,8 @@ func CompanyController(service *horizon.HorizonService) {
 		Route:        "/api/v1/company/:company_id",
 		Method:       "PUT",
 		Note:         "Updates an existing company by its ID.",
-		RequestType:  core.CompanyRequest{},
-		ResponseType: core.CompanyResponse{},
+		RequestType: types.CompanyRequest{},
+		ResponseType: types.CompanyResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		companyID, err := helpers.EngineUUIDParam(ctx, "company_id")
@@ -251,7 +251,7 @@ func CompanyController(service *horizon.HorizonService) {
 		Route:       "/api/v1/company/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple companies by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

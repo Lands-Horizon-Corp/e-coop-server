@@ -18,7 +18,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "GET",
 		Note:         "Returns all bills and coins for the current user's organization and branch. Returns error if not authenticated.",
-		ResponseType: core.BillAndCoinsResponse{},
+		ResponseType: types.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -54,7 +54,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bills-and-coins/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of bills and coins for the current user's organization and branch.",
-		ResponseType: core.BillAndCoinsResponse{},
+		ResponseType: types.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -78,7 +78,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "GET",
 		Note:         "Returns a bills and coins record by its ID.",
-		ResponseType: core.BillAndCoinsResponse{},
+		ResponseType: types.BillAndCoinsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		billAndCoinsID, err := helpers.EngineUUIDParam(ctx, "bills_and_coins_id")
@@ -95,8 +95,8 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "POST",
-		RequestType:  core.BillAndCoinsRequest{},
-		ResponseType: core.BillAndCoinsResponse{},
+		RequestType: types.BillAndCoinsRequest{},
+		ResponseType: types.BillAndCoinsResponse{},
 		Note:         "Creates a new bills and coins record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -160,8 +160,8 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "PUT",
-		RequestType:  core.BillAndCoinsRequest{},
-		ResponseType: core.BillAndCoinsResponse{},
+		RequestType: types.BillAndCoinsRequest{},
+		ResponseType: types.BillAndCoinsResponse{},
 		Note:         "Updates an existing bills and coins record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -269,7 +269,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		Route:       "/api/v1/bills-and-coins/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple bills and coins records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

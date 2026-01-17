@@ -18,7 +18,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type",
 		Method:       "GET",
-		ResponseType: core.PaymentTypeResponse{},
+		ResponseType: types.PaymentTypeResponse{},
 		Note:         "Returns all payment types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type/search",
 		Method:       "GET",
-		ResponseType: core.PaymentTypeResponse{},
+		ResponseType: types.PaymentTypeResponse{},
 		Note:         "Returns paginated payment types for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -58,7 +58,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "GET",
 		Note:         "Returns a specific payment type by its ID.",
-		ResponseType: core.PaymentTypeResponse{},
+		ResponseType: types.PaymentTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		paymentTypeID, err := helpers.EngineUUIDParam(ctx, "payment_type_id")
@@ -75,8 +75,8 @@ func PaymentTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type",
 		Method:       "POST",
-		ResponseType: core.PaymentTypeResponse{},
-		RequestType:  core.PaymentTypeRequest{},
+		ResponseType: types.PaymentTypeResponse{},
+		RequestType: types.PaymentTypeRequest{},
 		Note:         "Creates a new payment type record for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -133,8 +133,8 @@ func PaymentTypeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "PUT",
-		ResponseType: core.PaymentTypeResponse{},
-		RequestType:  core.PaymentTypeRequest{},
+		ResponseType: types.PaymentTypeResponse{},
+		RequestType: types.PaymentTypeRequest{},
 		Note:         "Updates an existing payment type by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -242,7 +242,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		Route:       "/api/v1/payment-type/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple payment type records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

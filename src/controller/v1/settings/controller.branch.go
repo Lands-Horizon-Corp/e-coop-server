@@ -21,7 +21,7 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch",
 		Method:       "GET",
 		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from cache.",
-		ResponseType: core.BranchResponse{},
+		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -44,7 +44,7 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch/kyc",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization in members portal.",
-		ResponseType: core.BranchResponse{},
+		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		org, ok := event.GetOrganization(service, ctx)
@@ -62,7 +62,7 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization.",
-		ResponseType: core.BranchResponse{},
+		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		organizationID, err := helpers.EngineUUIDParam(ctx, "organization_id")
@@ -81,8 +81,8 @@ func BranchController(service *horizon.HorizonService) {
 		Method:       "POST",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
 		Private:      true,
-		RequestType:  core.BranchRequest{},
-		ResponseType: core.BranchResponse{},
+		RequestType: types.BranchRequest{},
+		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -303,8 +303,8 @@ func BranchController(service *horizon.HorizonService) {
 		Method:       "PUT",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
 		Private:      true,
-		RequestType:  core.BranchRequest{},
-		ResponseType: core.BranchResponse{},
+		RequestType: types.BranchRequest{},
+		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -526,7 +526,7 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch/:branch_id",
 		Method:       "GET",
 		Note:         "Returns a single branch by its ID.",
-		ResponseType: core.BranchResponse{},
+		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		branchID, err := helpers.EngineUUIDParam(ctx, "branch_id")
@@ -544,8 +544,8 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
-		RequestType:  core.BranchSettingRequest{},
-		ResponseType: core.BranchSettingResponse{},
+		RequestType: types.BranchSettingRequest{},
+		ResponseType: types.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -769,8 +769,8 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch-settings/currency",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
-		RequestType:  core.BranchSettingsCurrencyRequest{},
-		ResponseType: core.BranchSettingResponse{},
+		RequestType: types.BranchSettingsCurrencyRequest{},
+		ResponseType: types.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var settingsReq core.BranchSettingsCurrencyRequest

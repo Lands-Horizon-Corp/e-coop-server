@@ -18,7 +18,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/current",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns the current timesheet entry (not timed out yet) for the user, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -40,8 +40,8 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/time-in-and-out",
 		Method:       "POST",
-		RequestType:  core.TimesheetRequest{},
-		ResponseType: core.TimesheetResponse{},
+		RequestType: types.TimesheetRequest{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Records a time-in or time-out for the current user depending on the last timesheet entry.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -126,7 +126,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/:timesheet_id",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns the specific timesheet entry by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -144,7 +144,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns all timesheets of users/employees for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -162,7 +162,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/search",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns paginated timesheets for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -184,7 +184,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		Route:       "/api/v1/timesheet/me",
 		Method:      "GET",
 		Note:        "Returns timesheets of the current user for the current branch.",
-		RequestType: core.TimesheetRequest{},
+		RequestType: types.TimesheetRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -201,7 +201,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/me/search",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns paginated timesheets of the current user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -223,7 +223,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/user/:user_id",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns all timesheets of the specified user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -245,7 +245,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/user/:user_id/search",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns paginated timesheets of the specified user for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -271,7 +271,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/employee/:user_organization_id/search",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns paginated timesheets of the specified employeee for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -302,7 +302,7 @@ func TimesheetController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/current/users",
 		Method:       "GET",
-		ResponseType: core.TimesheetResponse{},
+		ResponseType: types.TimesheetResponse{},
 		Note:         "Returns all currently timed-in users for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

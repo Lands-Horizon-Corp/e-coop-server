@@ -19,7 +19,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-classification/search",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch.",
-		ResponseType: core.AccountClassificationResponse{},
+		ResponseType: types.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -43,7 +43,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-classification",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch (raw).",
-		ResponseType: core.AccountClassificationResponse{},
+		ResponseType: types.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -67,7 +67,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "GET",
 		Note:         "Get an account classification by ID.",
-		ResponseType: core.AccountClassificationResponse{},
+		ResponseType: types.AccountClassificationResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := helpers.EngineUUIDParam(ctx, "account_classification_id")
@@ -85,8 +85,8 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-classification",
 		Method:       "POST",
 		Note:         "Create a new account classification for the current branch.",
-		ResponseType: core.AccountClassificationResponse{},
-		RequestType:  core.AccountClassificationRequest{},
+		ResponseType: types.AccountClassificationResponse{},
+		RequestType:  types.AccountClassificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountClassificationManager(service).Validate(ctx)
@@ -147,8 +147,8 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "PUT",
 		Note:         "Update an account classification by ID.",
-		ResponseType: core.AccountClassificationResponse{},
-		RequestType:  core.AccountClassificationRequest{},
+		ResponseType: types.AccountClassificationResponse{},
+		RequestType:  types.AccountClassificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountClassificationManager(service).Validate(ctx)
@@ -278,7 +278,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		Route:       "/api/v1/account-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account classifications by IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

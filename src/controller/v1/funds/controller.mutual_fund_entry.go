@@ -20,7 +20,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry",
 		Method:       "GET",
 		Note:         "Returns all mutual fund entries for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.MutualFundEntryResponse{},
+		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -41,7 +41,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of mutual fund entries for the current user's organization and branch.",
-		ResponseType: core.MutualFundEntryResponse{},
+		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -65,7 +65,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry/member/:member_id",
 		Method:       "GET",
 		Note:         "Returns all mutual fund entries for a specific member profile.",
-		ResponseType: core.MutualFundEntryResponse{},
+		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		memberID, err := helpers.EngineUUIDParam(ctx, "member_id")
@@ -90,7 +90,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry/account/:account_id",
 		Method:       "GET",
 		Note:         "Returns all mutual fund entries for a specific account.",
-		ResponseType: core.MutualFundEntryResponse{},
+		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
@@ -115,7 +115,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry/:entry_id",
 		Method:       "GET",
 		Note:         "Returns a single mutual fund entry by its ID.",
-		ResponseType: core.MutualFundEntryResponse{},
+		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		entryID, err := helpers.EngineUUIDParam(ctx, "entry_id")
@@ -133,8 +133,8 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry/mutual-fund/:mutual_fund_id",
 		Method:       "POST",
 		Note:         "Creates a new mutual fund entry for the current user's organization and branch.",
-		RequestType:  core.MutualFundEntryRequest{},
-		ResponseType: core.MutualFundEntryResponse{},
+		RequestType: types.MutualFundEntryRequest{},
+		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -210,8 +210,8 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund-entry/:entry_id",
 		Method:       "PUT",
 		Note:         "Updates an existing mutual fund entry by its ID.",
-		RequestType:  core.MutualFundEntryRequest{},
-		ResponseType: core.MutualFundEntryResponse{},
+		RequestType: types.MutualFundEntryRequest{},
+		ResponseType: types.MutualFundEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		entryID, err := helpers.EngineUUIDParam(ctx, "entry_id")
@@ -316,7 +316,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		Route:       "/api/v1/mutual-fund-entry/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple mutual fund entries by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

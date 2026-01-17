@@ -19,7 +19,7 @@ func FeedbackController(service *horizon.HorizonService) {
 		Route:        "/api/v1/feedback",
 		Method:       "GET",
 		Note:         "Returns all feedback records in the system.",
-		ResponseType: core.FeedbackResponse{},
+		ResponseType: types.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		feedback, err := core.FeedbackManager(service).List(context)
@@ -33,7 +33,7 @@ func FeedbackController(service *horizon.HorizonService) {
 		Route:        "/api/v1/feedback/:feedback_id",
 		Method:       "GET",
 		Note:         "Returns a single feedback record by its ID.",
-		ResponseType: core.FeedbackResponse{},
+		ResponseType: types.FeedbackResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		feedbackID, err := helpers.EngineUUIDParam(ctx, "feedback_id")
@@ -53,8 +53,8 @@ func FeedbackController(service *horizon.HorizonService) {
 		Route:        "/api/v1/feedback",
 		Method:       "POST",
 		Note:         "Creates a new feedback record.",
-		ResponseType: core.FeedbackResponse{},
-		RequestType:  core.FeedbackRequest{},
+		ResponseType: types.FeedbackResponse{},
+		RequestType: types.FeedbackRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.FeedbackManager(service).Validate(ctx)
@@ -142,7 +142,7 @@ func FeedbackController(service *horizon.HorizonService) {
 		Route:       "/api/v1/feedback/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple feedback records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

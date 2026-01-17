@@ -20,7 +20,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-tag",
 		Method:       "GET",
 		Note:         "Returns all account tags for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.AccountTagResponse{},
+		ResponseType: types.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -41,7 +41,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of account tags for the current user's organization and branch.",
-		ResponseType: core.AccountTagResponse{},
+		ResponseType: types.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -65,7 +65,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "GET",
 		Note:         "Returns a single account tag by its ID.",
-		ResponseType: core.AccountTagResponse{},
+		ResponseType: types.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountTagID, err := helpers.EngineUUIDParam(ctx, "account_tag_id")
@@ -83,7 +83,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-tag/account/:account_id",
 		Method:       "GET",
 		Note:         "Returns all account tags for a specific account ID within the user's organization and branch.",
-		ResponseType: core.AccountTagResponse{},
+		ResponseType: types.AccountTagResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
@@ -113,8 +113,8 @@ func AccountTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-tag",
 		Method:       "POST",
 		Note:         "Creates a new account tag for the user's organization and branch.",
-		ResponseType: core.AccountTagResponse{},
-		RequestType:  core.AccountTagRequest{},
+		ResponseType: types.AccountTagResponse{},
+		RequestType: types.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountTagManager(service).Validate(ctx)
@@ -181,8 +181,8 @@ func AccountTagController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing account tag by its ID.",
-		ResponseType: core.AccountTagResponse{},
-		RequestType:  core.AccountTagRequest{},
+		ResponseType: types.AccountTagResponse{},
+		RequestType: types.AccountTagRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		accountTagID, err := helpers.EngineUUIDParam(ctx, "account_tag_id")
@@ -283,7 +283,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		Route:       "/api/v1/account-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account tags by IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

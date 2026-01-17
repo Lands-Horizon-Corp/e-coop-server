@@ -19,7 +19,7 @@ func CollateralController(service *horizon.HorizonService) {
 		Route:        "/api/v1/collateral",
 		Method:       "GET",
 		Note:         "Returns all collateral records for the current user's organization and branch. Returns error if not authenticated.",
-		ResponseType: core.CollateralResponse{},
+		ResponseType: types.CollateralResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -39,7 +39,7 @@ func CollateralController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral/search",
 		Method:       "GET",
-		ResponseType: core.CollateralResponse{},
+		ResponseType: types.CollateralResponse{},
 		Note:         "Returns a paginated list of collateral records for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -64,7 +64,7 @@ func CollateralController(service *horizon.HorizonService) {
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "GET",
 		Note:         "Returns a collateral record by its ID.",
-		ResponseType: core.CollateralResponse{},
+		ResponseType: types.CollateralResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		collateralID, err := helpers.EngineUUIDParam(ctx, "collateral_id")
@@ -81,8 +81,8 @@ func CollateralController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "POST",
-		RequestType:  core.CollateralRequest{},
-		ResponseType: core.CollateralResponse{},
+		RequestType: types.CollateralRequest{},
+		ResponseType: types.CollateralResponse{},
 		Note:         "Creates a new collateral record for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -145,8 +145,8 @@ func CollateralController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "PUT",
-		RequestType:  core.CollateralRequest{},
-		ResponseType: core.CollateralResponse{},
+		RequestType: types.CollateralRequest{},
+		ResponseType: types.CollateralResponse{},
 		Note:         "Updates an existing collateral record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -252,7 +252,7 @@ func CollateralController(service *horizon.HorizonService) {
 		Route:       "/api/v1/collateral/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

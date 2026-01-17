@@ -18,7 +18,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id/download",
 		Method:       "POST",
-		ResponseType: core.Media{},
+		ResponseType: types.Media{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		generatedReportID, err := helpers.EngineUUIDParam(ctx, "generated_report_id")
@@ -71,8 +71,8 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	// req.RegisterWebRoute(horizon.Route{
 	// 	Route:        "/api/v1/generated-report",
 	// 	Method:       "POST",
-	// 	RequestType:  core.GeneratedReportRequest{},
-	// 	ResponseType: core.GeneratedReportResponse{},
+	// 	RequestType: types.GeneratedReportRequest{},
+	// 	ResponseType: types.GeneratedReportResponse{},
 	// 	Note:         "Create a new generated report.",
 	// }, func(ctx echo.Context) error {
 	// 	context := ctx.Request().Context()
@@ -171,8 +171,8 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
 		Method:       "PUT",
-		RequestType:  core.GeneratedReportUpdateRequest{},
-		ResponseType: core.GeneratedReportResponse{},
+		RequestType: types.GeneratedReportUpdateRequest{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Update an existing generated report.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -231,8 +231,8 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/generated-report/download-user",
 		Method:       "POST",
 		Note:         "Creates a new generated report download user entry for the current user's organization and branch.",
-		RequestType:  core.GeneratedReportsDownloadUsersRequest{},
-		ResponseType: core.GeneratedReportsDownloadUsersResponse{},
+		RequestType: types.GeneratedReportsDownloadUsersRequest{},
+		ResponseType: types.GeneratedReportsDownloadUsersResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.GeneratedReportsDownloadUsersManager(service).Validate(ctx)
@@ -292,7 +292,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id/favorite",
 		Method:       "PUT",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Mark or unmark a generated report as favorite.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -314,7 +314,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/:generated_report_id",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Returns a specific generated report by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -332,7 +332,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated reports.",
 	}, func(ctx echo.Context) error {
 
@@ -357,7 +357,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/me/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated reports by current user logged in.",
 	}, func(ctx echo.Context) error {
 
@@ -383,7 +383,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/pdf/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated PDF reports.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -408,7 +408,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/me/pdf/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated PDF reports by current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -434,7 +434,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/excel/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated Excel reports.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -458,7 +458,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/me/excel/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated Excel reports by current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -484,7 +484,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/favorites/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search favorite generated reports.",
 	}, func(ctx echo.Context) error {
 
@@ -510,7 +510,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/me/favorites/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search favorite generated reports by current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -536,7 +536,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/available-models",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportAvailableModelsResponse{},
+		ResponseType: types.GeneratedReportAvailableModelsResponse{},
 		Note:         "Get available generated report models with their counts for the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -557,7 +557,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/model/:model/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated reports by model.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -583,7 +583,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/me/model/:model/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated reports by model for current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -610,7 +610,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/pdf/model/:model/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated PDF reports by model.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -637,7 +637,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/me/pdf/model/:model/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated PDF reports by model for current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -665,7 +665,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/excel/model/:model/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated Excel reports by model.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -692,7 +692,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/me/excel/model/:model/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search generated Excel reports by model for current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -720,7 +720,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/favorites/model/:model/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search favorite generated reports by model.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -747,7 +747,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-report/me/favorites/model/:model/search",
 		Method:       "GET",
-		ResponseType: core.GeneratedReportResponse{},
+		ResponseType: types.GeneratedReportResponse{},
 		Note:         "Search favorite generated reports by model for current user logged in.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -19,7 +19,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/current",
 		Method:       "GET",
-		ResponseType: core.CurrentUserResponse{},
+		ResponseType: types.CurrentUserResponse{},
 		Note:         "Returns the current authenticated user and their user organization, if any.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -83,8 +83,8 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/login",
 		Method:       "POST",
-		RequestType:  core.UserLoginRequest{},
-		ResponseType: core.CurrentUserResponse{},
+		RequestType: types.UserLoginRequest{},
+		ResponseType: types.CurrentUserResponse{},
 		Note:         "Authenticates a user and returns user details.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -136,8 +136,8 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/register",
 		Method:       "POST",
-		ResponseType: core.CurrentUserResponse{},
-		RequestType:  core.UserRegisterRequest{},
+		ResponseType: types.CurrentUserResponse{},
+		RequestType: types.UserRegisterRequest{},
 		Note:         "Registers a new user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -206,7 +206,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/authentication/forgot-password",
 		Method:      "POST",
-		RequestType: core.UserForgotPasswordRequest{},
+		RequestType: types.UserForgotPasswordRequest{},
 		Note:        "Initiates forgot password flow and sends a reset link.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -305,7 +305,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/authentication/change-password/:reset_id",
 		Method:      "POST",
-		RequestType: core.UserChangePasswordRequest{},
+		RequestType: types.UserChangePasswordRequest{},
 		Note:        "Changes the user's password using the reset link.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -422,8 +422,8 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/verify-contact-number",
 		Method:       "POST",
-		RequestType:  core.UserVerifyContactNumberRequest{},
-		ResponseType: core.UserResponse{},
+		RequestType: types.UserVerifyContactNumberRequest{},
+		ResponseType: types.UserResponse{},
 		Note:         "Verifies OTP for contact number verification.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -555,8 +555,8 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/authentication/verify-with-password",
 		Method:       "POST",
 		Note:         "Verifies the user's password for protected self actions.",
-		ResponseType: core.UserResponse{},
-		RequestType:  core.UserVerifyWithPasswordRequest{},
+		ResponseType: types.UserResponse{},
+		RequestType: types.UserVerifyWithPasswordRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.UserVerifyWithPasswordRequest
@@ -618,8 +618,8 @@ func AuthenticationController(service *horizon.HorizonService) {
 		Route:        "/api/v1/authentication/verify-email",
 		Method:       "POST",
 		Note:         "Verifies OTP for email verification.",
-		ResponseType: core.UserResponse{},
-		RequestType:  core.UserVerifyEmailRequest{},
+		ResponseType: types.UserResponse{},
+		RequestType: types.UserVerifyEmailRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.UserVerifyEmailRequest

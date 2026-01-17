@@ -18,7 +18,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-classification-history",
 		Method:       "GET",
-		ResponseType: core.MemberClassificationHistoryResponse{},
+		ResponseType: types.MemberClassificationHistoryResponse{},
 		Note:         "Returns all member classification history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-classification-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberClassificationHistoryResponse{},
+		ResponseType: types.MemberClassificationHistoryResponse{},
 		Note:         "Returns member classification history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -62,7 +62,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-classification",
 		Method:       "GET",
-		ResponseType: core.MemberClassificationResponse{},
+		ResponseType: types.MemberClassificationResponse{},
 		Note:         "Returns all member classifications for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -80,7 +80,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-classification/search",
 		Method:       "GET",
-		ResponseType: core.MemberClassificationResponse{},
+		ResponseType: types.MemberClassificationResponse{},
 		Note:         "Returns paginated member classifications for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -101,8 +101,8 @@ func MemberClassificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-classification",
 		Method:       "POST",
-		ResponseType: core.MemberClassificationResponse{},
-		RequestType:  core.MemberClassificationRequest{},
+		ResponseType: types.MemberClassificationResponse{},
+		RequestType: types.MemberClassificationRequest{},
 		Note:         "Creates a new member classification record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -158,8 +158,8 @@ func MemberClassificationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-classification/:member_classification_id",
 		Method:       "PUT",
-		ResponseType: core.MemberClassificationResponse{},
-		RequestType:  core.MemberClassificationRequest{},
+		ResponseType: types.MemberClassificationResponse{},
+		RequestType: types.MemberClassificationRequest{},
 		Note:         "Updates an existing member classification record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -266,7 +266,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 		Route:       "/api/v1/member-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member classification records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

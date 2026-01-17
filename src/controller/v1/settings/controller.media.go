@@ -20,7 +20,7 @@ func MediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/media",
 		Method:       "GET",
 		Note:         "Returns all media records in the system.",
-		ResponseType: core.MediaResponse{},
+		ResponseType: types.MediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		media, err := core.MediaManager(service).List(context)
@@ -34,7 +34,7 @@ func MediaController(service *horizon.HorizonService) {
 		Route:        "/api/v1/media/:media_id",
 		Method:       "GET",
 		Note:         "Returns a specific media record by its ID.",
-		ResponseType: core.MediaResponse{},
+		ResponseType: types.MediaResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		mediaID, err := helpers.EngineUUIDParam(ctx, "media_id")
@@ -52,7 +52,7 @@ func MediaController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media",
 		Method:       "POST",
-		ResponseType: core.MediaResponse{},
+		ResponseType: types.MediaResponse{},
 		Note:         "Uploads a file and creates a new media record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -143,8 +143,8 @@ func MediaController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "PUT",
-		RequestType:  core.MediaRequest{},
-		ResponseType: core.MediaResponse{},
+		RequestType: types.MediaRequest{},
+		ResponseType: types.MediaResponse{},
 		Note:         "Updates the file name of a media record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -236,7 +236,7 @@ func MediaController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/media/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 		Note:        "Deletes multiple media records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

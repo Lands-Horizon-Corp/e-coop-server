@@ -18,7 +18,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-category/search",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch.",
-		ResponseType: core.AccountCategoryResponse{},
+		ResponseType: types.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -43,7 +43,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-category",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch (raw).",
-		ResponseType: core.AccountCategoryResponse{},
+		ResponseType: types.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -67,7 +67,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "GET",
 		Note:         "Get an account category by ID.",
-		ResponseType: core.AccountCategoryResponse{},
+		ResponseType: types.AccountCategoryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		id, err := helpers.EngineUUIDParam(ctx, "account_category_id")
@@ -85,8 +85,8 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-category",
 		Method:       "POST",
 		Note:         "Create a new account category for the current branch.",
-		ResponseType: core.AccountCategoryResponse{},
-		RequestType:  core.AccountCategoryRequest{},
+		ResponseType: types.AccountCategoryResponse{},
+		RequestType: types.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountCategoryManager(service).Validate(ctx)
@@ -148,8 +148,8 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "PUT",
 		Note:         "Update an account category by ID.",
-		ResponseType: core.AccountCategoryResponse{},
-		RequestType:  core.AccountCategoryRequest{},
+		ResponseType: types.AccountCategoryResponse{},
+		RequestType: types.AccountCategoryRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AccountCategoryManager(service).Validate(ctx)
@@ -279,7 +279,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		Route:       "/api/v1/account-category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account categories by IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

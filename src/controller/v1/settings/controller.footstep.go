@@ -19,7 +19,7 @@ func FootstepController(service *horizon.HorizonService) {
 		Route:        "/api/v1/footstep",
 		Method:       "POST",
 		Note:         "Creates a new footstep record for the current user's organization and branch.",
-		ResponseType: core.FootstepResponse{},
+		ResponseType: types.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.FootstepManager(service).Validate(ctx)
@@ -92,7 +92,7 @@ func FootstepController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/footstep/me/search",
 		Method:       "GET",
-		ResponseType: core.FootstepResponse{},
+		ResponseType: types.FootstepResponse{},
 		Note:         "Returns all footsteps for the currently authenticated user.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -112,7 +112,7 @@ func FootstepController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/footstep/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.FootstepResponse{},
+		ResponseType: types.FootstepResponse{},
 		Note:         "Returns all footsteps for the specified employee (user) on the current branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -168,7 +168,7 @@ func FootstepController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/footstep/user-organization/:user_organization_id/search",
 		Method:       "GET",
-		ResponseType: core.FootstepResponse{},
+		ResponseType: types.FootstepResponse{},
 		Note:         "Returns footsteps for the specified user-organization on the current branch if the user is a member, employee, or owner.",
 	}, func(ctx echo.Context) error {
 
@@ -197,7 +197,7 @@ func FootstepController(service *horizon.HorizonService) {
 		Route:        "/api/v1/footstep/:footstep_id",
 		Method:       "GET",
 		Note:         "Returns a specific footstep record by its ID.",
-		ResponseType: core.FootstepResponse{},
+		ResponseType: types.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		footstepID, err := helpers.EngineUUIDParam(ctx, "footstep_id")
@@ -215,7 +215,7 @@ func FootstepController(service *horizon.HorizonService) {
 		Route:        "/api/v1/footstep/current/me/branch/search",
 		Method:       "GET",
 		Note:         "Returns footsteps for the currently authenticated user on their current branch.",
-		ResponseType: core.FootstepResponse{},
+		ResponseType: types.FootstepResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 

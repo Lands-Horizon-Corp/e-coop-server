@@ -19,8 +19,8 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 		Route:        "/api/v1/time-deposit-computation-pre-mature/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation pre mature for the current user's organization and branch.",
-		RequestType:  core.TimeDepositComputationPreMatureRequest{},
-		ResponseType: core.TimeDepositComputationPreMatureResponse{},
+		RequestType: types.TimeDepositComputationPreMatureRequest{},
+		ResponseType: types.TimeDepositComputationPreMatureResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := helpers.EngineUUIDParam(ctx, "time_deposit_type_id")
@@ -93,8 +93,8 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 		Route:        "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation pre mature by its ID.",
-		RequestType:  core.TimeDepositComputationPreMatureRequest{},
-		ResponseType: core.TimeDepositComputationPreMatureResponse{},
+		RequestType: types.TimeDepositComputationPreMatureRequest{},
+		ResponseType: types.TimeDepositComputationPreMatureResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositComputationPreMatureID, err := helpers.EngineUUIDParam(ctx, "time_deposit_computation_pre_mature_id")
@@ -201,7 +201,7 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 		Route:       "/api/v1/time-deposit-computation-pre-mature/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computation pre mature by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

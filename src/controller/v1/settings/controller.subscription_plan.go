@@ -18,7 +18,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "GET",
-		ResponseType: core.SubscriptionPlanResponse{},
+		ResponseType: types.SubscriptionPlanResponse{},
 		Note:         "Returns all subscription plans.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -32,7 +32,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "GET",
-		ResponseType: core.SubscriptionPlanResponse{},
+		ResponseType: types.SubscriptionPlanResponse{},
 		Note:         "Returns a specific subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -52,8 +52,8 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "POST",
-		ResponseType: core.SubscriptionPlanResponse{},
-		RequestType:  core.SubscriptionPlanRequest{},
+		ResponseType: types.SubscriptionPlanResponse{},
+		RequestType: types.SubscriptionPlanRequest{},
 		Note:         "Creates a new subscription plan.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -109,8 +109,8 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "PUT",
-		ResponseType: core.SubscriptionPlanResponse{},
-		RequestType:  core.SubscriptionPlanRequest{},
+		ResponseType: types.SubscriptionPlanResponse{},
+		RequestType: types.SubscriptionPlanRequest{},
 		Note:         "Updates an existing subscription plan by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -228,7 +228,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		Route:       "/api/v1/subscription-plan/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple subscription plan records.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -276,7 +276,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/currency/:currency_id",
 		Method:       "GET",
-		ResponseType: core.SubscriptionPlanResponse{},
+		ResponseType: types.SubscriptionPlanResponse{},
 		Note:         "Returns all subscription plans for a specific currency.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

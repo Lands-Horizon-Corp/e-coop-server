@@ -18,8 +18,8 @@ func MemberEducationalAttainmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-educational-attainment/member-profile/:member_profile_id",
 		Method:       "POST",
-		RequestType:  core.MemberEducationalAttainmentRequest{},
-		ResponseType: core.MemberEducationalAttainmentResponse{},
+		RequestType: types.MemberEducationalAttainmentRequest{},
+		ResponseType: types.MemberEducationalAttainmentResponse{},
 		Note:         "Creates a new educational attainment record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -87,8 +87,8 @@ func MemberEducationalAttainmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method:       "PUT",
-		RequestType:  core.MemberEducationalAttainmentRequest{},
-		ResponseType: core.MemberEducationalAttainmentResponse{},
+		RequestType: types.MemberEducationalAttainmentRequest{},
+		ResponseType: types.MemberEducationalAttainmentResponse{},
 		Note:         "Updates an existing educational attainment record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -201,7 +201,7 @@ func MemberEducationalAttainmentController(service *horizon.HorizonService) {
 		Route:       "/api/v1/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple educational attainment records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

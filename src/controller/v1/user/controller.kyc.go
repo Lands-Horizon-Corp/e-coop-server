@@ -30,7 +30,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/personal-details",
 		Method:      "POST",
 		Note:        "Submit or update basic personal information (step 1 of KYC)",
-		RequestType: core.KYCPersonalDetailsRequest{},
+		RequestType: types.KYCPersonalDetailsRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.KYCPersonalDetailsRequest
@@ -66,7 +66,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/security-details",
 		Method:      "POST",
 		Note:        "Create login credentials (email, phone, password)",
-		RequestType: core.KYCSecurityDetailsRequest{},
+		RequestType: types.KYCSecurityDetailsRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.KYCSecurityDetailsRequest
@@ -145,7 +145,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/verify-email",
 		Method:      "POST",
 		Note:        "Verify email address using OTP",
-		RequestType: core.KYCVerifyEmailRequest{},
+		RequestType: types.KYCVerifyEmailRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.KYCVerifyEmailRequest
@@ -177,7 +177,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/verify-contact-number",
 		Method:      "POST",
 		Note:        "Verify phone number using OTP",
-		RequestType: core.KYCVerifyContactNumberRequest{},
+		RequestType: types.KYCVerifyContactNumberRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.KYCVerifyContactNumberRequest
@@ -205,7 +205,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/verify-addresses",
 		Method:      "POST",
 		Note:        "Verify one or more addresses (verification only)",
-		RequestType: core.KYCVerifyAddressesRequest{},
+		RequestType: types.KYCVerifyAddressesRequest{},
 	}, func(ctx echo.Context) error {
 		var req []core.KYCVerifyAddressesRequest
 		if err := ctx.Bind(&req); err != nil {
@@ -233,7 +233,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/verify-government-benefits",
 		Method:      "POST",
 		Note:        "Submit government ID or benefits proof",
-		RequestType: core.KYCVerifyGovernmentBenefitsRequest{},
+		RequestType: types.KYCVerifyGovernmentBenefitsRequest{},
 	}, func(ctx echo.Context) error {
 		var req []core.KYCVerifyGovernmentBenefitsRequest
 
@@ -375,7 +375,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/resend-email-verification",
 		Method:      "POST",
 		Note:        "Resend email verification OTP",
-		RequestType: core.KYCResendEmailVerificationRequest{},
+		RequestType: types.KYCResendEmailVerificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -421,7 +421,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/resend-contact-number-verification",
 		Method:      "POST",
 		Note:        "Resend contact number verification OTP",
-		RequestType: core.KYCResendContactNumberVerificationRequest{},
+		RequestType: types.KYCResendContactNumberVerificationRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.KYCResendContactNumberVerificationRequest
@@ -464,7 +464,7 @@ func KYCController(service *horizon.HorizonService) {
 		Route:       "/api/v1/kyc/register",
 		Method:      "POST",
 		Note:        "Complete KYC registration (all-in-one endpoint)",
-		RequestType: core.KYCRegisterRequest{},
+		RequestType: types.KYCRegisterRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var req core.KYCRegisterRequest
@@ -592,8 +592,8 @@ func KYCController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/kyc/login",
 		Method:       "POST",
-		RequestType:  core.KYCLoginRequest{},
-		ResponseType: core.CurrentUserResponse{},
+		RequestType: types.KYCLoginRequest{},
+		ResponseType: types.CurrentUserResponse{},
 		Note:         "Authenticates a KYC user using email, username, or phone and returns user details.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -19,7 +19,7 @@ func ContactController(service *horizon.HorizonService) {
 		Route:        "/api/v1/contact",
 		Method:       "GET",
 		Note:         "Returns all contact records in the system.",
-		ResponseType: core.ContactUsResponse{},
+		ResponseType: types.ContactUsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		contacts, err := core.ContactUsManager(service).List(context)
@@ -33,7 +33,7 @@ func ContactController(service *horizon.HorizonService) {
 		Route:        "/api/v1/contact/:contact_id",
 		Method:       "GET",
 		Note:         "Returns a single contact record by its ID.",
-		ResponseType: core.ContactUsResponse{},
+		ResponseType: types.ContactUsResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		contactID, err := helpers.EngineUUIDParam(ctx, "contact_id")
@@ -50,8 +50,8 @@ func ContactController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/contact",
 		Method:       "POST",
-		ResponseType: core.ContactUsResponse{},
-		RequestType:  core.ContactUsRequest{},
+		ResponseType: types.ContactUsResponse{},
+		RequestType: types.ContactUsRequest{},
 		Note:         "Creates a new contact record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -137,7 +137,7 @@ func ContactController(service *horizon.HorizonService) {
 		Route:       "/api/v1/contact/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple contact records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

@@ -18,7 +18,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/invitation-code",
 		Method:       "GET",
-		ResponseType: core.InvitationCodeResponse{},
+		ResponseType: types.InvitationCodeResponse{},
 		Note:         "Returns all invitation codes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -39,7 +39,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/invitation-code/search",
 		Method:      "GET",
-		RequestType: core.InvitationCodeRequest{},
+		RequestType: types.InvitationCodeRequest{},
 		Note:        "Returns a paginated list of invitation codes for the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -64,7 +64,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/invitation-code/code/:code",
 		Method:       "GET",
 		Note:         "Returns the invitation code matching the specified code for the current user's organization.",
-		ResponseType: core.InvitationCodeResponse{},
+		ResponseType: types.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		code := ctx.Param("code")
@@ -79,7 +79,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "GET",
 		Note:         "Returns the details of a specific invitation code by its ID.",
-		ResponseType: core.InvitationCodeResponse{},
+		ResponseType: types.InvitationCodeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		invitationCodeID, err := helpers.EngineUUIDParam(ctx, "invitation_code_id")
@@ -96,8 +96,8 @@ func InvitationCodeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/invitation-code",
 		Method:       "POST",
-		ResponseType: core.InvitationCodeResponse{},
-		RequestType:  core.InvitationCodeRequest{},
+		ResponseType: types.InvitationCodeResponse{},
+		RequestType: types.InvitationCodeRequest{},
 		Note:         "Creates a new invitation code under the current user's organization and branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -176,8 +176,8 @@ func InvitationCodeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "PUT",
-		ResponseType: core.InvitationCodeResponse{},
-		RequestType:  core.InvitationCodeRequest{},
+		ResponseType: types.InvitationCodeResponse{},
+		RequestType: types.InvitationCodeRequest{},
 		Note:         "Updates an existing invitation code identified by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -298,7 +298,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		Route:       "/api/v1/invitation-code/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

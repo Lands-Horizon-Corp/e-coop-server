@@ -18,7 +18,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation-history",
 		Method:       "GET",
-		ResponseType: core.MemberOccupationHistoryResponse{},
+		ResponseType: types.MemberOccupationHistoryResponse{},
 		Note:         "Returns all member occupation history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberOccupationHistoryResponse{},
+		ResponseType: types.MemberOccupationHistoryResponse{},
 		Note:         "Returns member occupation history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -62,7 +62,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "GET",
-		ResponseType: core.MemberOccupationResponse{},
+		ResponseType: types.MemberOccupationResponse{},
 		Note:         "Returns all member occupations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -80,7 +80,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation/search",
 		Method:       "GET",
-		ResponseType: core.MemberOccupationResponse{},
+		ResponseType: types.MemberOccupationResponse{},
 		Note:         "Returns paginated member occupations for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -101,8 +101,8 @@ func MemberOccupationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "POST",
-		ResponseType: core.MemberOccupationResponse{},
-		RequestType:  core.MemberOccupationRequest{},
+		ResponseType: types.MemberOccupationResponse{},
+		RequestType: types.MemberOccupationRequest{},
 		Note:         "Creates a new member occupation record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -157,8 +157,8 @@ func MemberOccupationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation/:member_occupation_id",
 		Method:       "PUT",
-		ResponseType: core.MemberOccupationResponse{},
-		RequestType:  core.MemberOccupationRequest{},
+		ResponseType: types.MemberOccupationResponse{},
+		RequestType: types.MemberOccupationRequest{},
 		Note:         "Updates an existing member occupation record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -264,7 +264,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		Route:       "/api/v1/member-occupation/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member occupation records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

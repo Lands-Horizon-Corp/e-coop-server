@@ -19,8 +19,8 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement-transaction",
 		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific/current transaction batch.",
-		ResponseType: core.DisbursementTransactionResponse{},
-		RequestType:  core.DisbursementTransactionRequest{},
+		ResponseType: types.DisbursementTransactionResponse{},
+		RequestType: types.DisbursementTransactionRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.DisbursementTransactionManager(service).Validate(ctx)
@@ -84,7 +84,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement-transaction/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for a specific transaction batch.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
@@ -113,7 +113,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement-transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions handled by a specific employee.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrganizationID, err := helpers.EngineUUIDParam(ctx, "user_organization_id")
@@ -142,7 +142,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement-transaction/current/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the currently authenticated user.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -167,7 +167,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement-transaction/current",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the currently authenticated user.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -192,7 +192,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement-transaction/branch/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the current user's branch.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -216,7 +216,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		Route:        "/api/v1/disbursement-transaction/disbursement/:disbursement_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for a specific disbursement ID.",
-		ResponseType: core.DisbursementResponse{},
+		ResponseType: types.DisbursementResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		disbursementID, err := helpers.EngineUUIDParam(ctx, "disbursement_id")

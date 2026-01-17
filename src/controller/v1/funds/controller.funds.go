@@ -18,7 +18,7 @@ func FundsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/funds",
 		Method:       "GET",
-		ResponseType: core.FundsResponse{},
+		ResponseType: types.FundsResponse{},
 		Note:         "Returns all funds for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func FundsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/funds/search",
 		Method:       "GET",
-		ResponseType: core.FundsResponse{},
+		ResponseType: types.FundsResponse{},
 		Note:         "Returns paginated funds for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -57,8 +57,8 @@ func FundsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/funds",
 		Method:       "POST",
-		ResponseType: core.FundsResponse{},
-		RequestType:  core.FundsRequest{},
+		ResponseType: types.FundsResponse{},
+		RequestType: types.FundsRequest{},
 		Note:         "Creates a new funds record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -116,8 +116,8 @@ func FundsController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/funds/:funds_id",
 		Method:       "PUT",
-		ResponseType: core.FundsResponse{},
-		RequestType:  core.FundsRequest{},
+		ResponseType: types.FundsResponse{},
+		RequestType: types.FundsRequest{},
 		Note:         "Updates an existing funds record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -226,7 +226,7 @@ func FundsController(service *horizon.HorizonService) {
 		Route:       "/api/v1/funds/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple funds records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

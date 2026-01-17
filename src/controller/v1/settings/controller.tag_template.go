@@ -18,7 +18,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "GET",
-		ResponseType: core.TagTemplateResponse{},
+		ResponseType: types.TagTemplateResponse{},
 		Note:         "Returns all tag templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -39,7 +39,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template/search",
 		Method:       "GET",
-		ResponseType: core.TagTemplateResponse{},
+		ResponseType: types.TagTemplateResponse{},
 		Note:         "Returns paginated tag templates for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -60,7 +60,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "GET",
-		ResponseType: core.TagTemplateResponse{},
+		ResponseType: types.TagTemplateResponse{},
 		Note:         "Returns a specific tag template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -78,8 +78,8 @@ func TagTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "POST",
-		ResponseType: core.TagTemplateResponse{},
-		RequestType:  core.TagTemplateRequest{},
+		ResponseType: types.TagTemplateResponse{},
+		RequestType: types.TagTemplateRequest{},
 		Note:         "Creates a new tag template for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -137,8 +137,8 @@ func TagTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "PUT",
-		ResponseType: core.TagTemplateResponse{},
-		RequestType:  core.TagTemplateRequest{},
+		ResponseType: types.TagTemplateResponse{},
+		RequestType: types.TagTemplateRequest{},
 		Note:         "Updates an existing tag template by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -246,7 +246,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/tag-template/bulk-delete",
 		Method:      "DELETE",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 		Note:        "Deletes multiple tag template records by their IDs.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

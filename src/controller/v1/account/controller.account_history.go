@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -17,7 +18,7 @@ func AccountHistoryController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/account/:account_id",
-		ResponseType: core.AccountHistoryResponse{},
+		ResponseType: types.AccountHistoryResponse{},
 		Note:         "Get account history by account ID",
 	},
 		func(ctx echo.Context) error {
@@ -45,7 +46,7 @@ func AccountHistoryController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/:account_history_id",
-		ResponseType: core.AccountHistory{},
+		ResponseType: types.AccountHistory{},
 		Note:         "Get account history by account history ID",
 	},
 		func(ctx echo.Context) error {
@@ -64,7 +65,7 @@ func AccountHistoryController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/account-history/:account_history_id/restore",
-		ResponseType: core.AccountHistory{},
+		ResponseType: types.AccountHistory{},
 		Note:         "Restore account history by account ID",
 	},
 		func(ctx echo.Context) error {

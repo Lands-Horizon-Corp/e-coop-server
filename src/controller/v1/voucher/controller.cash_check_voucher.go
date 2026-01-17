@@ -22,7 +22,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "GET",
 		Note:         "Returns all cash check vouchers for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -43,7 +43,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cash check vouchers for the current user's organization and branch.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -67,7 +67,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/draft",
 		Method:       "GET",
 		Note:         "Fetches draft cash check vouchers for the current user's organization and branch.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -93,7 +93,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/printed",
 		Method:       "GET",
 		Note:         "Fetches printed cash check vouchers for the current user's organization and branch.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -119,7 +119,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/approved",
 		Method:       "GET",
 		Note:         "Fetches approved cash check vouchers for the current user's organization and branch.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -145,7 +145,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/released",
 		Method:       "GET",
 		Note:         "Fetches released cash check vouchers for the current user's organization and branch.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -171,7 +171,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single cash check voucher by its ID.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -189,8 +189,8 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cash check voucher for the current user's organization and branch.",
-		RequestType:  core.CashCheckVoucherRequest{},
-		ResponseType: core.CashCheckVoucherResponse{},
+		RequestType: types.CashCheckVoucherRequest{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		request, err := core.CashCheckVoucherManager(service).Validate(ctx)
@@ -345,8 +345,8 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cash check voucher by its ID.",
-		RequestType:  core.CashCheckVoucherRequest{},
-		ResponseType: core.CashCheckVoucherResponse{},
+		RequestType: types.CashCheckVoucherRequest{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -586,7 +586,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:       "/api/v1/cash-check-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cash check vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -631,8 +631,8 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a cash check voucher as printed by ID and updates print count.",
-		RequestType:  core.CashCheckVoucherPrintRequest{},
-		ResponseType: core.CashCheckVoucherResponse{},
+		RequestType: types.CashCheckVoucherPrintRequest{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -696,7 +696,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a cash check voucher by ID.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -755,7 +755,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/release",
 		Method:       "POST",
 		Note:         "Releases a cash check voucher by ID. RELEASED SHOULD NOT BE UNAPPROVED.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -875,7 +875,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-undo",
 		Method:       "PUT",
 		Note:         "Reverts the print status of a cash check voucher by ID.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -928,7 +928,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/print-only",
 		Method:       "POST",
 		Note:         "Marks a cash check voucher as printed without additional details by ID.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -977,7 +977,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/:cash_check_voucher_id/approve-undo",
 		Method:       "POST",
 		Note:         "Reverts the approval status of a cash check voucher by ID.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cashCheckVoucherID, err := helpers.EngineUUIDParam(ctx, "cash_check_voucher_id")
@@ -1036,7 +1036,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cash-check-voucher/released/today",
 		Method:       "GET",
 		Note:         "Retrieves all cash check vouchers released today.",
-		ResponseType: core.CashCheckVoucherResponse{},
+		ResponseType: types.CashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)

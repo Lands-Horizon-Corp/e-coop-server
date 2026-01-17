@@ -18,7 +18,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department-history",
 		Method:       "GET",
-		ResponseType: core.MemberDepartmentHistory{},
+		ResponseType: types.MemberDepartmentHistory{},
 		Note:         "Returns all member department history entries for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -36,7 +36,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberDepartmentHistoryResponse{},
+		ResponseType: types.MemberDepartmentHistoryResponse{},
 		Note:         "Returns member department history for a specific member profile ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -62,7 +62,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department",
 		Method:       "GET",
-		ResponseType: core.MemberDepartmentResponse{},
+		ResponseType: types.MemberDepartmentResponse{},
 		Note:         "Returns all member departments for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -80,7 +80,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department/search",
 		Method:       "GET",
-		ResponseType: core.MemberDepartmentResponse{},
+		ResponseType: types.MemberDepartmentResponse{},
 		Note:         "Returns paginated member departments for the current user's branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -101,8 +101,8 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department",
 		Method:       "POST",
-		ResponseType: core.MemberDepartmentResponse{},
-		RequestType:  core.MemberDepartmentRequest{},
+		ResponseType: types.MemberDepartmentResponse{},
+		RequestType: types.MemberDepartmentRequest{},
 		Note:         "Creates a new member department record.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -158,8 +158,8 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department/:member_department_id",
 		Method:       "PUT",
-		ResponseType: core.MemberDepartmentResponse{},
-		RequestType:  core.MemberDepartmentRequest{},
+		ResponseType: types.MemberDepartmentResponse{},
+		RequestType: types.MemberDepartmentRequest{},
 		Note:         "Updates an existing member department record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -266,7 +266,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		Route:       "/api/v1/member-department/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member department records by their IDs.",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

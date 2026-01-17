@@ -19,7 +19,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "GET",
 		Note:         "Returns a paginated list of charges rate schemes for the current user's organization and branch.",
-		ResponseType: core.ChargesRateSchemeResponse{},
+		ResponseType: types.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -40,7 +40,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Returns a list of charges rate schemes for a specific currency.",
-		ResponseType: core.ChargesRateSchemeResponse{},
+		ResponseType: types.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
@@ -69,7 +69,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "GET",
 		Note:         "Returns a single charges rate scheme by its ID.",
-		ResponseType: core.ChargesRateSchemeResponse{},
+		ResponseType: types.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
@@ -87,8 +87,8 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme for the current user's organization and branch.",
-		RequestType:  core.ChargesRateSchemeRequest{},
-		ResponseType: core.ChargesRateSchemeResponse{},
+		RequestType: types.ChargesRateSchemeRequest{},
+		ResponseType: types.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.ChargesRateSchemeManager(service).Validate(ctx)
@@ -222,8 +222,8 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme by its ID.",
-		RequestType:  core.ChargesRateSchemeRequest{},
-		ResponseType: core.ChargesRateSchemeResponse{},
+		RequestType: types.ChargesRateSchemeRequest{},
+		ResponseType: types.ChargesRateSchemeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
@@ -673,7 +673,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		Route:       "/api/v1/charges-rate-scheme/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate schemes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

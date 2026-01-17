@@ -19,7 +19,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:       "GET",
-		ResponseType: core.MemberGeneralLedgerTotal{},
+		ResponseType: types.MemberGeneralLedgerTotal{},
 		Note:         "Returns the total amount for a specific member profile's general ledger entries for an account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -70,7 +70,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-accounting-ledger/:member_accounting_ledger_id",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -106,7 +106,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/:general_ledger_id",
 		Method:       "GET",
-		ResponseType: core.GeneralLedger{},
+		ResponseType: types.GeneralLedger{},
 		Note:         "Returns a specific general ledger entry by ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -131,7 +131,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -159,7 +159,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/check-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -188,7 +188,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/online-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -217,7 +217,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/cash-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -246,7 +246,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/payment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -275,7 +275,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/withdraw-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -304,7 +304,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/deposit-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -333,7 +333,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/journal-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -362,7 +362,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/adjustment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -391,7 +391,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/journal-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -420,7 +420,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/branch/check-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries of the current branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -449,7 +449,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -500,7 +500,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/check-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -553,7 +553,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/online-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -606,7 +606,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/cash-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -659,7 +659,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/payment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -712,7 +712,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/withdraw-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -788,7 +788,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/deposit-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -841,7 +841,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/journal-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -894,7 +894,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/adjustment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -947,7 +947,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/journal-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1000,7 +1000,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/current/check-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries of the current user with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1053,7 +1053,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified employee (by user organization ID) with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1086,7 +1086,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/check-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1120,7 +1120,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/online-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1154,7 +1154,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/cash-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1188,7 +1188,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/payment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1222,7 +1222,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/withdraw-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1256,7 +1256,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/deposit-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1290,7 +1290,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/journal-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1324,7 +1324,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/adjustment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1358,7 +1358,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/journal-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1392,7 +1392,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/employee/:user_organization_id/check-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries for the specified employee with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1426,7 +1426,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1472,7 +1472,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/check-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1510,7 +1510,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/online-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1548,7 +1548,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/cash-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1586,7 +1586,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/payment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1624,7 +1624,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/withdraw-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1662,7 +1662,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/deposit-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1700,7 +1700,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/journal-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1738,7 +1738,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/adjustment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1776,7 +1776,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/journal-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1814,7 +1814,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/check-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries for the specified member profile with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1852,7 +1852,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/check-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1887,7 +1887,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/online-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1922,7 +1922,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/cash-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1957,7 +1957,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/payment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -1992,7 +1992,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/withdraw-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2027,7 +2027,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/deposit-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2062,7 +2062,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/journal-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2097,7 +2097,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/adjustment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2132,7 +2132,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/journal-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2167,7 +2167,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/check-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries for the specified member account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2202,7 +2202,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2231,7 +2231,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2261,7 +2261,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/online-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2291,7 +2291,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/cash-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2321,7 +2321,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/payment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2351,7 +2351,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/withdraw-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2381,7 +2381,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/deposit-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2411,7 +2411,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/journal-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2441,7 +2441,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/adjustment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2471,7 +2471,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/journal-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2501,7 +2501,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction-batch/:transaction_batch_id/check-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries for the specified transaction batch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2531,7 +2531,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2557,7 +2557,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/check-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2587,7 +2587,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/online-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2617,7 +2617,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/cash-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2647,7 +2647,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/payment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2677,7 +2677,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/withdraw-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2707,7 +2707,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/deposit-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2733,7 +2733,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/journal-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2759,7 +2759,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/adjustment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2785,7 +2785,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/journal-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2812,7 +2812,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/transaction/:transaction_id/check-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries for the specified transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2838,7 +2838,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2867,7 +2867,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/check-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check entry general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2897,7 +2897,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/online-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all online entry general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2927,7 +2927,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/cash-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all cash entry general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2957,7 +2957,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/payment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all payment entry general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -2987,7 +2987,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/withdraw-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all withdraw entry general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -3017,7 +3017,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/deposit-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all deposit entry general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -3047,7 +3047,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/journal-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal entry general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -3077,7 +3077,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/adjustment-entry/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all adjustment entry general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -3107,7 +3107,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/journal-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all journal voucher general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -3137,7 +3137,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/account/:account_id/check-voucher/search",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all check voucher general ledger entries for the specified account with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -3167,7 +3167,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger/loan-transaction/:loan_transaction_id",
 		Method:       "GET",
-		ResponseType: core.GeneralLedgerResponse{},
+		ResponseType: types.GeneralLedgerResponse{},
 		Note:         "Returns all general ledger entries for the specified loan transaction with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

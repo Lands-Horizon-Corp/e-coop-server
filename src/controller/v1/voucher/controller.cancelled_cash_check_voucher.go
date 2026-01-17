@@ -19,7 +19,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "GET",
 		Note:         "Returns all cancelled cash check vouchers for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.CancelledCashCheckVoucherResponse{},
+		ResponseType: types.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -40,7 +40,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cancelled-cash-check-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cancelled cash check vouchers for the current user's organization and branch.",
-		ResponseType: core.CancelledCashCheckVoucherResponse{},
+		ResponseType: types.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -64,7 +64,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single cancelled cash check voucher by its ID.",
-		ResponseType: core.CancelledCashCheckVoucherResponse{},
+		ResponseType: types.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cancelledVoucherID, err := helpers.EngineUUIDParam(ctx, "cancelled_cash_check_voucher_id")
@@ -82,8 +82,8 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cancelled cash check voucher for the current user's organization and branch.",
-		RequestType:  core.CancelledCashCheckVoucherRequest{},
-		ResponseType: core.CancelledCashCheckVoucherResponse{},
+		RequestType: types.CancelledCashCheckVoucherRequest{},
+		ResponseType: types.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.CancelledCashCheckVoucherManager(service).Validate(ctx)
@@ -145,8 +145,8 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cancelled cash check voucher by its ID.",
-		RequestType:  core.CancelledCashCheckVoucherRequest{},
-		ResponseType: core.CancelledCashCheckVoucherResponse{},
+		RequestType: types.CancelledCashCheckVoucherRequest{},
+		ResponseType: types.CancelledCashCheckVoucherResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		cancelledVoucherID, err := helpers.EngineUUIDParam(ctx, "cancelled_cash_check_voucher_id")
@@ -251,7 +251,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		Route:       "/api/v1/cancelled-cash-check-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cancelled cash check vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

@@ -19,7 +19,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/check-remittance",
 		Method:       "GET",
 		Note:         "Returns all check remittances for the current active transaction batch of the authenticated user's branch. Only 'owner' or 'employee' roles are allowed.",
-		ResponseType: core.CheckRemittanceResponse{},
+		ResponseType: types.CheckRemittanceResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -58,8 +58,8 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "POST",
-		ResponseType: core.CheckRemittanceResponse{},
-		RequestType:  core.CheckRemittanceRequest{},
+		ResponseType: types.CheckRemittanceResponse{},
+		RequestType: types.CheckRemittanceRequest{},
 		Note:         "Creates a new check remittance for the current active transaction batch. Only 'owner' or 'employee' roles are allowed.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -163,8 +163,8 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 		Route:        "/api/v1/check-remittance/:check_remittance_id",
 		Method:       "PUT",
 		Note:         "Updates an existing check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
-		ResponseType: core.CheckRemittanceResponse{},
-		RequestType:  core.CheckRemittanceRequest{},
+		ResponseType: types.CheckRemittanceResponse{},
+		RequestType: types.CheckRemittanceRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		checkRemittanceID, err := helpers.EngineUUIDParam(ctx, "check_remittance_id")

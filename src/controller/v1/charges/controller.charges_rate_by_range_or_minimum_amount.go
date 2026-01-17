@@ -19,8 +19,8 @@ func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by range or minimum amount for the current user's organization and branch.",
-		RequestType:  core.ChargesRateByRangeOrMinimumAmountRequest{},
-		ResponseType: core.ChargesRateByRangeOrMinimumAmountResponse{},
+		RequestType: types.ChargesRateByRangeOrMinimumAmountRequest{},
+		ResponseType: types.ChargesRateByRangeOrMinimumAmountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateSchemeID, err := helpers.EngineUUIDParam(ctx, "charges_rate_scheme_id")
@@ -94,8 +94,8 @@ func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by range or minimum amount by its ID.",
-		RequestType:  core.ChargesRateByRangeOrMinimumAmountRequest{},
-		ResponseType: core.ChargesRateByRangeOrMinimumAmountResponse{},
+		RequestType: types.ChargesRateByRangeOrMinimumAmountRequest{},
+		ResponseType: types.ChargesRateByRangeOrMinimumAmountResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		chargesRateByRangeOrMinimumAmountID, err := helpers.EngineUUIDParam(ctx, "charges_rate_by_range_or_minimum_amount_id")
@@ -202,7 +202,7 @@ func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService
 		Route:       "/api/v1/charges-rate-by-range-or-minimum-amount/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate by range or minimum amount by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest

@@ -38,7 +38,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:       "GET",
-		ResponseType: core.MemberAccountingLedgerAccountSummary{},
+		ResponseType: types.MemberAccountingLedgerAccountSummary{},
 		Note:         "Returns the total amount for a specific member profile and account ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -86,7 +86,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/search",
 		Method:       "GET",
-		ResponseType: core.MemberAccountingLedger{},
+		ResponseType: types.MemberAccountingLedger{},
 		Note:         "Returns paginated general ledger entries for a specific member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -125,7 +125,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id",
 		Method:       "GET",
-		ResponseType: core.MemberAccountingLedger{},
+		ResponseType: types.MemberAccountingLedger{},
 		Note:         "Returns paginated general ledger entries for a specific member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -165,7 +165,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/branch/search",
 		Method:       "GET",
-		ResponseType: core.MemberAccountingLedger{},
+		ResponseType: types.MemberAccountingLedger{},
 		Note:         "Returns paginated general ledger entries for a specific member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -201,7 +201,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/compassion-fund-account",
 		Method:       "GET",
-		ResponseType: core.MemberAccountingLedger{},
+		ResponseType: types.MemberAccountingLedger{},
 		Note:         "Returns single account for member accounting ledger compassion fund.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

@@ -18,8 +18,8 @@ func MemberIncomeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-income/member-profile/:member_profile_id",
 		Method:       "POST",
-		ResponseType: core.MemberIncomeResponse{},
-		RequestType:  core.MemberIncomeRequest{},
+		ResponseType: types.MemberIncomeResponse{},
+		RequestType: types.MemberIncomeRequest{},
 		Note:         "Creates a new income record for the specified member profile.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -87,8 +87,8 @@ func MemberIncomeController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-income/:member_income_id",
 		Method:       "PUT",
-		ResponseType: core.MemberIncomeResponse{},
-		RequestType:  core.MemberIncomeRequest{},
+		ResponseType: types.MemberIncomeResponse{},
+		RequestType: types.MemberIncomeRequest{},
 		Note:         "Updates an existing income record by its ID.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

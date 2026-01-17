@@ -19,8 +19,8 @@ func BatchFundingController(service *horizon.HorizonService) {
 		Route:        "/api/v1/batch-funding",
 		Method:       "POST",
 		Note:         "Creates a new batch funding for the currently active transaction batch of the user's organization and branch. Also updates the related transaction batch balances.",
-		RequestType:  core.BatchFundingRequest{},
-		ResponseType: core.BatchFundingResponse{},
+		RequestType: types.BatchFundingRequest{},
+		ResponseType: types.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		batchFundingReq, err := core.BatchFundingManager(service).Validate(ctx)
@@ -111,7 +111,7 @@ func BatchFundingController(service *horizon.HorizonService) {
 		Route:        "/api/v1/batch-funding/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Retrieves a paginated list of batch funding records for the specified transaction batch, if the user is authorized for the branch.",
-		ResponseType: core.BatchFundingResponse{},
+		ResponseType: types.BatchFundingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
@@ -153,7 +153,7 @@ func BatchFundingController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/batch-funding/search",
 		Method:       "GET",
-		ResponseType: core.BatchFundingResponse{},
+		ResponseType: types.BatchFundingResponse{},
 		Note:         "Returns all batch funding records for the current user's organization and branch with pagination.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()

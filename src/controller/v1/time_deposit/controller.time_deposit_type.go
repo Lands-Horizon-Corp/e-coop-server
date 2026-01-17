@@ -19,7 +19,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "GET",
 		Note:         "Returns a paginated list of time deposit types for the current user's organization and branch.",
-		ResponseType: core.TimeDepositTypeResponse{},
+		ResponseType: types.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -40,7 +40,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "GET",
 		Note:         "Returns a single time deposit type by its ID.",
-		ResponseType: core.TimeDepositTypeResponse{},
+		ResponseType: types.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := helpers.EngineUUIDParam(ctx, "time_deposit_type_id")
@@ -58,8 +58,8 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "POST",
 		Note:         "Creates a new time deposit type for the current user's organization and branch.",
-		RequestType:  core.TimeDepositTypeRequest{},
-		ResponseType: core.TimeDepositTypeResponse{},
+		RequestType: types.TimeDepositTypeRequest{},
+		ResponseType: types.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.TimeDepositTypeManager(service).Validate(ctx)
@@ -124,8 +124,8 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit type by its ID.",
-		RequestType:  core.TimeDepositTypeRequest{},
-		ResponseType: core.TimeDepositTypeResponse{},
+		RequestType: types.TimeDepositTypeRequest{},
+		ResponseType: types.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		timeDepositTypeID, err := helpers.EngineUUIDParam(ctx, "time_deposit_type_id")
@@ -389,7 +389,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		Route:       "/api/v1/time-deposit-type/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit types by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -437,7 +437,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		Route:        "/api/v1/time-deposit-type/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Fetch time deposit types by currency ID.",
-		ResponseType: core.TimeDepositTypeResponse{},
+		ResponseType: types.TimeDepositTypeResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")

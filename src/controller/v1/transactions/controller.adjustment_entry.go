@@ -21,7 +21,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "GET",
 		Note:         "Returns all adjustment entries for the current user's organization and branch. Returns empty if not authenticated.",
-		ResponseType: core.AdjustmentEntryResponse{},
+		ResponseType: types.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -42,7 +42,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries for the current user's organization and branch.",
-		ResponseType: core.AdjustmentEntryResponse{},
+		ResponseType: types.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -66,7 +66,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method:       "GET",
 		Note:         "Returns a single adjustment entry by its ID.",
-		ResponseType: core.AdjustmentEntryResponse{},
+		ResponseType: types.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		adjustmentEntryID, err := helpers.EngineUUIDParam(ctx, "adjustment_entry_id")
@@ -84,8 +84,8 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "POST",
 		Note:         "Creates a new adjustment entry for the current user's organization and branch.",
-		RequestType:  core.AdjustmentEntryRequest{},
-		ResponseType: core.AdjustmentEntryResponse{},
+		RequestType: types.AdjustmentEntryRequest{},
+		ResponseType: types.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		req, err := core.AdjustmentEntryManager(service).Validate(ctx)
@@ -249,7 +249,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:       "/api/v1/adjustment-entry/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple adjustment entries by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
-		RequestType: core.IDSRequest{},
+		RequestType: types.IDSRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		var reqBody core.IDSRequest
@@ -295,7 +295,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry/total",
 		Method:       "GET",
 		Note:         "Returns the total debit and credit of all adjustment entries for the current user's organization and branch.",
-		ResponseType: core.AdjustmentEntryTotalResponse{},
+		ResponseType: types.AdjustmentEntryTotalResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -327,7 +327,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries filtered by currency and optionally by user organization.",
-		ResponseType: core.AdjustmentEntryResponse{},
+		ResponseType: types.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -371,7 +371,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/total",
 		Method:       "GET",
 		Note:         "Returns the total amount of adjustment entries filtered by currency and optionally by user organization.",
-		ResponseType: core.AdjustmentEntryTotalResponse{},
+		ResponseType: types.AdjustmentEntryTotalResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
@@ -411,7 +411,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries filtered by currency and user organization.",
-		ResponseType: core.AdjustmentEntryResponse{},
+		ResponseType: types.AdjustmentEntryResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
@@ -460,7 +460,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total",
 		Method:       "GET",
 		Note:         "Returns the total amount of adjustment entries filtered by currency and user organization.",
-		ResponseType: core.AdjustmentEntryTotalResponse{},
+		ResponseType: types.AdjustmentEntryTotalResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		currencyID, err := helpers.EngineUUIDParam(ctx, "currency_id")
