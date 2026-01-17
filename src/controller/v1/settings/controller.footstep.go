@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,7 +50,7 @@ func FootstepController(service *horizon.HorizonService) {
 		}
 		longitude := helpers.ParseCoordinate(ctx.Request().Header.Get("X-Longitude"))
 		latitude := helpers.ParseCoordinate(ctx.Request().Header.Get("X-Latitude"))
-		footstep := &core.Footstep{
+		footstep := &types.Footstep{
 			Activity: req.Activity,
 			UserType: userOrg.UserType,
 			Module:   req.Module,
@@ -99,7 +100,7 @@ func FootstepController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or user not found"})
 		}
-		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &types.Footstep{
 			UserID: &user.ID,
 		})
 		if err != nil {
@@ -133,7 +134,7 @@ func FootstepController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &types.Footstep{
 			UserID:         &userOrg.UserID,
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
@@ -154,7 +155,7 @@ func FootstepController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization/branch not found"})
 		}
-		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &types.Footstep{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
 		})
@@ -181,7 +182,7 @@ func FootstepController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
 
-		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &types.Footstep{
 			BranchID:       targetUserOrg.BranchID,
 			OrganizationID: &targetUserOrg.OrganizationID,
 			UserID:         &targetUserOrg.UserID,
@@ -225,7 +226,7 @@ func FootstepController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User branch ID is missing"})
 		}
-		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &core.Footstep{
+		footstep, err := core.FootstepManager(service).NormalPagination(context, ctx, &types.Footstep{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: &userOrg.OrganizationID,
 			UserID:         &userOrg.UserID,

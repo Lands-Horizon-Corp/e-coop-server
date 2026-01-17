@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -43,7 +44,7 @@ func FundsController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		funds, err := core.FundsManager(service).NormalPagination(context, ctx, &core.Funds{
+		funds, err := core.FundsManager(service).NormalPagination(context, ctx, &types.Funds{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -80,7 +81,7 @@ func FundsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		funds := &core.Funds{
+		funds := &types.Funds{
 			AccountID:      req.AccountID,
 			Type:           req.Type,
 			Description:    req.Description,

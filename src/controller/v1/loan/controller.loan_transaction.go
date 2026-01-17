@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -60,7 +61,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := core.LoanTransactionManager(service).NormalPagination(context, ctx, &core.LoanTransaction{
+		loanTransactions, err := core.LoanTransactionManager(service).NormalPagination(context, ctx, &types.LoanTransaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -91,7 +92,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := core.LoanTransactionManager(service).NormalPagination(context, ctx, &core.LoanTransaction{
+		loanTransactions, err := core.LoanTransactionManager(service).NormalPagination(context, ctx, &types.LoanTransaction{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -123,7 +124,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view loan transactions"})
 		}
 
-		loanTransactions, err := core.LoanTransactionManager(service).FindRaw(context, &core.LoanTransaction{
+		loanTransactions, err := core.LoanTransactionManager(service).FindRaw(context, &types.LoanTransaction{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -353,7 +354,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
 
-		entries, err := core.LoanTransactionEntryManager(service).Find(context, &core.LoanTransactionEntry{
+		entries, err := core.LoanTransactionEntryManager(service).Find(context, &types.LoanTransactionEntry{
 			LoanTransactionID: *loanTransactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -396,7 +397,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		}
 		tx, endTx := service.Database.StartTransaction(context)
 
-		loanTransaction := &core.LoanTransaction{
+		loanTransaction := &types.LoanTransaction{
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
 
@@ -487,7 +488,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		}
 		if request.LoanClearanceAnalysis != nil {
 			for _, clearanceAnalysisReq := range request.LoanClearanceAnalysis {
-				clearanceAnalysis := &core.LoanClearanceAnalysis{
+				clearanceAnalysis := &types.LoanClearanceAnalysis{
 					CreatedAt:      time.Now().UTC(),
 					UpdatedAt:      time.Now().UTC(),
 					CreatedByID:    userOrg.UserID,
@@ -509,7 +510,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		}
 		if request.LoanClearanceAnalysisInstitution != nil {
 			for _, institutionReq := range request.LoanClearanceAnalysisInstitution {
-				institution := &core.LoanClearanceAnalysisInstitution{
+				institution := &types.LoanClearanceAnalysisInstitution{
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
 					CreatedByID:       userOrg.UserID,
@@ -528,7 +529,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		}
 		if request.LoanTermsAndConditionSuggestedPayment != nil {
 			for _, suggestedPaymentReq := range request.LoanTermsAndConditionSuggestedPayment {
-				suggestedPayment := &core.LoanTermsAndConditionSuggestedPayment{
+				suggestedPayment := &types.LoanTermsAndConditionSuggestedPayment{
 
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
@@ -548,7 +549,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		}
 		if request.LoanTermsAndConditionAmountReceipt != nil {
 			for _, amountReceiptReq := range request.LoanTermsAndConditionAmountReceipt {
-				amountReceipt := &core.LoanTermsAndConditionAmountReceipt{
+				amountReceipt := &types.LoanTermsAndConditionAmountReceipt{
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
 					CreatedByID:       userOrg.UserID,
@@ -568,7 +569,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 
 		if request.ComakerMemberProfiles != nil {
 			for _, comakerReq := range request.ComakerMemberProfiles {
-				comakerMemberProfile := &core.ComakerMemberProfile{
+				comakerMemberProfile := &types.ComakerMemberProfile{
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
 					CreatedByID:       userOrg.UserID,
@@ -591,7 +592,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 
 		if request.ComakerCollaterals != nil {
 			for _, comakerReq := range request.ComakerCollaterals {
-				comakerCollateral := &core.ComakerCollateral{
+				comakerCollateral := &types.ComakerCollateral{
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
 					CreatedByID:       userOrg.UserID,
@@ -677,7 +678,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		}
 		cashOnCashEquivalenceAccountID := cashOnHandAccount.ID
 		if !helpers.UUIDPtrEqual(account.CurrencyID, &cashOnCashEquivalenceAccountID) {
-			accounts, err := core.AccountManager(service).Find(context, &core.Account{
+			accounts, err := core.AccountManager(service).Find(context, &types.Account{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
 				CurrencyID:             account.CurrencyID,
@@ -880,7 +881,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan clearance analysis: " + endTx(err).Error()})
 					}
 				} else {
-					clearanceAnalysis := &core.LoanClearanceAnalysis{
+					clearanceAnalysis := &types.LoanClearanceAnalysis{
 						CreatedAt:                   time.Now().UTC(),
 						UpdatedAt:                   time.Now().UTC(),
 						CreatedByID:                 userOrg.UserID,
@@ -921,7 +922,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan clearance analysis institution: " + endTx(err).Error()})
 					}
 				} else {
-					institution := &core.LoanClearanceAnalysisInstitution{
+					institution := &types.LoanClearanceAnalysisInstitution{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
 						CreatedByID:       userOrg.UserID,
@@ -959,7 +960,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan terms suggested payment: " + endTx(err).Error()})
 					}
 				} else {
-					suggestedPayment := &core.LoanTermsAndConditionSuggestedPayment{
+					suggestedPayment := &types.LoanTermsAndConditionSuggestedPayment{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
 						CreatedByID:       userOrg.UserID,
@@ -997,7 +998,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan terms amount receipt: " + endTx(err).Error()})
 					}
 				} else {
-					amountReceipt := &core.LoanTermsAndConditionAmountReceipt{
+					amountReceipt := &types.LoanTermsAndConditionAmountReceipt{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
 						CreatedByID:       userOrg.UserID,
@@ -1038,7 +1039,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update comaker member profile: " + endTx(err).Error()})
 					}
 				} else {
-					comakerMemberProfile := &core.ComakerMemberProfile{
+					comakerMemberProfile := &types.ComakerMemberProfile{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
 						CreatedByID:       userOrg.UserID,
@@ -1083,7 +1084,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update comaker collateral: " + endTx(err).Error()})
 					}
 				} else {
-					comakerCollateral := &core.ComakerCollateral{
+					comakerCollateral := &types.ComakerCollateral{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
 						CreatedByID:       userOrg.UserID,
@@ -1105,7 +1106,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			}
 		}
 		if !helpers.UUIDPtrEqual(account.CurrencyID, loanTransaction.Account.CurrencyID) {
-			loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(context, &core.LoanTransactionEntry{
+			loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(context, &types.LoanTransactionEntry{
 				LoanTransactionID: loanTransaction.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
@@ -1195,7 +1196,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 
 		tx, endTx := service.Database.StartTransaction(context)
 
-		clearanceAnalysisList, err := core.LoanClearanceAnalysisManager(service).Find(context, &core.LoanClearanceAnalysis{
+		clearanceAnalysisList, err := core.LoanClearanceAnalysisManager(service).Find(context, &types.LoanClearanceAnalysis{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1211,7 +1212,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			}
 		}
 
-		institutionList, err := core.LoanClearanceAnalysisInstitutionManager(service).Find(context, &core.LoanClearanceAnalysisInstitution{
+		institutionList, err := core.LoanClearanceAnalysisInstitutionManager(service).Find(context, &types.LoanClearanceAnalysisInstitution{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1227,7 +1228,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			}
 		}
 
-		suggestedPaymentList, err := core.LoanTermsAndConditionSuggestedPaymentManager(service).Find(context, &core.LoanTermsAndConditionSuggestedPayment{
+		suggestedPaymentList, err := core.LoanTermsAndConditionSuggestedPaymentManager(service).Find(context, &types.LoanTermsAndConditionSuggestedPayment{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1243,7 +1244,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			}
 		}
 
-		amountReceiptList, err := core.LoanTermsAndConditionAmountReceiptManager(service).Find(context, &core.LoanTermsAndConditionAmountReceipt{
+		amountReceiptList, err := core.LoanTermsAndConditionAmountReceiptManager(service).Find(context, &types.LoanTermsAndConditionAmountReceipt{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1259,7 +1260,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			}
 		}
 
-		transactionEntryList, err := core.LoanTransactionEntryManager(service).Find(context, &core.LoanTransactionEntry{
+		transactionEntryList, err := core.LoanTransactionEntryManager(service).Find(context, &types.LoanTransactionEntry{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1275,7 +1276,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			}
 		}
 
-		comakerMemberProfileList, err := core.ComakerMemberProfileManager(service).Find(context, &core.ComakerMemberProfile{
+		comakerMemberProfileList, err := core.ComakerMemberProfileManager(service).Find(context, &types.ComakerMemberProfile{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1822,7 +1823,7 @@ func LoanTransactionController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to calculate suggested terms: " + err.Error()})
 		}
 
-		return ctx.JSON(http.StatusOK, &core.LoanTransactionSuggestedResponse{
+		return ctx.JSON(http.StatusOK, &types.LoanTransactionSuggestedResponse{
 			Terms: suggestedTerms,
 		})
 	})

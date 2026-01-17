@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -50,7 +51,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := core.MutualFundEntryManager(service).NormalPagination(context, ctx, &core.MutualFundEntry{
+		entries, err := core.MutualFundEntryManager(service).NormalPagination(context, ctx, &types.MutualFundEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -172,7 +173,7 @@ func MutualFundEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Member profile already associated with this mutual fund"})
 		}
 
-		entry := &core.MutualFundEntry{
+		entry := &types.MutualFundEntry{
 			MemberProfileID: req.MemberProfileID,
 			AccountID:       req.AccountID,
 			Amount:          req.Amount,

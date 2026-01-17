@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -14,12 +15,12 @@ import (
 type NotificationEvent struct {
 	Title            string
 	Description      string
-	NotificationType core.NotificationType
+	NotificationType types.NotificationType
 }
 
 func createNotificationForUsers(
 	context context.Context, service *horizon.HorizonService,
-	users []*core.UserOrganization, data NotificationEvent, senderUserID *uuid.UUID) {
+	users []*types.UserOrganization, data NotificationEvent, senderUserID *uuid.UUID) {
 	data.Title = helpers.Sanitize(data.Title)
 	data.Description = helpers.Sanitize(data.Description)
 
@@ -32,7 +33,7 @@ func createNotificationForUsers(
 			continue
 		}
 
-		notification := &core.Notification{
+		notification := &types.Notification{
 			CreatedAt:        time.Now().UTC(),
 			UpdatedAt:        time.Now().UTC(),
 			Title:            data.Title,
@@ -50,10 +51,10 @@ func createNotificationForUsers(
 	}
 }
 
-func filterAdminUsers(users []*core.UserOrganization) []*core.UserOrganization {
-	var adminUsers []*core.UserOrganization
+func filterAdminUsers(users []*types.UserOrganization) []*types.UserOrganization {
+	var adminUsers []*types.UserOrganization
 	for _, user := range users {
-		if user.UserType == core.UserOrganizationTypeEmployee || user.UserType == core.UserOrganizationTypeOwner {
+		if user.UserType == types.UserOrganizationTypeEmployee || user.UserType == types.UserOrganizationTypeOwner {
 			adminUsers = append(adminUsers, user)
 		}
 	}
@@ -70,7 +71,7 @@ func Notification(ctx echo.Context, service *horizon.HorizonService, data Notifi
 			return
 		}
 
-		users := []*core.UserOrganization{{UserID: user.ID, UserType: ""}}
+		users := []*types.UserOrganization{{UserID: user.ID, UserType: ""}}
 		createNotificationForUsers(context, service, users, data, nil)
 	}()
 }
@@ -85,7 +86,7 @@ func OrganizationAdminsNotification(ctx echo.Context, service *horizon.HorizonSe
 			return
 		}
 
-		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &core.UserOrganization{
+		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &types.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 		})
@@ -108,7 +109,7 @@ func OrganizationNotification(ctx echo.Context, service *horizon.HorizonService,
 			return
 		}
 
-		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &core.UserOrganization{
+		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &types.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 		})
 		if err != nil {
@@ -124,7 +125,7 @@ func OrganizationDirectNotification(ctx echo.Context, service *horizon.HorizonSe
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &core.UserOrganization{
+		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &types.UserOrganization{
 			OrganizationID: organizationID,
 		})
 		if err != nil {
@@ -140,7 +141,7 @@ func OrganizationAdminsDirectNotification(ctx echo.Context, service *horizon.Hor
 		context, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &core.UserOrganization{
+		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &types.UserOrganization{
 			OrganizationID: organizationID,
 		})
 		if err != nil {

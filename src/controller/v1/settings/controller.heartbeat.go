@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -141,7 +142,7 @@ func Heartbeat(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &core.UserOrganization{
+		userOrganizations, err := core.UserOrganizationManager(service).Find(context, &types.UserOrganization{
 			BranchID:       userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -151,11 +152,11 @@ func Heartbeat(service *horizon.HorizonService) {
 		statuses := core.UserOrganizationManager(service).ToModels(userOrganizations)
 
 		var (
-			offlineUsers   []*core.UserOrganizationResponse
-			onlineUsers    []*core.UserOrganizationResponse
-			commutingUsers []*core.UserOrganizationResponse
-			busyUsers      []*core.UserOrganizationResponse
-			vacationUsers  []*core.UserOrganizationResponse
+			offlineUsers   []*types.UserOrganizationResponse
+			onlineUsers    []*types.UserOrganizationResponse
+			commutingUsers []*types.UserOrganizationResponse
+			busyUsers      []*types.UserOrganizationResponse
+			vacationUsers  []*types.UserOrganizationResponse
 		)
 		onlineMembers, onlineEmployees := 0, 0
 		totalMembers, totalEmployees := 0, 0

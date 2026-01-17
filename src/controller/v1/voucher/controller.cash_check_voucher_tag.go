@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,7 +50,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := core.CashCheckVoucherTagManager(service).NormalPagination(context, ctx, &core.CashCheckVoucherTag{
+		tags, err := core.CashCheckVoucherTagManager(service).NormalPagination(context, ctx, &types.CashCheckVoucherTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -112,7 +113,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tag := &core.CashCheckVoucherTag{
+		tag := &types.CashCheckVoucherTag{
 			CashCheckVoucherID: req.CashCheckVoucherID,
 			Name:               req.Name,
 			Description:        req.Description,
@@ -308,7 +309,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid cash check voucher ID"})
 		}
-		tags, err := core.CashCheckVoucherTagManager(service).Find(context, &core.CashCheckVoucherTag{
+		tags, err := core.CashCheckVoucherTagManager(service).Find(context, &types.CashCheckVoucherTag{
 			CashCheckVoucherID: cashCheckVoucherID,
 		})
 		if err != nil {

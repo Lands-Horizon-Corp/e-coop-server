@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -131,7 +132,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement definitions"})
 		}
-		fsDefs, err := core.FinancialStatementDefinitionManager(service).FindRaw(context, &core.FinancialStatementDefinition{
+		fsDefs, err := core.FinancialStatementDefinitionManager(service).FindRaw(context, &types.FinancialStatementDefinition{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -175,7 +176,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create financial statement definitions"})
 		}
-		fsDefinition := &core.FinancialStatementDefinition{
+		fsDefinition := &types.FinancialStatementDefinition{
 			OrganizationID:                        userOrg.OrganizationID,
 			BranchID:                              *userOrg.BranchID,
 			CreatedByID:                           userOrg.UserID,
@@ -540,7 +541,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		if account.FinancialStatementDefinitionID == nil || *account.FinancialStatementDefinitionID != *fsDefinitionID {
 			account.FinancialStatementDefinitionID = fsDefinitionID
 		}
-		accounts, err := core.AccountManager(service).Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &types.Account{
 			FinancialStatementDefinitionID: fsDefinitionID,
 			OrganizationID:                 userOrg.OrganizationID,
 			BranchID:                       *userOrg.BranchID,
@@ -553,7 +554,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		var updatedAccounts []*core.Account
+		var updatedAccounts []*types.Account
 		for _, acc := range accounts {
 			if acc.ID != account.ID {
 				updatedAccounts = append(updatedAccounts, acc)
@@ -565,7 +566,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		if reqBody.AccountIndex > len(updatedAccounts) {
 			reqBody.AccountIndex = len(updatedAccounts)
 		}
-		updatedAccounts = append(updatedAccounts[:reqBody.AccountIndex], append([]*core.Account{account}, updatedAccounts[reqBody.AccountIndex:]...)...)
+		updatedAccounts = append(updatedAccounts[:reqBody.AccountIndex], append([]*types.Account{account}, updatedAccounts[reqBody.AccountIndex:]...)...)
 		for idx, acc := range updatedAccounts {
 			acc.Index = float64(idx)
 			acc.UpdatedAt = time.Now().UTC()
@@ -649,7 +650,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: financial statement definition has sub-entries"})
 		}
-		accounts, err := core.AccountManager(service).Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &types.Account{
 			FinancialStatementDefinitionID: fsDefinitionID,
 			OrganizationID:                 userOrg.OrganizationID,
 			BranchID:                       *userOrg.BranchID,

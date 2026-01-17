@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 )
 
@@ -23,7 +23,7 @@ type LoanPayments struct {
 	Amount  float64   `json:"amount"`
 	PayDate time.Time `json:"pay_date"`
 
-	GeneralLedger *core.GeneralLedger `json:"general_ledger"`
+	GeneralLedger *types.GeneralLedger `json:"general_ledger"`
 }
 type LoanPaymentSchedule struct {
 	LoanPayments LoanPayments `json:"loan_payments"`
@@ -43,15 +43,15 @@ type LoanPaymentSchedule struct {
 	Type LoanScheduleStatus `json:"type" validate:"required,oneof=paid due overdue skipped advance"`
 }
 type LoanAccountSummary struct {
-	LoanAccount      core.LoanAccountResponse `json:"loan_account"`
-	PaymentSchedules []LoanPaymentSchedule    `json:"payment_schedules"`
-	TotalAmountDue   float64                  `json:"total_amount_due"`
-	TotalAmountPaid  float64                  `json:"total_amount_paid"`
-	CurrentBalance   float64                  `json:"current_balance"`
-	NextDueDate      *time.Time               `json:"next_due_date,omitempty"`
-	DaysOverdue      int                      `json:"days_overdue"`
-	OverdueAmount    float64                  `json:"overdue_amount"`
-	CompletionStatus string                   `json:"completion_status"`
+	LoanAccount      types.LoanAccountResponse `json:"loan_account"`
+	PaymentSchedules []LoanPaymentSchedule     `json:"payment_schedules"`
+	TotalAmountDue   float64                   `json:"total_amount_due"`
+	TotalAmountPaid  float64                   `json:"total_amount_paid"`
+	CurrentBalance   float64                   `json:"current_balance"`
+	NextDueDate      *time.Time                `json:"next_due_date,omitempty"`
+	DaysOverdue      int                       `json:"days_overdue"`
+	OverdueAmount    float64                   `json:"overdue_amount"`
+	CompletionStatus string                    `json:"completion_status"`
 }
 
 type LoanGuideResponse struct {
@@ -65,7 +65,7 @@ type LoanGuideResponse struct {
 }
 
 func LoanGuide(
-	context context.Context, service *horizon.HorizonService, userOrg *core.UserOrganization, loanTransactionID uuid.UUID,
+	context context.Context, service *horizon.HorizonService, userOrg *types.UserOrganization, loanTransactionID uuid.UUID,
 ) (*LoanGuideResponse, error) {
 	return nil, nil
 }

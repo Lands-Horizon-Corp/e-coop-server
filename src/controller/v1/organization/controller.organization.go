@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -99,7 +100,7 @@ func OrganizationController(service *horizon.HorizonService) {
 			subscriptionEndDate = time.Now().UTC().Add(30 * 24 * time.Hour)
 		}
 
-		organization := &core.Organization{
+		organization := &types.Organization{
 			CreatedAt:                           time.Now().UTC(),
 			CreatedByID:                         user.ID,
 			UpdatedAt:                           time.Now().UTC(),
@@ -144,7 +145,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		longitude := 0.0
 		latitude := 0.0
 
-		branch := &core.Branch{
+		branch := &types.Branch{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    user.ID,
 			UpdatedAt:      time.Now().UTC(),
@@ -168,7 +169,7 @@ func OrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + endTx(err).Error()})
 		}
 
-		branchSetting := &core.BranchSetting{
+		branchSetting := &types.BranchSetting{
 			CreatedAt: time.Now().UTC(),
 			UpdatedAt: time.Now().UTC(),
 			BranchID:  branch.ID,
@@ -197,7 +198,7 @@ func OrganizationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + endTx(err).Error()})
 		}
-		userOrganization := &core.UserOrganization{
+		userOrganization := &types.UserOrganization{
 			CreatedAt:              time.Now().UTC(),
 			CreatedByID:            user.ID,
 			UpdatedAt:              time.Now().UTC(),
@@ -223,7 +224,7 @@ func OrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create user organization: " + endTx(err).Error()})
 		}
 		for _, category := range req.OrganizationCategories {
-			if err := core.OrganizationCategoryManager(service).CreateWithTx(context, tx, &core.OrganizationCategory{
+			if err := core.OrganizationCategoryManager(service).CreateWithTx(context, tx, &types.OrganizationCategory{
 				CreatedAt:      time.Now().UTC(),
 				UpdatedAt:      time.Now().UTC(),
 				OrganizationID: &organization.ID,
@@ -399,7 +400,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		}
 
 		for _, category := range req.OrganizationCategories {
-			if err := core.OrganizationCategoryManager(service).CreateWithTx(context, tx, &core.OrganizationCategory{
+			if err := core.OrganizationCategoryManager(service).CreateWithTx(context, tx, &types.OrganizationCategory{
 				ID:             *category.ID,
 				CreatedAt:      time.Now().UTC(),
 				UpdatedAt:      time.Now().UTC(),
@@ -607,7 +608,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		}
 		result := []core.OrganizationPerCategoryResponse{}
 		for _, category := range categories {
-			orgs := []*core.Organization{}
+			orgs := []*types.Organization{}
 			for _, org := range organizations {
 				hasCategory := false
 				for _, orgCategory := range org.OrganizationCategories {

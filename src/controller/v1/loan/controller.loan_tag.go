@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -53,7 +54,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := core.LoanTagManager(service).Find(context, &core.LoanTag{
+		loanTags, err := core.LoanTagManager(service).Find(context, &types.LoanTag{
 			LoanTransactionID: loanTransactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -78,7 +79,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		loanTags, err := core.LoanTagManager(service).NormalPagination(context, ctx, &core.LoanTag{
+		loanTags, err := core.LoanTagManager(service).NormalPagination(context, ctx, &types.LoanTag{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -141,7 +142,7 @@ func LoanTagController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		loanTag := &core.LoanTag{
+		loanTag := &types.LoanTag{
 			LoanTransactionID: req.LoanTransactionID,
 			Name:              req.Name,
 			Description:       req.Description,

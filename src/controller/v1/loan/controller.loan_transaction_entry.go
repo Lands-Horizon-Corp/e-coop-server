@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -58,7 +59,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
 
-		loanTransaction := &core.LoanTransactionEntry{
+		loanTransaction := &types.LoanTransactionEntry{
 			CreatedByID:       userOrg.UserID,
 			UpdatedByID:       userOrg.UserID,
 			CreatedAt:         time.Now().UTC(),

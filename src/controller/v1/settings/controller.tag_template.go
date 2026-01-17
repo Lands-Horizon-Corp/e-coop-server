@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,7 +26,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		templates, err := core.TagTemplateManager(service).Find(context, &core.TagTemplate{
+		templates, err := core.TagTemplateManager(service).Find(context, &types.TagTemplate{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -46,7 +47,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := core.TagTemplateManager(service).NormalPagination(context, ctx, &core.TagTemplate{
+		value, err := core.TagTemplateManager(service).NormalPagination(context, ctx, &types.TagTemplate{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -101,7 +102,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		template := &core.TagTemplate{
+		template := &types.TagTemplate{
 			Name:           req.Name,
 			Description:    req.Description,
 			Category:       req.Category,

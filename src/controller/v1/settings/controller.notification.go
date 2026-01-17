@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
@@ -63,7 +64,7 @@ func NotificationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get current user: " + err.Error()})
 		}
 
-		var notifications []*core.Notification
+		var notifications []*types.Notification
 		err = service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
 			for _, notificationID := range reqBody.IDs {
 				notification, getErr := core.NotificationManager(service).GetByID(context, notificationID)
@@ -139,7 +140,7 @@ func NotificationController(service *horizon.HorizonService) {
 			})
 		}
 
-		notifications, err := core.NotificationManager(service).Find(context, &core.Notification{
+		notifications, err := core.NotificationManager(service).Find(context, &types.Notification{
 			UserID: user.ID,
 		})
 		if err != nil {
@@ -155,7 +156,7 @@ func NotificationController(service *horizon.HorizonService) {
 		}
 
 		viewedCount := 0
-		var newNotifications []*core.Notification
+		var newNotifications []*types.Notification
 		err = service.Database.StartTransactionWithContext(context, func(tx *gorm.DB) error {
 			for _, notif := range notifications {
 				notification, getErr := core.NotificationManager(service).GetByID(context, notif.ID)
@@ -186,7 +187,7 @@ func NotificationController(service *horizon.HorizonService) {
 			}
 
 			var findErr error
-			newNotifications, findErr = core.NotificationManager(service).Find(context, &core.Notification{
+			newNotifications, findErr = core.NotificationManager(service).Find(context, &types.Notification{
 				UserID: user.ID,
 			})
 			if findErr != nil {

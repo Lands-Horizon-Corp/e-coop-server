@@ -3,7 +3,7 @@ package event
 import (
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 )
 
 func nextWeekday(from time.Time, weekday time.Weekday) time.Time {
@@ -15,7 +15,7 @@ func nextWeekday(from time.Time, weekday time.Weekday) time.Time {
 }
 
 func skippedDaysCount(
-	startDate time.Time, currency *core.Currency, excludeSaturday, excludeSunday, excludeHolidays bool, holidays []*core.Holiday) (int, error) {
+	startDate time.Time, currency *types.Currency, excludeSaturday, excludeSunday, excludeHolidays bool, holidays []*types.Holiday) (int, error) {
 	skippedDays := 0
 	currentDate := startDate
 	for {
@@ -31,7 +31,7 @@ func skippedDaysCount(
 	}
 }
 
-func skippedDate(date time.Time, currency *core.Currency, excludeSaturday, excludeSunday, excludeHolidays bool, holidays []*core.Holiday) (bool, error) {
+func skippedDate(date time.Time, currency *types.Currency, excludeSaturday, excludeSunday, excludeHolidays bool, holidays []*types.Holiday) (bool, error) {
 	if excludeSaturday {
 		isSat, err := isSaturday(date, currency)
 		if err != nil {
@@ -62,7 +62,7 @@ func skippedDate(date time.Time, currency *core.Currency, excludeSaturday, exclu
 	return false, nil
 }
 
-func isHoliday(date time.Time, currency *core.Currency, holidays []*core.Holiday) (bool, error) {
+func isHoliday(date time.Time, currency *types.Currency, holidays []*types.Holiday) (bool, error) {
 	loc, err := time.LoadLocation(currency.Timezone)
 	if err != nil {
 		return false, err
@@ -78,7 +78,7 @@ func isHoliday(date time.Time, currency *core.Currency, holidays []*core.Holiday
 	return false, nil
 }
 
-func isSunday(date time.Time, currency *core.Currency) (bool, error) {
+func isSunday(date time.Time, currency *types.Currency) (bool, error) {
 	loc, err := time.LoadLocation(currency.Timezone)
 	if err != nil {
 		return false, err
@@ -91,7 +91,7 @@ func isSunday(date time.Time, currency *core.Currency) (bool, error) {
 	return false, nil
 }
 
-func isSaturday(date time.Time, currency *core.Currency) (bool, error) {
+func isSaturday(date time.Time, currency *types.Currency) (bool, error) {
 	loc, err := time.LoadLocation(currency.Timezone)
 	if err != nil {
 		return false, err

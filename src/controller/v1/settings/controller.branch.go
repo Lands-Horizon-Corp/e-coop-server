@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -115,7 +116,7 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication required " + err.Error()})
 		}
 
-		userOrganization, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).FindOne(context, &types.UserOrganization{
 			UserID:         user.ID,
 			OrganizationID: *organizationID,
 		})
@@ -165,7 +166,7 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Branch limit reached for the current subscription plan "})
 		}
 
-		branch := &core.Branch{
+		branch := &types.Branch{
 			CreatedAt:               time.Now().UTC(),
 			CreatedByID:             user.ID,
 			UpdatedAt:               time.Now().UTC(),
@@ -201,7 +202,7 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch: " + endTx(err).Error()})
 		}
 
-		branchSetting := &core.BranchSetting{
+		branchSetting := &types.BranchSetting{
 			CreatedAt:             time.Now().UTC(),
 			UpdatedAt:             time.Now().UTC(),
 			BranchID:              branch.ID,
@@ -243,7 +244,7 @@ func BranchController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + endTx(err).Error()})
 			}
 
-			newUserOrg := &core.UserOrganization{
+			newUserOrg := &types.UserOrganization{
 				CreatedAt:          time.Now().UTC(),
 				CreatedByID:        user.ID,
 				UpdatedAt:          time.Now().UTC(),
@@ -337,7 +338,7 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID: " + err.Error()})
 		}
 
-		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
+		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &types.UserOrganization{
 			UserID:   user.ID,
 			BranchID: branchID,
 		})
@@ -446,7 +447,7 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch not found: " + err.Error()})
 		}
 
-		userOrganization, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).FindOne(context, &types.UserOrganization{
 			UserID:         user.ID,
 			BranchID:       branchID,
 			OrganizationID: branch.OrganizationID,
@@ -586,15 +587,15 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to update branch settings"})
 		}
 
-		var branchSetting *core.BranchSetting
-		branchSetting, err = core.BranchSettingManager(service).FindOne(context, &core.BranchSetting{
+		var branchSetting *types.BranchSetting
+		branchSetting, err = core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
 
 		tx, endTx := service.Database.StartTransaction(context)
 
 		if err != nil {
-			branchSetting = &core.BranchSetting{
+			branchSetting = &types.BranchSetting{
 				CreatedAt: time.Now().UTC(),
 				UpdatedAt: time.Now().UTC(),
 				BranchID:  *userOrg.BranchID,
@@ -799,7 +800,7 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		branchSetting, err := core.BranchSettingManager(service).FindOne(context, &core.BranchSetting{
+		branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
 		if err != nil {
@@ -860,7 +861,7 @@ func BranchController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 				}
 			} else {
-				newUnbalancedAccount := &core.UnbalancedAccount{
+				newUnbalancedAccount := &types.UnbalancedAccount{
 					CreatedAt:   time.Now().UTC(),
 					CreatedByID: userOrg.UserID,
 					UpdatedAt:   time.Now().UTC(),

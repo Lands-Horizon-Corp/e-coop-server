@@ -18,7 +18,7 @@ package event
 // 	}
 // }
 
-// func  GeneratedReportDownload(ctx context.Context, generatedReport *core.GeneratedReport) (*core.GeneratedReport, error) {
+// func  GeneratedReportDownload(ctx context.Context, generatedReport *types.GeneratedReport) (*types.GeneratedReport, error) {
 // 	if err := core.GeneratedReportManager(service).Create(ctx, generatedReport); err != nil {
 // 		return nil, eris.Wrapf(err, "Failed to create generated report")
 // 	}
@@ -56,7 +56,7 @@ package event
 // 			}
 // 			fileName := fmt.Sprintf("report_%s.%s", generatedReport.Name, fileExt)
 
-// 			initial := &core.Media{
+// 			initial := &types.Media{
 // 				FileName:   fileName,
 // 				FileSize:   0,
 // 				FileType:   contentType,
@@ -102,7 +102,7 @@ package event
 // 				core.GeneratedReportManager(service).UpdateByID(ctx, id, generatedReport)
 // 				return
 // 			}
-// 			completed := &core.Media{
+// 			completed := &types.Media{
 // 				FileName:   storage.FileName,
 // 				FileType:   storage.FileType,
 // 				FileSize:   storage.FileSize,
@@ -135,7 +135,7 @@ package event
 // 		}
 
 // 		if finalUpdateErr := core.GeneratedReportManager(service).UpdateByID(ctx, id, generatedReport); finalUpdateErr != nil {
-// 			core.FootstepManager(service).Create(ctx, &core.Footstep{
+// 			core.FootstepManager(service).Create(ctx, &types.Footstep{
 // 				OrganizationID: &generatedReport.OrganizationID,
 // 				BranchID:       &generatedReport.BranchID,
 // 				UserID:         &generatedReport.CreatedByID,

@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
 )
@@ -275,7 +276,7 @@ func LoanComputation(
 	return result.Round(2).InexactFloat64()
 }
 
-func LoanModeOfPayment(lt *core.LoanTransaction) (float64, error) {
+func LoanModeOfPayment(lt *types.LoanTransaction) (float64, error) {
 	applied := decimal.NewFromFloat(lt.Applied1)
 
 	switch lt.ModeOfPayment {

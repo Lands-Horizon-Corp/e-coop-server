@@ -7,11 +7,12 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
 
-func LoanRelease(context context.Context, service *horizon.HorizonService, loanTransactionID uuid.UUID, userOrg *core.UserOrganization) (*core.LoanTransaction, error) {
+func LoanRelease(context context.Context, service *horizon.HorizonService, loanTransactionID uuid.UUID, userOrg *types.UserOrganization) (*types.LoanTransaction, error) {
 
 	tx, endTx := service.Database.StartTransaction(context)
 
@@ -50,7 +51,7 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 		return nil, endTx(eris.New("member profile not found"))
 	}
 
-	loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(context, &core.LoanTransactionEntry{
+	loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(context, &types.LoanTransactionEntry{
 		LoanTransactionID: loanTransaction.ID,
 		OrganizationID:    loanTransaction.OrganizationID,
 		BranchID:          loanTransaction.BranchID,
@@ -59,11 +60,11 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 		return nil, endTx(eris.Wrap(err, "failed to retrieve loan transaction entries"))
 	}
 
-	var addOnEntry *core.LoanTransactionEntry
-	var filteredEntries []*core.LoanTransactionEntry
+	var addOnEntry *types.LoanTransactionEntry
+	var filteredEntries []*types.LoanTransactionEntry
 
 	for _, entry := range loanTransactionEntries {
-		if entry.Type == core.LoanTransactionAddOn {
+		if entry.Type == types.LoanTransactionAddOn {
 			addOnEntry = entry
 		} else {
 			filteredEntries = append(filteredEntries, entry)
@@ -71,7 +72,7 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 	}
 
 	for _, entry := range filteredEntries {
-		if entry.Type == core.LoanTransactionStatic && helpers.UUIDPtrEqual(entry.AccountID, loanTransaction.AccountID) {
+		if entry.Type == types.LoanTransactionStatic && helpers.UUIDPtrEqual(entry.AccountID, loanTransaction.AccountID) {
 			if addOnEntry != nil {
 				entry.Debit += addOnEntry.Debit
 			}
@@ -117,12 +118,12 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 
 		}
 
-		var typeOfPaymentType core.TypeOfPaymentType
+		var typeOfPaymentType types.TypeOfPaymentType
 		if account.DefaultPaymentType != nil {
 			typeOfPaymentType = account.DefaultPaymentType.Type
 		}
 
-		memberLedgerEntry := &core.GeneralLedger{
+		memberLedgerEntry := &types.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
 			UpdatedAt:                  now,
@@ -136,7 +137,7 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 			MemberProfileID:            &memberProfile.ID,
 			PaymentTypeID:              account.DefaultPaymentTypeID,
 			TransactionReferenceNumber: loanTransaction.Voucher,
-			Source:                     core.GeneralLedgerSourceLoan,
+			Source:                     types.GeneralLedgerSourceLoan,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                loanTransaction.Account.Description,
 			TypeOfPaymentType:          typeOfPaymentType,
@@ -184,7 +185,7 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 			return nil, endTx(eris.New("interest account history is nil"))
 		}
 
-		if err := core.LoanAccountManager(service).CreateWithTx(context, tx, &core.LoanAccount{
+		if err := core.LoanAccountManager(service).CreateWithTx(context, tx, &types.LoanAccount{
 			CreatedAt:         now,
 			CreatedByID:       userOrg.UserID,
 			UpdatedAt:         now,

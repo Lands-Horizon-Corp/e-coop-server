@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,7 +26,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		timesheet, _ := core.TimesheetManager(service).FindOne(context, &core.Timesheet{
+		timesheet, _ := core.TimesheetManager(service).FindOne(context, &types.Timesheet{
 			UserID:         userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -65,7 +66,7 @@ func TimesheetController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		timesheet, _ := core.TimesheetManager(service).FindOne(context, &core.Timesheet{
+		timesheet, _ := core.TimesheetManager(service).FindOne(context, &types.Timesheet{
 			UserID:         userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -74,7 +75,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		now := time.Now().UTC()
 
 		if timesheet == nil || timesheet.TimeOut != nil {
-			newTimesheet := &core.Timesheet{
+			newTimesheet := &types.Timesheet{
 				CreatedAt:      now,
 				CreatedByID:    userOrg.UserID,
 				UpdatedAt:      now,
@@ -169,7 +170,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &core.Timesheet{
+		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &types.Timesheet{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -208,7 +209,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &core.Timesheet{
+		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &types.Timesheet{
 			UserID:         userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -256,7 +257,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &core.Timesheet{
+		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &types.Timesheet{
 			UserID:         *userID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -287,7 +288,7 @@ func TimesheetController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &core.Timesheet{
+		value, err := core.TimesheetManager(service).NormalPagination(context, ctx, &types.Timesheet{
 			UserID:         userOrganization.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,

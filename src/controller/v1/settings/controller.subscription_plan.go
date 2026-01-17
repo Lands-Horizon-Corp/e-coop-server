@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -66,7 +67,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		subscriptionPlan := &core.SubscriptionPlan{
+		subscriptionPlan := &types.SubscriptionPlan{
 			Name:                     req.Name,
 			Description:              req.Description,
 			Cost:                     req.Cost,
@@ -283,7 +284,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency_id: " + err.Error()})
 		}
-		subscriptionPlans, err := core.SubscriptionPlanManager(service).FindRaw(context, &core.SubscriptionPlan{
+		subscriptionPlans, err := core.SubscriptionPlanManager(service).FindRaw(context, &types.SubscriptionPlan{
 			CurrencyID: currencyID,
 		})
 		if err != nil {

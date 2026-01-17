@@ -10,6 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -53,7 +54,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		journalVouchers, err := core.JournalVoucherManager(service).NormalPagination(context, ctx, &core.JournalVoucher{
+		journalVouchers, err := core.JournalVoucherManager(service).NormalPagination(context, ctx, &types.JournalVoucher{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -130,7 +131,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher entries are not balanced: " + endTx(err).Error()})
 		}
 
-		journalVoucher := &core.JournalVoucher{
+		journalVoucher := &types.JournalVoucher{
 			Date:              request.Date,
 			Description:       request.Description,
 			Reference:         request.Reference,
@@ -160,7 +161,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 
 		if request.JournalVoucherEntries != nil {
 			for _, entryReq := range request.JournalVoucherEntries {
-				entry := &core.JournalVoucherEntry{
+				entry := &types.JournalVoucherEntry{
 					AccountID:         entryReq.AccountID,
 					MemberProfileID:   entryReq.MemberProfileID,
 					EmployeeUserID:    entryReq.EmployeeUserID,
@@ -314,7 +315,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + endTx(err).Error()})
 					}
 				} else {
-					entry := &core.JournalVoucherEntry{
+					entry := &types.JournalVoucherEntry{
 						AccountID:         entryReq.AccountID,
 						MemberProfileID:   entryReq.MemberProfileID,
 						EmployeeUserID:    entryReq.EmployeeUserID,
@@ -901,7 +902,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		journalVoucher.UpdatedByID = userOrg.UserID
 		journalVoucher.TransactionBatchID = &transactionBatch.ID
 
-		journalVoucherEntries, err := core.JournalVoucherEntryManager(service).Find(context, &core.JournalVoucherEntry{
+		journalVoucherEntries, err := core.JournalVoucherEntryManager(service).Find(context, &types.JournalVoucherEntry{
 			JournalVoucherID: journalVoucher.ID,
 			OrganizationID:   userOrg.OrganizationID,
 			BranchID:         *userOrg.BranchID,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -133,7 +134,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by year: " + endTx(err).Error()})
 					}
 				} else {
-					rateByYear := &core.InterestRateByYear{
+					rateByYear := &types.InterestRateByYear{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
 						CreatedByID:       userOrg.UserID,
@@ -173,7 +174,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by date: " + endTx(err).Error()})
 					}
 				} else {
-					rateByDate := &core.InterestRateByDate{
+					rateByDate := &types.InterestRateByDate{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
 						CreatedByID:       userOrg.UserID,
@@ -213,7 +214,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update interest rate by amount: " + endTx(err).Error()})
 					}
 				} else {
-					rateByAmount := &core.InterestRateByAmount{
+					rateByAmount := &types.InterestRateByAmount{
 						CreatedAt:         time.Now().UTC(),
 						UpdatedAt:         time.Now().UTC(),
 						CreatedByID:       userOrg.UserID,
@@ -334,7 +335,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 
 		tx, endTx := service.Database.StartTransaction(context)
 
-		browseReference := &core.BrowseReference{
+		browseReference := &types.BrowseReference{
 			CreatedAt:             time.Now().UTC(),
 			UpdatedAt:             time.Now().UTC(),
 			CreatedByID:           userOrg.UserID,
@@ -359,7 +360,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 
 		if request.InterestRatesByYear != nil {
 			for _, rateReq := range request.InterestRatesByYear {
-				rateByYear := &core.InterestRateByYear{
+				rateByYear := &types.InterestRateByYear{
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
 					CreatedByID:       userOrg.UserID,
@@ -380,7 +381,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 
 		if request.InterestRatesByDate != nil {
 			for _, rateReq := range request.InterestRatesByDate {
-				rateByDate := &core.InterestRateByDate{
+				rateByDate := &types.InterestRateByDate{
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
 					CreatedByID:       userOrg.UserID,
@@ -401,7 +402,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 
 		if request.InterestRatesByAmount != nil {
 			for _, rateReq := range request.InterestRatesByAmount {
-				rateByAmount := &core.InterestRateByAmount{
+				rateByAmount := &types.InterestRateByAmount{
 					CreatedAt:         time.Now().UTC(),
 					UpdatedAt:         time.Now().UTC(),
 					CreatedByID:       userOrg.UserID,
@@ -538,7 +539,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 		}
 		browseReference, err := core.BrowseReferenceManager(service).FindOne(
 			context,
-			&core.BrowseReference{
+			&types.BrowseReference{
 				AccountID:      accountID,
 				MemberTypeID:   memberTypeID,
 				OrganizationID: userOrg.OrganizationID,

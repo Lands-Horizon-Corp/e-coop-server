@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 )
@@ -60,7 +61,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch ID is missing for user organization"})
 		}
 
-		entries, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			AccountID:       accountID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -110,7 +111,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
 
-		paginatedResult, err := core.MemberAccountingLedgerManager(service).NormalPagination(context, ctx, &core.MemberAccountingLedger{
+		paginatedResult, err := core.MemberAccountingLedgerManager(service).NormalPagination(context, ctx, &types.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -221,7 +222,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.CompassionFundAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Compassion fund account not set for branch"})
 		}
-		ledger, err := core.MemberAccountingLedgerManager(service).FindOne(context, &core.MemberAccountingLedger{
+		ledger, err := core.MemberAccountingLedgerManager(service).FindOne(context, &types.MemberAccountingLedger{
 			MemberProfileID: *memberProfileID,
 			AccountID:       *userOrg.Branch.BranchSetting.CompassionFundAccountID,
 			OrganizationID:  userOrg.OrganizationID,

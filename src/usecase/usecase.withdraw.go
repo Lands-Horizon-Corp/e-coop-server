@@ -2,12 +2,13 @@ package usecase
 
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
 )
 
 func Withdraw(
-	account *core.Account,
+	account *types.Account,
 	amount float64,
 ) (credit float64, debit float64, err error) {
 	if account == nil {

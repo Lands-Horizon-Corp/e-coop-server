@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -31,7 +32,7 @@ func Footstep(ctx echo.Context, service *horizon.HorizonService, data FootstepEv
 		userID := user.ID
 		userOrganization, _ := CurrentUserOrganization(context, service, ctx)
 
-		var userType core.UserOrganizationType
+		var userType types.UserOrganizationType
 		var organizationID, branchID *uuid.UUID
 		if userOrganization != nil {
 			userType = userOrganization.UserType
@@ -53,7 +54,7 @@ func Footstep(ctx echo.Context, service *horizon.HorizonService, data FootstepEv
 			acceptLanguage = claim.AcceptLanguage
 		}
 
-		if err := core.FootstepManager(service).Create(context, &core.Footstep{
+		if err := core.FootstepManager(service).Create(context, &types.Footstep{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userID,
 			UpdatedAt:      time.Now().UTC(),

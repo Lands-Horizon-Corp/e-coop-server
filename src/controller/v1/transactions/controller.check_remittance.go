@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -42,7 +43,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		checkRemittance, err := core.CheckRemittanceManager(service).Find(context, &core.CheckRemittance{
+		checkRemittance, err := core.CheckRemittanceManager(service).Find(context, &types.CheckRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -113,7 +114,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		checkRemittance := &core.CheckRemittance{
+		checkRemittance := &types.CheckRemittance{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -246,7 +247,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		updatedCheckRemittance := &core.CheckRemittance{
+		updatedCheckRemittance := &types.CheckRemittance{
 			UpdatedAt:          time.Now().UTC(),
 			UpdatedByID:        userOrg.UserID,
 			OrganizationID:     userOrg.OrganizationID,

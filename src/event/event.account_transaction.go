@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -43,8 +44,8 @@ func BuildJVNumberSimple(date time.Time, bookType int) string {
 func AccountTransactionProcess(
 	context context.Context,
 	service *horizon.HorizonService,
-	userOrg core.UserOrganization,
-	data core.AccountTransactionProcessGLRequest,
+	userOrg types.UserOrganization,
+	data types.AccountTransactionProcessGLRequest,
 ) error {
 	startDate := time.Date(
 		data.StartDate.Year(),
@@ -86,7 +87,7 @@ func AccountTransactionProcess(
 		totalCredit := decimal.Zero
 		jv := BuildJVNumberSimple(currentDate, GeneralJournalBook)
 
-		accountTransactionCollection := &core.AccountTransaction{
+		accountTransactionCollection := &types.AccountTransaction{
 			CreatedAt:      now,
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      now,
@@ -98,7 +99,7 @@ func AccountTransactionProcess(
 			Date:           currentDate,
 			Debit:          0,
 			Credit:         0,
-			Source:         core.AccountTransactionSourceDailyCollectionBook,
+			Source:         types.AccountTransactionSourceDailyCollectionBook,
 		}
 
 		if len(summary) > 0 {
@@ -108,7 +109,7 @@ func AccountTransactionProcess(
 		}
 
 		for _, s := range summary {
-			entry := &core.AccountTransactionEntry{
+			entry := &types.AccountTransactionEntry{
 				CreatedAt:            now,
 				CreatedByID:          userOrg.UserID,
 				UpdatedAt:            now,
@@ -147,7 +148,7 @@ func AccountTransactionProcess(
 		jv = BuildJVNumberSimple(currentDate, CashCheckDisbursementBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 
-		disbursementTransaction := &core.AccountTransaction{
+		disbursementTransaction := &types.AccountTransaction{
 			CreatedAt:      now,
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      now,
@@ -159,7 +160,7 @@ func AccountTransactionProcess(
 			Date:           currentDate,
 			Debit:          0,
 			Credit:         0,
-			Source:         core.AccountTransactionSourceCashCheckDisbursementBook,
+			Source:         types.AccountTransactionSourceCashCheckDisbursementBook,
 		}
 
 		if len(summary) > 0 {
@@ -168,7 +169,7 @@ func AccountTransactionProcess(
 			}
 		}
 		for _, s := range summary {
-			entry := &core.AccountTransactionEntry{
+			entry := &types.AccountTransactionEntry{
 				CreatedAt:            now,
 				CreatedByID:          userOrg.UserID,
 				UpdatedAt:            now,
@@ -206,7 +207,7 @@ func AccountTransactionProcess(
 		jv = BuildJVNumberSimple(currentDate, GeneralJournalBook)
 		totalDebit, totalCredit = decimal.Zero, decimal.Zero
 
-		journalTransaction := &core.AccountTransaction{
+		journalTransaction := &types.AccountTransaction{
 			CreatedAt:      now,
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      now,
@@ -218,7 +219,7 @@ func AccountTransactionProcess(
 			Date:           currentDate,
 			Debit:          0,
 			Credit:         0,
-			Source:         core.AccountTransactionSourceGeneralJournal,
+			Source:         types.AccountTransactionSourceGeneralJournal,
 		}
 
 		if len(summary) > 0 {
@@ -227,7 +228,7 @@ func AccountTransactionProcess(
 			}
 		}
 		for _, s := range summary {
-			entry := &core.AccountTransactionEntry{
+			entry := &types.AccountTransactionEntry{
 				CreatedAt:            now,
 				CreatedByID:          userOrg.UserID,
 				UpdatedAt:            now,
@@ -266,11 +267,11 @@ func AccountTransactionProcess(
 func AccountTransactionLedgers(
 	ctx context.Context,
 	service *horizon.HorizonService,
-	userOrg core.UserOrganization,
+	userOrg types.UserOrganization,
 	year int,
 	accountId *uuid.UUID,
-) ([]*core.AccountTransactionLedgerResponse, error) {
-	var ledgers []*core.AccountTransactionLedgerResponse
+) ([]*types.AccountTransactionLedgerResponse, error) {
+	var ledgers []*types.AccountTransactionLedgerResponse
 	runningBalance := decimal.Zero
 	for month := 1; month <= 12; month++ {
 		accountTransactions, err := core.AccountingEntryByAccountMonthYear(
@@ -287,7 +288,7 @@ func AccountTransactionLedgers(
 		if len(accountTransactions) == 0 {
 			continue
 		}
-		var transactionsWithBalance []*core.AccountTransactionEntryResponse
+		var transactionsWithBalance []*types.AccountTransactionEntryResponse
 		totalDebit := decimal.Zero
 		totalCredit := decimal.Zero
 		for _, entry := range accountTransactions {
@@ -299,7 +300,7 @@ func AccountTransactionLedgers(
 			runningBalance = runningBalance.Add(debit).Sub(credit)
 			totalDebit = totalDebit.Add(debit)
 			totalCredit = totalCredit.Add(credit)
-			resp := &core.AccountTransactionEntryResponse{
+			resp := &types.AccountTransactionEntryResponse{
 				ID:             entry.ID,
 				CreatedAt:      entry.CreatedAt.Format(time.RFC3339),
 				OrganizationID: entry.OrganizationID,
@@ -318,7 +319,7 @@ func AccountTransactionLedgers(
 		if len(transactionsWithBalance) == 0 || totalDebit.IsZero() && totalCredit.IsZero() {
 			continue
 		}
-		ledger := &core.AccountTransactionLedgerResponse{
+		ledger := &types.AccountTransactionLedgerResponse{
 			Month:                   month,
 			Debit:                   totalDebit.InexactFloat64(),
 			Credit:                  totalCredit.InexactFloat64(),

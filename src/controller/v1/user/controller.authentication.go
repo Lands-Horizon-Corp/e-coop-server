@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -28,7 +29,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 			return ctx.NoContent(http.StatusUnauthorized)
 		}
 		userOrganization, _ := event.CurrentUserOrganization(context, service, ctx)
-		var userOrg *core.UserOrganizationResponse
+		var userOrg *types.UserOrganizationResponse
 		if userOrganization != nil {
 			userOrg = core.UserOrganizationManager(service).ToModel(userOrganization)
 		}
@@ -158,7 +159,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + err.Error()})
 		}
-		user := &core.User{
+		user := &types.User{
 			Email:             req.Email,
 			Password:          hashedPwd,
 			Birthdate:         req.Birthdate,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,7 +50,7 @@ func CollateralController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		collaterals, err := core.CollateralManager(service).NormalPagination(context, ctx, &core.Collateral{
+		collaterals, err := core.CollateralManager(service).NormalPagination(context, ctx, &types.Collateral{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -112,7 +113,7 @@ func CollateralController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		collateral := &core.Collateral{
+		collateral := &types.Collateral{
 			Icon:           req.Icon,
 			Name:           req.Name,
 			Description:    req.Description,

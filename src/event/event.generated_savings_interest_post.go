@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
@@ -13,9 +14,9 @@ import (
 
 func GenerateSavingsInterestEntriesPost(
 	context context.Context, service *horizon.HorizonService,
-	userOrg *core.UserOrganization,
+	userOrg *types.UserOrganization,
 	generateSavingsInterestID *uuid.UUID,
-	request core.GenerateSavingsInterestPostRequest,
+	request types.GenerateSavingsInterestPostRequest,
 ) error {
 	tx, endTx := service.Database.StartTransaction(context)
 
@@ -24,7 +25,7 @@ func GenerateSavingsInterestEntriesPost(
 		return endTx(eris.Wrap(err, "failed to get generated savings interest"))
 	}
 
-	generatedSavingEntry, err := core.GeneratedSavingsInterestEntryManager(service).Find(context, &core.GeneratedSavingsInterestEntry{
+	generatedSavingEntry, err := core.GeneratedSavingsInterestEntryManager(service).Find(context, &types.GeneratedSavingsInterestEntry{
 		OrganizationID:             userOrg.OrganizationID,
 		BranchID:                   *userOrg.BranchID,
 		GeneratedSavingsInterestID: *generateSavingsInterestID,
@@ -56,7 +57,7 @@ func GenerateSavingsInterestEntriesPost(
 			debit = interestAmount.Abs()
 		}
 
-		newGeneralLedger := &core.GeneralLedger{
+		newGeneralLedger := &types.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
 			UpdatedAt:                  now,
@@ -68,10 +69,10 @@ func GenerateSavingsInterestEntriesPost(
 			AccountID:                  &entry.AccountID,
 			MemberProfileID:            &entry.MemberProfileID,
 			TransactionReferenceNumber: *request.CheckVoucherNumber,
-			Source:                     core.GeneralLedgerSourceSavingsInterest,
+			Source:                     types.GeneralLedgerSourceSavingsInterest,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                entry.Account.Description + " - Generated in Savings Interest",
-			TypeOfPaymentType:          core.PaymentTypeSystem,
+			TypeOfPaymentType:          types.PaymentTypeSystem,
 			Credit:                     credit.InexactFloat64(),
 			Debit:                      debit.InexactFloat64(),
 			CurrencyID:                 entry.Account.CurrencyID,

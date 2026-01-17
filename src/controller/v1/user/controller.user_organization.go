@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -222,7 +223,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &types.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeEmployee,
@@ -244,7 +245,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &types.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeOwner,
@@ -266,7 +267,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &types.UserOrganization{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       userOrg.BranchID,
 			UserType:       core.UserOrganizationTypeMember,
@@ -292,7 +293,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
-				return db.Model(&core.UserOrganization{}).
+				return db.Model(&types.UserOrganization{}).
 					Where("organization_id = ?", userOrg.OrganizationID).
 					Where("branch_id = ?", userOrg.BranchID).
 					Where("user_type = ?", core.UserOrganizationTypeMember).
@@ -365,7 +366,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).NormalPagination(context, ctx, &types.UserOrganization{
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          userOrg.BranchID,
 			ApplicationStatus: "pending",
@@ -387,7 +388,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		userOrganization, err := core.UserOrganizationManager(service).Find(context, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).Find(context, &types.UserOrganization{
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          userOrg.BranchID,
 			ApplicationStatus: "pending",
@@ -612,7 +613,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
-		userOrg := &core.UserOrganization{
+		userOrg := &types.UserOrganization{
 			CreatedAt:              time.Now().UTC(),
 			CreatedByID:            user.ID,
 			UpdatedAt:              time.Now().UTC(),
@@ -766,7 +767,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + err.Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
-		userOrg := &core.UserOrganization{
+		userOrg := &types.UserOrganization{
 			CreatedAt:              time.Now().UTC(),
 			CreatedByID:            user.ID,
 			UpdatedAt:              time.Now().UTC(),
@@ -1426,7 +1427,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		}
 		tx, endTx := service.Database.StartTransaction(context)
 		now := time.Now().UTC()
-		user := &core.User{
+		user := &types.User{
 			Email:             payload.Email,
 			Password:          hashedPwd,
 			Username:          payload.Username,
@@ -1454,7 +1455,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key"})
 		}
-		employeeOrg := &core.UserOrganization{
+		employeeOrg := &types.UserOrganization{
 			CreatedAt:             now,
 			CreatedByID:           userOrg.UserID,
 			UpdatedAt:             now,

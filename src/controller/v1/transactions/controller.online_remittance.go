@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -42,7 +43,7 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found"})
 		}
 
-		onlineRemittance, err := core.OnlineRemittanceManager(service).Find(context, &core.OnlineRemittance{
+		onlineRemittance, err := core.OnlineRemittanceManager(service).Find(context, &types.OnlineRemittance{
 			TransactionBatchID: &transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -114,7 +115,7 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found"})
 		}
 
-		onlineRemittance := &core.OnlineRemittance{
+		onlineRemittance := &types.OnlineRemittance{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),

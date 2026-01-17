@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,7 +50,7 @@ func CompanyController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		companies, err := core.CompanyManager(service).NormalPagination(context, ctx, &core.Company{
+		companies, err := core.CompanyManager(service).NormalPagination(context, ctx, &types.Company{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -112,7 +113,7 @@ func CompanyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		company := &core.Company{
+		company := &types.Company{
 			MediaID:        req.MediaID,
 			Name:           req.Name,
 			Description:    req.Description,

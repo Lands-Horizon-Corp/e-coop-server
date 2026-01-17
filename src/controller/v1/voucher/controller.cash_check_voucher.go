@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -52,7 +53,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCheckVouchers, err := core.CashCheckVoucherManager(service).NormalPagination(context, ctx, &core.CashCheckVoucher{
+		cashCheckVouchers, err := core.CashCheckVoucherManager(service).NormalPagination(context, ctx, &types.CashCheckVoucher{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -234,7 +235,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to calculate balance: " + endTx(err).Error()})
 		}
 
-		cashCheckVoucher := &core.CashCheckVoucher{
+		cashCheckVoucher := &types.CashCheckVoucher{
 			PayTo:                         request.PayTo,
 			Status:                        request.Status,
 			Description:                   request.Description,
@@ -292,7 +293,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 
 		if request.CashCheckVoucherEntries != nil {
 			for _, entryReq := range request.CashCheckVoucherEntries {
-				entry := &core.CashCheckVoucherEntry{
+				entry := &types.CashCheckVoucherEntry{
 					AccountID:          entryReq.AccountID,
 					EmployeeUserID:     &userOrg.UserID,
 					CashCheckVoucherID: cashCheckVoucher.ID,
@@ -488,7 +489,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher entry: " + endTx(err).Error()})
 					}
 				} else {
-					entry := &core.CashCheckVoucherEntry{
+					entry := &types.CashCheckVoucherEntry{
 						AccountID:          entryReq.AccountID,
 						EmployeeUserID:     &userOrg.UserID,
 						CashCheckVoucherID: cashCheckVoucher.ID,
@@ -804,7 +805,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		cashCheckVoucher.ReleasedByID = &userOrg.UserID
 		cashCheckVoucher.TransactionBatchID = &transactionBatch.ID
 
-		cashCheckVoucherEntries, err := core.CashCheckVoucherEntryManager(service).Find(context, &core.CashCheckVoucherEntry{
+		cashCheckVoucherEntries, err := core.CashCheckVoucherEntryManager(service).Find(context, &types.CashCheckVoucherEntry{
 			CashCheckVoucherID: cashCheckVoucher.ID,
 			BranchID:           *userOrg.BranchID,
 			OrganizationID:     userOrg.OrganizationID,

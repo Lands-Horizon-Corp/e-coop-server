@@ -96,9 +96,6 @@ func Seed(ctx context.Context, service *horizon.HorizonService, multiplier int32
 	if len(imagePaths) == 0 {
 		return eris.New("no image files found in seeder/images directory")
 	}
-	if err != nil {
-		return eris.Wrap(err, "failed to load image paths for seeding")
-	}
 	if err := GlobalSeeder(ctx, service); err != nil {
 		return err
 	}

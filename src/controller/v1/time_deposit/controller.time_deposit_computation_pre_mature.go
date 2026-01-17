@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -58,7 +59,7 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		timeDepositComputationPreMature := &core.TimeDepositComputationPreMature{
+		timeDepositComputationPreMature := &types.TimeDepositComputationPreMature{
 			TimeDepositTypeID: *timeDepositTypeID,
 			Terms:             req.Terms,
 			From:              req.From,

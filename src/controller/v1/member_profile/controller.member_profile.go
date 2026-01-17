@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -30,7 +31,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := core.MemberProfileManager(service).Find(context, &core.MemberProfile{
+		memberProfile, err := core.MemberProfileManager(service).Find(context, &types.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Status:         core.MemberStatusPending,
@@ -95,7 +96,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + endTx(err).Error()})
 		}
-		userProfile := &core.User{
+		userProfile := &types.User{
 			Email:             req.Email,
 			Username:          req.Username,
 			ContactNumber:     req.ContactNumber,
@@ -159,7 +160,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + endTx(err).Error()})
 		}
 		developerKey = developerKey + uuid.NewString() + "-horizon"
-		newUserOrg := &core.UserOrganization{
+		newUserOrg := &types.UserOrganization{
 			CreatedAt:              time.Now().UTC(),
 			CreatedByID:            userOrg.UserID,
 			UpdatedAt:              time.Now().UTC(),
@@ -352,7 +353,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := core.MemberProfileManager(service).NormalPagination(context, ctx, &core.MemberProfile{
+		value, err := core.MemberProfileManager(service).NormalPagination(context, ctx, &types.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -583,7 +584,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 
 		tx, endTx := service.Database.StartTransaction(context)
 
-		var userProfile *core.User
+		var userProfile *types.User
 		var userProfileID *uuid.UUID
 
 		if req.AccountInfo != nil {
@@ -596,7 +597,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 				})
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + endTx(err).Error()})
 			}
-			userProfile = &core.User{
+			userProfile = &types.User{
 				Email:             req.AccountInfo.Email,
 				Username:          req.AccountInfo.Username,
 				ContactNumber:     req.ContactNumber,
@@ -631,7 +632,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			userProfileID = &userProfile.ID
 		}
 
-		profile := &core.MemberProfile{
+		profile := &types.MemberProfile{
 			OrganizationID:       userOrg.OrganizationID,
 			BranchID:             *userOrg.BranchID,
 			CreatedAt:            time.Now().UTC(),
@@ -677,7 +678,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + endTx(err).Error()})
 			}
 			developerKey = developerKey + uuid.NewString() + "-horizon"
-			userOrg := &core.UserOrganization{
+			userOrg := &types.UserOrganization{
 				CreatedAt:              time.Now().UTC(),
 				CreatedByID:            userOrg.UserID,
 				UpdatedAt:              time.Now().UTC(),
@@ -788,7 +789,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		profile.CivilStatus = req.CivilStatus
 
 		if req.MemberGenderID != nil && !helpers.UUIDPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
-			data := &core.MemberGenderHistory{
+			data := &types.MemberGenderHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -809,7 +810,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			profile.MemberGenderID = req.MemberGenderID
 		}
 		if req.MemberOccupationID != nil && !helpers.UUIDPtrEqual(profile.MemberOccupationID, req.MemberOccupationID) {
-			data := &core.MemberOccupationHistory{
+			data := &types.MemberOccupationHistory{
 				OrganizationID:     userOrg.OrganizationID,
 				BranchID:           *userOrg.BranchID,
 				CreatedAt:          time.Now().UTC(),
@@ -912,7 +913,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		profile.Status = req.Status
 
 		if req.MemberDepartmentID != nil && !helpers.UUIDPtrEqual(profile.MemberDepartmentID, req.MemberDepartmentID) {
-			data := &core.MemberDepartmentHistory{
+			data := &types.MemberDepartmentHistory{
 				OrganizationID:     userOrg.OrganizationID,
 				BranchID:           *userOrg.BranchID,
 				CreatedAt:          time.Now().UTC(),
@@ -934,7 +935,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		}
 
 		if req.MemberTypeID != nil && !helpers.UUIDPtrEqual(profile.MemberTypeID, req.MemberTypeID) {
-			data := &core.MemberTypeHistory{
+			data := &types.MemberTypeHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -955,7 +956,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			profile.MemberTypeID = req.MemberTypeID
 		}
 		if req.MemberGroupID != nil && !helpers.UUIDPtrEqual(profile.MemberGroupID, req.MemberGroupID) {
-			data := &core.MemberGroupHistory{
+			data := &types.MemberGroupHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -976,7 +977,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			profile.MemberGroupID = req.MemberGroupID
 		}
 		if req.MemberClassificationID != nil && !helpers.UUIDPtrEqual(profile.MemberClassificationID, req.MemberClassificationID) {
-			data := &core.MemberClassificationHistory{
+			data := &types.MemberClassificationHistory{
 				OrganizationID:         userOrg.OrganizationID,
 				BranchID:               *userOrg.BranchID,
 				CreatedAt:              time.Now().UTC(),
@@ -997,7 +998,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			profile.MemberClassificationID = req.MemberClassificationID
 		}
 		if req.MemberCenterID != nil && !helpers.UUIDPtrEqual(profile.MemberCenterID, req.MemberCenterID) {
-			data := &core.MemberCenterHistory{
+			data := &types.MemberCenterHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),
@@ -1198,9 +1199,9 @@ func MemberProfileController(service *horizon.HorizonService) {
 			return echo.NewHTTPError(http.StatusInternalServerError, "failed to close member profile: "+endTx(err).Error())
 		}
 
-		var createdRemarks []*core.MemberCloseRemark
+		var createdRemarks []*types.MemberCloseRemark
 		for _, remarkReq := range req {
-			value := &core.MemberCloseRemark{
+			value := &types.MemberCloseRemark{
 				MemberProfileID: &memberProfile.ID,
 				Reason:          remarkReq.Reason,
 				Description:     remarkReq.Description,
@@ -1343,7 +1344,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberProfiles, err := core.MemberProfileManager(service).NormalPagination(context, ctx, &core.MemberProfile{
+		memberProfiles, err := core.MemberProfileManager(service).NormalPagination(context, ctx, &types.MemberProfile{
 			OrganizationID: userOrg.OrganizationID,
 			MemberTypeID:   memberTypeID,
 			BranchID:       *userOrg.BranchID,
@@ -1378,7 +1379,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 		if !helpers.UUIDPtrEqual(memberProfile.MemberTypeID, memberTypeID) {
-			data := &core.MemberTypeHistory{
+			data := &types.MemberTypeHistory{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
 				CreatedAt:       time.Now().UTC(),

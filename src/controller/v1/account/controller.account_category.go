@@ -29,7 +29,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		result, err := core.AccountCategoryManager(service).NormalPagination(context, ctx, &core.AccountCategory{
+		result, err := core.AccountCategoryManager(service).NormalPagination(context, ctx, &types.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -53,7 +53,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		categories, err := core.AccountCategoryManager(service).Find(context, &core.AccountCategory{
+		categories, err := core.AccountCategoryManager(service).Find(context, &types.AccountCategory{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -116,7 +116,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
 
-		accountCategory := &core.AccountCategory{
+		accountCategory := &types.AccountCategory{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),

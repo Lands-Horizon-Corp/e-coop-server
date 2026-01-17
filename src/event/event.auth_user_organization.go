@@ -10,24 +10,25 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
 type UserOrganizationCSRF struct {
-	UserOrganizationID string                    `json:"user_organization_id"`
-	UserID             string                    `json:"user_id"`
-	BranchID           string                    `json:"branch_id"`
-	OrganizationID     string                    `json:"organization_id"`
-	UserType           core.UserOrganizationType `json:"user_type"`
-	Language           string                    `json:"language"`
-	Location           string                    `json:"location"`
-	UserAgent          string                    `json:"user_agent"`
-	IPAddress          string                    `json:"ip_address"`
-	DeviceType         string                    `json:"device_type"`
-	Longitude          float64                   `json:"longitude"`
-	Latitude           float64                   `json:"latitude"`
-	Referer            string                    `json:"referer"`
-	AcceptLanguage     string                    `json:"accept_language"`
+	UserOrganizationID string                     `json:"user_organization_id"`
+	UserID             string                     `json:"user_id"`
+	BranchID           string                     `json:"branch_id"`
+	OrganizationID     string                     `json:"organization_id"`
+	UserType           types.UserOrganizationType `json:"user_type"`
+	Language           string                     `json:"language"`
+	Location           string                     `json:"location"`
+	UserAgent          string                     `json:"user_agent"`
+	IPAddress          string                     `json:"ip_address"`
+	DeviceType         string                     `json:"device_type"`
+	Longitude          float64                    `json:"longitude"`
+	Latitude           float64                    `json:"latitude"`
+	Referer            string                     `json:"referer"`
+	AcceptLanguage     string                     `json:"accept_language"`
 }
 type UserOrganizationCSRFResponse struct {
 	Language       string  `json:"language"`
@@ -82,11 +83,11 @@ func ClearCurrentToken(ctx context.Context, service *horizon.HorizonService, ech
 }
 
 func CurrentUserOrganization(
-	ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context) (*core.UserOrganization, error) {
+	ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context) (*types.UserOrganization, error) {
 	authHeader := echoCtx.Request().Header.Get("Authorization")
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		bearerToken := authHeader[7:]
-		userOrganization, err := core.UserOrganizationManager(service).FindOne(ctx, &core.UserOrganization{
+		userOrganization, err := core.UserOrganizationManager(service).FindOne(ctx, &types.UserOrganization{
 			DeveloperSecretKey: bearerToken,
 		})
 		if err != nil {
@@ -122,7 +123,7 @@ func CurrentUserOrganization(
 	return userOrganization, nil
 }
 
-func SetUserOrganization(context context.Context, service *horizon.HorizonService, ctx echo.Context, userOrg *core.UserOrganization) error {
+func SetUserOrganization(context context.Context, service *horizon.HorizonService, ctx echo.Context, userOrg *types.UserOrganization) error {
 	ClearCurrentToken(context, service, ctx)
 	if userOrg == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "UserOrganization cannot be nil")
@@ -152,7 +153,7 @@ func SetUserOrganization(context context.Context, service *horizon.HorizonServic
 	return nil
 }
 
-func GetOrganization(service *horizon.HorizonService, ctx echo.Context) (*core.Organization, bool) {
+func GetOrganization(service *horizon.HorizonService, ctx echo.Context) (*types.Organization, bool) {
 	orgID := ctx.Request().Header.Get("X-Organization-ID")
 	if orgID == "" {
 		ctx.JSON(http.StatusBadRequest, map[string]string{

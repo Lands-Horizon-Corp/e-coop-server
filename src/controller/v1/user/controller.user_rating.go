@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -113,7 +114,7 @@ func UserRatingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		userRating := &core.UserRating{
+		userRating := &types.UserRating{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -57,7 +58,7 @@ func MemberAddressController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value := &core.MemberAddress{
+		value := &types.MemberAddress{
 			MemberProfileID: memberProfileID,
 			Label:           req.Label,
 			City:            req.City,

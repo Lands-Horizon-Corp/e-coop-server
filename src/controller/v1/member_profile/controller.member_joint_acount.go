@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -50,7 +51,7 @@ func MemberJointAccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		value := &core.MemberJointAccount{
+		value := &types.MemberJointAccount{
 			MemberProfileID:    *memberProfileID,
 			PictureMediaID:     req.PictureMediaID,
 			SignatureMediaID:   req.SignatureMediaID,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -32,7 +33,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		alds, err := core.AutomaticLoanDeductionManager(service).Find(context, &core.AutomaticLoanDeduction{
+		alds, err := core.AutomaticLoanDeductionManager(service).Find(context, &types.AutomaticLoanDeduction{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -61,7 +62,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		alds, err := core.AutomaticLoanDeductionManager(service).NormalPagination(context, ctx, &core.AutomaticLoanDeduction{
+		alds, err := core.AutomaticLoanDeductionManager(service).NormalPagination(context, ctx, &types.AutomaticLoanDeduction{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -119,7 +120,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 			}
 			name = account.Name
 		}
-		ald := &core.AutomaticLoanDeduction{
+		ald := &types.AutomaticLoanDeduction{
 			AccountID:           request.AccountID,
 			ComputationSheetID:  request.ComputationSheetID,
 			ChargesRateSchemeID: request.ChargesRateSchemeID,

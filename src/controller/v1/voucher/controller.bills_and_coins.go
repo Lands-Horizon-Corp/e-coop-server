@@ -39,7 +39,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get current transaction batch: " + err.Error()})
 		}
-		billAndCoins, err := core.BillAndCoinsManager(service).FindRaw(context, &core.BillAndCoins{
+		billAndCoins, err := core.BillAndCoinsManager(service).FindRaw(context, &types.BillAndCoins{
 			CurrencyID:     transactionBatch.CurrencyID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -64,7 +64,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		billAndCoins, err := core.BillAndCoinsManager(service).NormalPagination(context, ctx, &core.BillAndCoins{
+		billAndCoins, err := core.BillAndCoinsManager(service).NormalPagination(context, ctx, &types.BillAndCoins{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -127,7 +127,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		billAndCoins := &core.BillAndCoins{
+		billAndCoins := &types.BillAndCoins{
 			MediaID:    req.MediaID,
 			Name:       req.Name,
 			Value:      req.Value,

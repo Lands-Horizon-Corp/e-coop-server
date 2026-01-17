@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -32,7 +33,7 @@ func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := core.BrowseExcludeIncludeAccountsManager(service).Find(context, &core.BrowseExcludeIncludeAccounts{
+		records, err := core.BrowseExcludeIncludeAccountsManager(service).Find(context, &types.BrowseExcludeIncludeAccounts{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -61,7 +62,7 @@ func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid computation sheet ID"})
 		}
-		records, err := core.BrowseExcludeIncludeAccountsManager(service).Find(context, &core.BrowseExcludeIncludeAccounts{
+		records, err := core.BrowseExcludeIncludeAccountsManager(service).Find(context, &types.BrowseExcludeIncludeAccounts{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			ComputationSheetID: sheetID,
@@ -107,7 +108,7 @@ func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		record := &core.BrowseExcludeIncludeAccounts{
+		record := &types.BrowseExcludeIncludeAccounts{
 			ComputationSheetID:           req.ComputationSheetID,
 			FinesAccountID:               req.FinesAccountID,
 			ComakerAccountID:             req.ComakerAccountID,

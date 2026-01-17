@@ -8,6 +8,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -26,7 +27,7 @@ type TransactionEvent struct {
 	MemberJointAccountID *uuid.UUID `json:"member_joint_account_id"`
 	LoanTransactionID    *uuid.UUID `json:"loan_transaction_id"`
 
-	Source core.GeneralLedgerSource `json:"source" validate:"required"`
+	Source types.GeneralLedgerSource `json:"source" validate:"required"`
 
 	EntryDate             *time.Time `json:"entry_date"`
 	BankID                *uuid.UUID `json:"bank_id"`
@@ -45,7 +46,7 @@ func TransactionPayment(
 	tx *gorm.DB,
 	endTx func(error) error,
 	data TransactionEvent,
-) (*core.GeneralLedger, error) {
+) (*types.GeneralLedger, error) {
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime)
@@ -96,7 +97,7 @@ func TransactionPayment(
 		return nil, endTx(eris.New("cash on hand account ID does not match"))
 	}
 
-	var transaction *core.Transaction
+	var transaction *types.Transaction
 	now := time.Now().UTC()
 	timeMachine := userOrg.UserOrgTime()
 
@@ -138,7 +139,7 @@ func TransactionPayment(
 		return nil, endTx(eris.New("payment type is nil"))
 	}
 	if transaction == nil {
-		transaction = &core.Transaction{
+		transaction = &types.Transaction{
 			CreatedAt:            now,
 			CreatedByID:          userOrg.UserID,
 			UpdatedAt:            now,
@@ -162,13 +163,13 @@ func TransactionPayment(
 
 	var credit, debit float64
 	switch data.Source {
-	case core.GeneralLedgerSourcePayment, core.GeneralLedgerSourceDeposit:
+	case types.GeneralLedgerSourcePayment, types.GeneralLedgerSourceDeposit:
 		if data.Reverse {
 			credit, debit, err = usecase.Withdraw(account, data.Amount)
 		} else {
 			credit, debit, err = usecase.Deposit(account, data.Amount)
 		}
-	case core.GeneralLedgerSourceWithdraw:
+	case types.GeneralLedgerSourceWithdraw:
 		if data.Reverse {
 			credit, debit, err = usecase.Deposit(account, data.Amount)
 		} else {
@@ -198,7 +199,7 @@ func TransactionPayment(
 			core.LoanAccountManager(service).UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount)
 		}
 	}
-	newGeneralLedger := &core.GeneralLedger{
+	newGeneralLedger := &types.GeneralLedger{
 		CreatedAt:          now,
 		CreatedByID:        userOrg.UserID,
 		UpdatedAt:          now,
@@ -237,7 +238,7 @@ func TransactionPayment(
 	if err := core.TransactionManager(service).UpdateByIDWithTx(context, tx, transaction.ID, transaction); err != nil {
 		return nil, endTx(err)
 	}
-	cashOnHandGeneralLedger := &core.GeneralLedger{
+	cashOnHandGeneralLedger := &types.GeneralLedger{
 		CreatedAt:          now,
 		CreatedByID:        userOrg.UserID,
 		UpdatedAt:          now,

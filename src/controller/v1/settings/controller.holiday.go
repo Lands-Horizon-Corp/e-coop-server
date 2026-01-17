@@ -10,6 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -51,7 +52,7 @@ func HolidayController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := core.HolidayManager(service).NormalPagination(context, ctx, &core.Holiday{
+		holidays, err := core.HolidayManager(service).NormalPagination(context, ctx, &types.Holiday{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -114,7 +115,7 @@ func HolidayController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday := &core.Holiday{
+		holiday := &types.Holiday{
 			EntryDate:      req.EntryDate,
 			Name:           req.Name,
 			Description:    req.Description,
@@ -318,7 +319,7 @@ func HolidayController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := core.HolidayManager(service).Find(context, &core.Holiday{
+		holidays, err := core.HolidayManager(service).Find(context, &types.Holiday{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -375,7 +376,7 @@ func HolidayController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := core.HolidayManager(service).Find(context, &core.Holiday{
+		holidays, err := core.HolidayManager(service).Find(context, &types.Holiday{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     *currencyID,
@@ -434,11 +435,11 @@ func HolidayController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := core.HolidayManager(service).Find(context, &core.Holiday{
+		holiday, err := core.HolidayManager(service).Find(context, &types.Holiday{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
-		result := []*core.Holiday{}
+		result := []*types.Holiday{}
 		for _, h := range holiday {
 			if h.EntryDate.Year() == year {
 				result = append(result, h)
@@ -471,7 +472,7 @@ func HolidayController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := core.HolidayManager(service).Find(context, &core.Holiday{
+		holiday, err := core.HolidayManager(service).Find(context, &types.Holiday{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     *currencyID,
@@ -508,12 +509,12 @@ func HolidayController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holiday, err := core.HolidayManager(service).Find(context, &core.Holiday{
+		holiday, err := core.HolidayManager(service).Find(context, &types.Holiday{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     *currencyID,
 		})
-		result := []*core.Holiday{}
+		result := []*types.Holiday{}
 		for _, h := range holiday {
 			if h.EntryDate.Year() == year {
 				result = append(result, h)
@@ -556,7 +557,7 @@ func HolidayController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		holidays, err := core.HolidayManager(service).Find(context, &core.Holiday{
+		holidays, err := core.HolidayManager(service).Find(context, &types.Holiday{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     *currencyID,
@@ -564,10 +565,10 @@ func HolidayController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch holiday records for the currency: " + err.Error()})
 		}
-		var copiedHolidays []*core.Holiday
+		var copiedHolidays []*types.Holiday
 		for _, h := range holidays {
 			if h.EntryDate.Year() == sourceYear {
-				newHoliday := &core.Holiday{
+				newHoliday := &types.Holiday{
 					EntryDate:      time.Date(targetYear, h.EntryDate.Month(), h.EntryDate.Day(), 0, 0, 0, 0, time.UTC),
 					Name:           h.Name,
 					Description:    h.Description,

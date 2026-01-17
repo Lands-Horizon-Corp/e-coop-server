@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -25,7 +26,7 @@ func LoanBalancing(
 	service *horizon.HorizonService,
 	tx *gorm.DB, endTx func(error) error,
 	data LoanBalanceEvent,
-	userOrg *core.UserOrganization) (*core.LoanTransaction, error) {
+	userOrg *types.UserOrganization) (*types.LoanTransaction, error) {
 
 	// =========================
 	// STEP 2: LOAN TRANSACTION & ACCOUNT
@@ -40,7 +41,7 @@ func LoanBalancing(
 		return nil, endTx(eris.Wrap(err, "failed to get loan account"))
 	}
 
-	loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(ctx, &core.LoanTransactionEntry{
+	loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(ctx, &types.LoanTransactionEntry{
 		LoanTransactionID: loanTransaction.ID,
 		OrganizationID:    userOrg.OrganizationID,
 		BranchID:          *userOrg.BranchID,
@@ -49,31 +50,31 @@ func LoanBalancing(
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction entries"))
 	}
 
-	automaticLoanDeductions, err := core.AutomaticLoanDeductionManager(service).Find(ctx, &core.AutomaticLoanDeduction{
+	automaticLoanDeductions, err := core.AutomaticLoanDeductionManager(service).Find(ctx, &types.AutomaticLoanDeduction{
 		OrganizationID:     userOrg.OrganizationID,
 		BranchID:           *userOrg.BranchID,
 		ComputationSheetID: account.ComputationSheetID,
 	})
 
-	disableLoanDeduction := loanTransaction.LoanType == core.LoanTypeRenewalWithoutDeduct ||
-		loanTransaction.LoanType == core.LoanTypeRestructured ||
-		loanTransaction.LoanType == core.LoanTypeStandardPrevious
+	disableLoanDeduction := loanTransaction.LoanType == types.LoanTypeRenewalWithoutDeduct ||
+		loanTransaction.LoanType == types.LoanTypeRestructured ||
+		loanTransaction.LoanType == types.LoanTypeStandardPrevious
 	if err != nil || disableLoanDeduction {
-		automaticLoanDeductions = []*core.AutomaticLoanDeduction{}
+		automaticLoanDeductions = []*types.AutomaticLoanDeduction{}
 	}
 
 	// =========================
 	// STEP 3: CATEGORIZE ENTRIES
 	// =========================
-	result := []*core.LoanTransactionEntry{}
-	static, deduction, postComputed := []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}, []*core.LoanTransactionEntry{}
+	result := []*types.LoanTransactionEntry{}
+	static, deduction, postComputed := []*types.LoanTransactionEntry{}, []*types.LoanTransactionEntry{}, []*types.LoanTransactionEntry{}
 	for _, entry := range loanTransactionEntries {
 		switch entry.Type {
-		case core.LoanTransactionStatic:
+		case types.LoanTransactionStatic:
 			static = append(static, entry)
-		case core.LoanTransactionDeduction:
+		case types.LoanTransactionDeduction:
 			deduction = append(deduction, entry)
-		case core.LoanTransactionAutomaticDeduction:
+		case types.LoanTransactionAutomaticDeduction:
 			if !disableLoanDeduction {
 				postComputed = append(postComputed, entry)
 			}
@@ -89,7 +90,7 @@ func LoanBalancing(
 			return nil, endTx(eris.Wrap(err, "failed to get cash on cash equivalence account"))
 		}
 
-		static = []*core.LoanTransactionEntry{
+		static = []*types.LoanTransactionEntry{
 			{
 				Credit:            decimal.NewFromFloat(loanTransaction.Applied1).InexactFloat64(),
 				Debit:             0,
@@ -97,7 +98,7 @@ func LoanBalancing(
 				Account:           cashOnCashEquivalenceAccount,
 				AccountID:         &cashOnCashEquivalenceAccount.ID,
 				Name:              cashOnCashEquivalenceAccount.Name,
-				Type:              core.LoanTransactionStatic,
+				Type:              types.LoanTransactionStatic,
 				LoanTransactionID: loanTransaction.ID,
 			},
 			{
@@ -107,7 +108,7 @@ func LoanBalancing(
 				AccountID:         loanTransaction.AccountID,
 				Description:       loanTransaction.Account.Description,
 				Name:              loanTransaction.Account.Name,
-				Type:              core.LoanTransactionStatic,
+				Type:              types.LoanTransactionStatic,
 				LoanTransactionID: loanTransaction.ID,
 			},
 		}
@@ -180,11 +181,11 @@ func LoanBalancing(
 				break
 			}
 		}
-		entry := &core.LoanTransactionEntry{
+		entry := &types.LoanTransactionEntry{
 			Credit:                   0,
 			Debit:                    0,
 			Name:                     ald.Name,
-			Type:                     core.LoanTransactionAutomaticDeduction,
+			Type:                     types.LoanTransactionAutomaticDeduction,
 			IsAddOn:                  ald.AddOn,
 			Account:                  ald.Account,
 			AccountID:                ald.AccountID,
@@ -221,19 +222,19 @@ func LoanBalancing(
 	// =========================
 	// STEP 8: PREVIOUS LOAN BALANCES
 	// =========================
-	if (loanTransaction.LoanType == core.LoanTypeRestructured ||
-		loanTransaction.LoanType == core.LoanTypeRenewalWithoutDeduct ||
-		loanTransaction.LoanType == core.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
+	if (loanTransaction.LoanType == types.LoanTypeRestructured ||
+		loanTransaction.LoanType == types.LoanTypeRenewalWithoutDeduct ||
+		loanTransaction.LoanType == types.LoanTypeRenewal) && loanTransaction.PreviousLoanID != nil {
 
 		prev := loanTransaction.PreviousLoan
-		result = append(result, &core.LoanTransactionEntry{
+		result = append(result, &types.LoanTransactionEntry{
 			Account:           prev.Account,
 			AccountID:         prev.AccountID,
 			Credit:            prev.Balance,
 			Debit:             0,
 			Name:              prev.Account.Name,
 			Description:       prev.Account.Description,
-			Type:              core.LoanTransactionPrevious,
+			Type:              types.LoanTransactionPrevious,
 			LoanTransactionID: loanTransaction.ID,
 		})
 		totalNonAddOns = totalNonAddOns.Add(decimal.NewFromFloat(prev.Balance))
@@ -267,9 +268,9 @@ func LoanBalancing(
 	// =========================
 	result[1].Debit = applied.InexactFloat64()
 	switch loanTransaction.LoanType {
-	case core.LoanTypeRestructured:
+	case types.LoanTypeRestructured:
 		result[1].Name += " - RESTRUCTURED"
-	case core.LoanTypeRenewal, core.LoanTypeRenewalWithoutDeduct:
+	case types.LoanTypeRenewal, types.LoanTypeRenewalWithoutDeduct:
 		result[1].Name += " - CURRENT"
 	}
 
@@ -283,7 +284,7 @@ func LoanBalancing(
 	// =========================
 	totalCredit, totalDebit := decimal.Zero, decimal.Zero
 	for index, entry := range result {
-		newEntry := &core.LoanTransactionEntry{
+		newEntry := &types.LoanTransactionEntry{
 			CreatedAt:                       time.Now().UTC(),
 			CreatedByID:                     userOrg.UserID,
 			UpdatedAt:                       time.Now().UTC(),

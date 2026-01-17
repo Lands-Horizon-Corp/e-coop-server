@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -47,7 +48,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroupHistory, err := core.MemberGroupHistoryManager(service).NormalPagination(context, ctx, &core.MemberGroupHistory{
+		memberGroupHistory, err := core.MemberGroupHistoryManager(service).NormalPagination(context, ctx, &types.MemberGroupHistory{
 			MemberProfileID: *memberProfileID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -69,7 +70,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroup, err := core.MemberGroupManager(service).FindRaw(context, &core.MemberGroup{
+		memberGroup, err := core.MemberGroupManager(service).FindRaw(context, &types.MemberGroup{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -91,7 +92,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGroup, err := core.MemberGroupManager(service).NormalPagination(context, ctx, &core.MemberGroup{
+		memberGroup, err := core.MemberGroupManager(service).NormalPagination(context, ctx, &types.MemberGroup{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -128,7 +129,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		memberGroup := &core.MemberGroup{
+		memberGroup := &types.MemberGroup{
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),

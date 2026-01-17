@@ -6,18 +6,19 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
 )
 
 type Balance struct {
-	GeneralLedgers         []*core.GeneralLedger
-	AdjustmentEntries      []*core.AdjustmentEntry
-	LoanTransactionEntries []*core.LoanTransactionEntry
+	GeneralLedgers         []*types.GeneralLedger
+	AdjustmentEntries      []*types.AdjustmentEntry
+	LoanTransactionEntries []*types.LoanTransactionEntry
 
-	CashCheckVoucherEntriesRequest []*core.CashCheckVoucherEntryRequest
-	JournalVoucherEntriesRequest   []*core.JournalVoucherEntryRequest
+	CashCheckVoucherEntriesRequest []*types.CashCheckVoucherEntryRequest
+	JournalVoucherEntriesRequest   []*types.JournalVoucherEntryRequest
 
 	CurrencyID *uuid.UUID
 	AccountID  *uuid.UUID
@@ -267,8 +268,8 @@ func CalculateStrictBalance(data Balance) (BalanceResponse, error) {
 }
 
 func GeneralLedgerAddBalanceByAccount(
-	ledgers []*core.GeneralLedger,
-) []*core.GeneralLedger {
+	ledgers []*types.GeneralLedger,
+) []*types.GeneralLedger {
 	if len(ledgers) == 0 {
 		return ledgers
 	}
@@ -313,16 +314,16 @@ func GeneralLedgerAddBalanceByAccount(
 
 type GeneralLedgerAccountBalanceSummary struct {
 	AccountID uuid.UUID
-	Account   *core.Account
+	Account   *types.Account
 	Debit     float64
 	Credit    float64
 }
 
 func SumGeneralLedgerByAccount(
-	ledgers []*core.GeneralLedger,
+	ledgers []*types.GeneralLedger,
 ) []GeneralLedgerAccountBalanceSummary {
 	resultMap := make(map[uuid.UUID]*struct {
-		Account *core.Account
+		Account *types.Account
 		Debit   decimal.Decimal
 		Credit  decimal.Decimal
 	})
@@ -333,7 +334,7 @@ func SumGeneralLedgerByAccount(
 		summary, exists := resultMap[*gl.AccountID]
 		if !exists {
 			summary = &struct {
-				Account *core.Account
+				Account *types.Account
 				Debit   decimal.Decimal
 				Credit  decimal.Decimal
 			}{

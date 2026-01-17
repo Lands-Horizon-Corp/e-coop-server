@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -25,9 +26,9 @@ type LoanProcessEventResponse struct {
 
 func LoanProcessing(
 	context context.Context, service *horizon.HorizonService,
-	userOrg *core.UserOrganization,
+	userOrg *types.UserOrganization,
 	loanTransactionID *uuid.UUID,
-) (*core.LoanTransaction, error) {
+) (*types.LoanTransaction, error) {
 	tx, endTx := service.Database.StartTransaction(context)
 	loanTransaction, err := core.LoanTransactionManager(service).GetByIDIncludingDeleted(context, *loanTransactionID)
 	if err != nil {
@@ -51,7 +52,7 @@ func LoanProcessing(
 	}
 
 	currency := loanTransaction.Account.Currency
-	loanAccounts, err := core.LoanAccountManager(service).Find(context, &core.LoanAccount{
+	loanAccounts, err := core.LoanAccountManager(service).Find(context, &types.LoanAccount{
 		OrganizationID:    userOrg.OrganizationID,
 		BranchID:          *userOrg.BranchID,
 		LoanTransactionID: loanTransaction.ID,
@@ -63,7 +64,7 @@ func LoanProcessing(
 		return nil, endTx(eris.New("no loan accounts found for the specified loan transaction"))
 	}
 
-	holidays, err := core.HolidayManager(service).Find(context, &core.Holiday{
+	holidays, err := core.HolidayManager(service).Find(context, &types.Holiday{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		CurrencyID:     currency.ID,
@@ -129,10 +130,10 @@ func LoanProcessing(
 					}
 					var amountToAdd float64
 					switch accountHistory.Type {
-					case core.AccountTypeLoan:
+					case types.AccountTypeLoan:
 						continue
 
-					case core.AccountTypeFines:
+					case types.AccountTypeFines:
 						if daysSkipped > 0 && !accountHistory.NoGracePeriodDaily {
 							account := core.AccountHistoryToModel(accountHistory)
 							amountToAdd = usecase.ComputeFines(
@@ -148,16 +149,16 @@ func LoanProcessing(
 
 					default:
 						switch accountHistory.ComputationType {
-						case core.Straight:
-							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+						case types.Straight:
+							if accountHistory.Type == types.AccountTypeInterest || accountHistory.Type == types.AccountTypeSVFLedger {
 								amountToAdd = usecase.ComputeInterest(principal, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
-						case core.Diminishing:
-							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+						case types.Diminishing:
+							if accountHistory.Type == types.AccountTypeInterest || accountHistory.Type == types.AccountTypeSVFLedger {
 								amountToAdd = usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
-						case core.DiminishingStraight:
-							if accountHistory.Type == core.AccountTypeInterest || accountHistory.Type == core.AccountTypeSVFLedger {
+						case types.DiminishingStraight:
+							if accountHistory.Type == types.AccountTypeInterest || accountHistory.Type == types.AccountTypeSVFLedger {
 								amountToAdd = usecase.ComputeInterest(balance, accountHistory.InterestStandard, loanTransaction.ModeOfPayment)
 							}
 						}
@@ -188,12 +189,12 @@ func LoanProcessing(
 		}
 
 		switch loanTransaction.ModeOfPayment {
-		case core.LoanModeOfPaymentDaily:
+		case types.LoanModeOfPaymentDaily:
 			paymentDate = paymentDate.AddDate(0, 0, 1)
-		case core.LoanModeOfPaymentWeekly:
-			weekDay := core.LoanWeeklyIota(weeklyExactDay)
+		case types.LoanModeOfPaymentWeekly:
+			weekDay := types.LoanWeeklyIota(weeklyExactDay)
 			paymentDate = nextWeekday(paymentDate, time.Weekday(weekDay))
-		case core.LoanModeOfPaymentSemiMonthly:
+		case types.LoanModeOfPaymentSemiMonthly:
 			thisDay := paymentDate.Day()
 			thisMonth := paymentDate.Month()
 			thisYear := paymentDate.Year()
@@ -207,7 +208,7 @@ func LoanProcessing(
 				nextMonth := paymentDate.AddDate(0, 1, 0)
 				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
 			}
-		case core.LoanModeOfPaymentMonthly:
+		case types.LoanModeOfPaymentMonthly:
 			loc := paymentDate.Location()
 			day := paymentDate.Day()
 			if isMonthlyExactDay {
@@ -216,12 +217,12 @@ func LoanProcessing(
 			} else {
 				paymentDate = paymentDate.AddDate(0, 0, 30)
 			}
-		case core.LoanModeOfPaymentQuarterly:
+		case types.LoanModeOfPaymentQuarterly:
 			paymentDate = paymentDate.AddDate(0, 3, 0)
-		case core.LoanModeOfPaymentSemiAnnual:
+		case types.LoanModeOfPaymentSemiAnnual:
 			paymentDate = paymentDate.AddDate(0, 6, 0)
-		case core.LoanModeOfPaymentLumpsum:
-		case core.LoanModeOfPaymentFixedDays:
+		case types.LoanModeOfPaymentLumpsum:
+		case types.LoanModeOfPaymentFixedDays:
 			paymentDate = paymentDate.AddDate(0, 0, 1)
 		}
 	}
@@ -238,7 +239,7 @@ func LoanProcessing(
 
 }
 
-func ProcessAllLoans(processContext context.Context, service *horizon.HorizonService, userOrg *core.UserOrganization) error {
+func ProcessAllLoans(processContext context.Context, service *horizon.HorizonService, userOrg *types.UserOrganization) error {
 	if userOrg == nil {
 		return eris.New("user organization is nil")
 	}
@@ -246,7 +247,7 @@ func ProcessAllLoans(processContext context.Context, service *horizon.HorizonSer
 		return eris.New("user organization has no branch assigned")
 	}
 	currentTime := time.Now().UTC()
-	loanTransactions, err := core.LoanTransactionManager(service).FindIncludeDeleted(processContext, &core.LoanTransaction{
+	loanTransactions, err := core.LoanTransactionManager(service).FindIncludeDeleted(processContext, &types.LoanTransaction{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		Processing:     false,

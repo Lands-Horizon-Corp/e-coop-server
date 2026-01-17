@@ -2,7 +2,7 @@ package event
 
 // func (r *Event) bankReport(ctx context.Context, data ReportData) (result []byte, err error) {
 // 	result, err = data.generated.PDF("/api/v1/bank/search", func(params ...string) ([]byte, error) {
-// 		return r.core.BankManager(service).StringTabular(ctx, data.generated.FilterSearch, &core.Bank{
+// 		return r.core.BankManager(service).StringTabular(ctx, data.generated.FilterSearch, &types.Bank{
 // 			OrganizationID: data.generated.OrganizationID,
 // 			BranchID:       data.generated.BranchID,
 // 		})
@@ -45,7 +45,7 @@ package event
 // 		if err != nil {
 // 			return nil, eris.Wrapf(err, "Failed to get member profile by ID: %s", loanTransaction.MemberProfileID)
 // 		}
-// 		loanTransactionEntries, err := r.core.LoanTransactionEntryManager(service).Find(ctx, &core.LoanTransactionEntry{
+// 		loanTransactionEntries, err := r.core.LoanTransactionEntryManager(service).Find(ctx, &types.LoanTransactionEntry{
 // 			BranchID:          loanTransaction.BranchID,
 // 			OrganizationID:    loanTransaction.OrganizationID,
 // 			LoanTransactionID: loanTransaction.ID,

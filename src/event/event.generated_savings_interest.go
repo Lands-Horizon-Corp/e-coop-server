@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
@@ -13,12 +14,12 @@ import (
 
 func GenerateSavingsInterestEntries(
 	context context.Context, service *horizon.HorizonService,
-	userOrg *core.UserOrganization,
-	generatedSavingsInterest core.GeneratedSavingsInterest,
+	userOrg *types.UserOrganization,
+	generatedSavingsInterest types.GeneratedSavingsInterest,
 	annualDivisor int,
-) ([]*core.GeneratedSavingsInterestEntry, error) {
+) ([]*types.GeneratedSavingsInterestEntry, error) {
 
-	result := []*core.GeneratedSavingsInterestEntry{}
+	result := []*types.GeneratedSavingsInterestEntry{}
 	now := time.Now().UTC()
 
 	browseReferences, err := core.BrowseReferenceByField(
@@ -106,7 +107,7 @@ func GenerateSavingsInterestEntries(
 		} else {
 
 			switch memberBrowseRef.BrowseReference.InterestType {
-			case core.InterestTypeYear:
+			case types.InterestTypeYear:
 				for _, rateByYear := range memberBrowseRef.BrowseReference.InterestRatesByYear {
 
 					memberHistory, err := core.GetMemberTypeHistoryLatest(
@@ -131,7 +132,7 @@ func GenerateSavingsInterestEntries(
 						break
 					}
 				}
-			case core.InterestTypeDate:
+			case types.InterestTypeDate:
 				for _, rateByDate := range memberBrowseRef.BrowseReference.InterestRatesByDate {
 
 					memberHistory, err := core.GetMemberTypeHistoryLatest(
@@ -155,7 +156,7 @@ func GenerateSavingsInterestEntries(
 						break
 					}
 				}
-			case core.InterestTypeAmount:
+			case types.InterestTypeAmount:
 				for _, rateByAmount := range memberBrowseRef.BrowseReference.InterestRatesByAmount {
 					fromAmountDec := decimal.NewFromFloat(rateByAmount.FromAmount)
 					toAmountDec := decimal.NewFromFloat(rateByAmount.ToAmount)
@@ -167,7 +168,7 @@ func GenerateSavingsInterestEntries(
 			}
 
 			switch generatedSavingsInterest.SavingsComputationType {
-			case core.SavingsComputationTypeDailyLowestBalance:
+			case types.SavingsComputationTypeDailyLowestBalance:
 				computation := usecase.SavingsInterest{
 					DailyBalance:    dailyBalances,
 					InterestRate:    interestRate,
@@ -177,7 +178,7 @@ func GenerateSavingsInterestEntries(
 				}
 				result := usecase.SavingsInterestComputation(computation)
 				savingsComputed = &result
-			case core.SavingsComputationTypeAverageDailyBalance:
+			case types.SavingsComputationTypeAverageDailyBalance:
 				computation := usecase.SavingsInterest{
 					DailyBalance:    dailyBalances,
 					InterestRate:    interestRate,
@@ -187,7 +188,7 @@ func GenerateSavingsInterestEntries(
 				}
 				result := usecase.SavingsInterestComputation(computation)
 				savingsComputed = &result
-			case core.SavingsComputationTypeMonthlyEndBalanceTotal:
+			case types.SavingsComputationTypeMonthlyEndBalanceTotal:
 				computation := usecase.SavingsInterest{
 					DailyBalance:    dailyBalances,
 					InterestRate:    interestRate,
@@ -197,10 +198,10 @@ func GenerateSavingsInterestEntries(
 				}
 				result := usecase.SavingsInterestComputation(computation)
 				savingsComputed = &result
-			case core.SavingsComputationTypeADBEndBalance:
-			case core.SavingsComputationTypeMonthlyEndLowestBalance:
-			case core.SavingsComputationTypeMonthlyLowestBalanceAverage:
-			case core.SavingsComputationTypeMonthlyEndBalanceAverage:
+			case types.SavingsComputationTypeADBEndBalance:
+			case types.SavingsComputationTypeMonthlyEndLowestBalance:
+			case types.SavingsComputationTypeMonthlyLowestBalanceAverage:
+			case types.SavingsComputationTypeMonthlyEndBalanceAverage:
 			}
 		}
 
@@ -220,7 +221,7 @@ func GenerateSavingsInterestEntries(
 			return nil, eris.Wrap(err, "failed to get account by ID")
 		}
 
-		entry := &core.GeneratedSavingsInterestEntry{
+		entry := &types.GeneratedSavingsInterestEntry{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
 			UpdatedAt:                  now,

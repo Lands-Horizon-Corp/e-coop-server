@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 )
@@ -145,7 +146,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
 		})
@@ -173,7 +174,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:          *userOrg.BranchID,
 			OrganizationID:    userOrganization.OrganizationID,
 			TypeOfPaymentType: core.PaymentTypeCheck,
@@ -202,7 +203,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:          *userOrg.BranchID,
 			OrganizationID:    userOrganization.OrganizationID,
 			TypeOfPaymentType: core.PaymentTypeOnline,
@@ -231,7 +232,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:          *userOrg.BranchID,
 			OrganizationID:    userOrganization.OrganizationID,
 			TypeOfPaymentType: core.PaymentTypeCash,
@@ -260,7 +261,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
 			Source:         core.GeneralLedgerSourcePayment,
@@ -289,7 +290,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
 			Source:         core.GeneralLedgerSourceWithdraw,
@@ -318,7 +319,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
 			Source:         core.GeneralLedgerSourceDeposit,
@@ -347,7 +348,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
 			Source:         core.GeneralLedgerSourceJournalVoucher,
@@ -376,7 +377,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
 			Source:         core.GeneralLedgerSourceAdjustment,
@@ -405,7 +406,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
 			Source:         core.GeneralLedgerSourceJournalVoucher,
@@ -434,7 +435,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view branch general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
 			Source:         core.GeneralLedgerSourceCheckVoucher,
@@ -462,7 +463,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
@@ -473,7 +474,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -481,7 +482,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -513,7 +514,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
@@ -525,7 +526,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -533,7 +534,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID:   &member.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
@@ -566,7 +567,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
@@ -578,7 +579,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -586,7 +587,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID:   &member.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
@@ -619,7 +620,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID:    &userOrganization.UserID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
@@ -631,7 +632,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -639,7 +640,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID:   &member.ID,
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
@@ -672,7 +673,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
@@ -684,7 +685,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -692,7 +693,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -731,7 +732,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(
 				context,
 				ctx,
-				&core.GeneralLedger{
+				&types.GeneralLedger{
 					EmployeeUserID: &userOrg.UserID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
@@ -749,7 +750,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		case core.UserOrganizationTypeMember:
 			member, err := core.MemberProfileManager(service).FindOne(
 				context,
-				&core.MemberProfile{
+				&types.MemberProfile{
 					UserID:         &userOrg.UserID,
 					BranchID:       *userOrg.BranchID,
 					OrganizationID: userOrg.OrganizationID,
@@ -763,7 +764,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			entries, err := core.GeneralLedgerManager(service).NormalPagination(
 				context,
 				ctx,
-				&core.GeneralLedger{
+				&types.GeneralLedger{
 					MemberProfileID: &member.ID,
 					OrganizationID:  userOrg.OrganizationID,
 					BranchID:        *userOrg.BranchID,
@@ -801,7 +802,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
@@ -813,7 +814,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -821,7 +822,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -854,7 +855,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
@@ -866,7 +867,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -874,7 +875,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -907,7 +908,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
@@ -919,7 +920,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -927,7 +928,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -960,7 +961,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
@@ -972,7 +973,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -980,7 +981,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -1013,7 +1014,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		}
 		switch userOrg.UserType {
 		case core.UserOrganizationTypeOwner, core.UserOrganizationTypeEmployee:
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				EmployeeUserID: &userOrganization.UserID,
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
@@ -1025,7 +1026,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, entries)
 
 		case core.UserOrganizationTypeMember:
-			member, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			member, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID:         &userOrganization.UserID,
 				BranchID:       *userOrg.BranchID,
 				OrganizationID: userOrganization.OrganizationID,
@@ -1033,7 +1034,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 			}
-			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+			entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 				MemberProfileID: &member.ID,
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
@@ -1071,7 +1072,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -1104,7 +1105,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID:    &userOrganization.UserID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1138,7 +1139,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID:    &userOrganization.UserID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1172,7 +1173,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID:    &userOrganization.UserID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1206,7 +1207,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -1240,7 +1241,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -1274,7 +1275,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -1308,7 +1309,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -1342,7 +1343,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -1376,7 +1377,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -1410,7 +1411,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -1870,7 +1871,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID:   memberProfileID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1905,7 +1906,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID:   memberProfileID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1940,7 +1941,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID:   memberProfileID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -1975,7 +1976,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -2010,7 +2011,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -2045,7 +2046,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -2080,7 +2081,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -2115,7 +2116,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -2150,7 +2151,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -2185,7 +2186,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -2216,7 +2217,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2245,7 +2246,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2275,7 +2276,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2305,7 +2306,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2335,7 +2336,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2365,7 +2366,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2395,7 +2396,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2425,7 +2426,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2455,7 +2456,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2485,7 +2486,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2515,7 +2516,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -2571,7 +2572,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -2601,7 +2602,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -2631,7 +2632,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionID:     transactionID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -2661,7 +2662,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionID:  transactionID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -2691,7 +2692,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			TransactionID:  transactionID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -2852,7 +2853,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -2881,7 +2882,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:         accountID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -2911,7 +2912,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:         accountID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -2941,7 +2942,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:         accountID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,
@@ -2971,7 +2972,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -3001,7 +3002,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -3031,7 +3032,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -3061,7 +3062,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -3091,7 +3092,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -3121,7 +3122,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -3151,7 +3152,7 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view financial statement entries"})
 		}
-		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &core.GeneralLedger{
+		entries, err := core.GeneralLedgerManager(service).NormalPagination(context, ctx, &types.GeneralLedger{
 			AccountID:      accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -58,7 +59,7 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		chargesRateSchemeModeOfPayment := &core.ChargesRateSchemeModeOfPayment{
+		chargesRateSchemeModeOfPayment := &types.ChargesRateSchemeModeOfPayment{
 			ChargesRateSchemeID: *chargesRateSchemeID,
 			From:                req.From,
 			To:                  req.To,

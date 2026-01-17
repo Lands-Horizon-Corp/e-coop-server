@@ -15,6 +15,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/image/webp"
 	"gorm.io/gorm"
@@ -485,7 +486,7 @@ func KYCController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to hash password: " + endTx(err).Error()})
 		}
-		userProfile := &core.User{
+		userProfile := &types.User{
 			Email:             req.Email,
 			Username:          req.Username,
 			ContactNumber:     req.ContactNumber,
@@ -509,7 +510,7 @@ func KYCController(service *horizon.HorizonService) {
 		if passbook == "" {
 			passbook = helpers.GeneratePassbookNumber()
 		}
-		memberProfile := &core.MemberProfile{
+		memberProfile := &types.MemberProfile{
 			OrganizationID:       org.ID,
 			BranchID:             *req.BranchID,
 			CreatedAt:            time.Now().UTC(),
@@ -537,7 +538,7 @@ func KYCController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create member profile: " + endTx(err).Error()})
 		}
 		for _, addrReq := range req.Addresses {
-			value := &core.MemberAddress{
+			value := &types.MemberAddress{
 				MemberProfileID: &memberProfile.ID,
 				Label:           addrReq.Label,
 				City:            addrReq.City,
@@ -563,7 +564,7 @@ func KYCController(service *horizon.HorizonService) {
 		}
 
 		for _, benefitReq := range req.GovernmentBenefits {
-			value := &core.MemberGovernmentBenefit{
+			value := &types.MemberGovernmentBenefit{
 				MemberProfileID: memberProfile.ID,
 				Name:            benefitReq.Name,
 				Description:     benefitReq.Description,
@@ -621,7 +622,7 @@ func KYCController(service *horizon.HorizonService) {
 		if err := event.SetUser(context, service, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
 		}
-		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &core.UserOrganization{
+		userOrg, err := core.UserOrganizationManager(service).FindOne(context, &types.UserOrganization{
 			UserID:         user.ID,
 			OrganizationID: org.ID,
 			UserType:       core.UserOrganizationTypeMember,

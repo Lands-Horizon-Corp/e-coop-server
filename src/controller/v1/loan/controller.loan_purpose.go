@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,7 +50,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		value, err := core.LoanPurposeManager(service).NormalPagination(context, ctx, &core.LoanPurpose{
+		value, err := core.LoanPurposeManager(service).NormalPagination(context, ctx, &types.LoanPurpose{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -111,7 +112,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		purpose := &core.LoanPurpose{
+		purpose := &types.LoanPurpose{
 			Description:    req.Description,
 			Icon:           req.Icon,
 			CreatedAt:      time.Now().UTC(),

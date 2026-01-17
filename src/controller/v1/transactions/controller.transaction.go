@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -76,7 +77,7 @@ func TransactionController(service *horizon.HorizonService) {
 			})
 		}
 		tx, endTx := service.Database.StartTransaction(context)
-		transaction := &core.Transaction{
+		transaction := &types.Transaction{
 			CreatedAt:   time.Now().UTC(),
 			CreatedByID: userOrg.UserID,
 			UpdatedAt:   time.Now().UTC(),
@@ -248,7 +249,7 @@ func TransactionController(service *horizon.HorizonService) {
 		}
 		var filter core.Transaction
 		if userOrg.UserType == core.UserOrganizationTypeMember {
-			memberProfile, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			memberProfile, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID: &userOrg.UserID,
 			})
 			if err != nil {
@@ -287,7 +288,7 @@ func TransactionController(service *horizon.HorizonService) {
 		}
 		var filter core.Transaction
 		if userOrg.UserType == core.UserOrganizationTypeMember {
-			memberProfile, err := core.MemberProfileManager(service).FindOne(context, &core.MemberProfile{
+			memberProfile, err := core.MemberProfileManager(service).FindOne(context, &types.MemberProfile{
 				UserID: &userOrg.UserID,
 			})
 			if err != nil {
@@ -333,7 +334,7 @@ func TransactionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Employee not found: " + err.Error()})
 		}
-		transactions, err := core.TransactionManager(service).NormalPagination(context, ctx, &core.Transaction{
+		transactions, err := core.TransactionManager(service).NormalPagination(context, ctx, &types.Transaction{
 			EmployeeUserID: &userOrganization.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -366,7 +367,7 @@ func TransactionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found: " + err.Error()})
 		}
-		transactions, err := core.TransactionManager(service).Find(context, &core.Transaction{
+		transactions, err := core.TransactionManager(service).Find(context, &types.Transaction{
 			MemberProfileID: &memberProfile.ID,
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
@@ -391,7 +392,7 @@ func TransactionController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
-		transactions, err := core.TransactionManager(service).NormalPagination(context, ctx, &core.Transaction{
+		transactions, err := core.TransactionManager(service).NormalPagination(context, ctx, &types.Transaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -416,7 +417,7 @@ func TransactionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactions, err := core.TransactionManager(service).NormalPagination(context, ctx, &core.Transaction{
+		transactions, err := core.TransactionManager(service).NormalPagination(context, ctx, &types.Transaction{
 			TransactionBatchID: transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,

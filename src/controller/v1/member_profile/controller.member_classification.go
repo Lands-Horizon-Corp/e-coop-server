@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -47,7 +48,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberClassificationHistory, err := core.MemberClassificationHistoryManager(service).NormalPagination(context, ctx, &core.MemberClassificationHistory{
+		memberClassificationHistory, err := core.MemberClassificationHistoryManager(service).NormalPagination(context, ctx, &types.MemberClassificationHistory{
 			OrganizationID:  userOrg.OrganizationID,
 			BranchID:        *userOrg.BranchID,
 			MemberProfileID: *memberProfileID,
@@ -87,7 +88,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := core.MemberClassificationManager(service).NormalPagination(context, ctx, &core.MemberClassification{
+		value, err := core.MemberClassificationManager(service).NormalPagination(context, ctx, &types.MemberClassification{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -124,7 +125,7 @@ func MemberClassificationController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		memberClassification := &core.MemberClassification{
+		memberClassification := &types.MemberClassification{
 			Name:           req.Name,
 			Description:    req.Description,
 			Icon:           req.Icon,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -43,7 +44,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		permissionTemplates, err := core.PermissionTemplateManager(service).NormalPagination(context, ctx, &core.PermissionTemplate{
+		permissionTemplates, err := core.PermissionTemplateManager(service).NormalPagination(context, ctx, &types.PermissionTemplate{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -102,7 +103,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		newTemplate := &core.PermissionTemplate{
+		newTemplate := &types.PermissionTemplate{
 			CreatedAt:      time.Now().UTC(),
 			CreatedByID:    userOrg.UserID,
 			UpdatedAt:      time.Now().UTC(),

@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -46,7 +47,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Organization not found"})
 		}
 
-		organizationMediaList, err := core.OrganizationMediaManager(service).FindRaw(context, &core.OrganizationMedia{
+		organizationMediaList, err := core.OrganizationMediaManager(service).FindRaw(context, &types.OrganizationMedia{
 			OrganizationID: organization.ID,
 		})
 		if err != nil {
@@ -106,7 +107,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		organizationMedia := &core.OrganizationMedia{
+		organizationMedia := &types.OrganizationMedia{
 			MediaID:        req.MediaID,
 			Name:           req.Name,
 			Description:    req.Description,
@@ -300,14 +301,14 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
 		}
 
-		var createdMedia []*core.OrganizationMedia
+		var createdMedia []*types.OrganizationMedia
 		for _, mediaID := range req.IDs {
 			media, err := core.MediaManager(service).GetByID(context, mediaID)
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})
 			}
 			descruption := media.FileName + " at " + time.Now().Format(time.RFC3339)
-			organizationMedia := &core.OrganizationMedia{
+			organizationMedia := &types.OrganizationMedia{
 				MediaID:        mediaID,
 				CreatedAt:      time.Now().UTC(),
 				UpdatedAt:      time.Now().UTC(),

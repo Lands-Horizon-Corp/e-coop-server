@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/shopspring/decimal"
 
 	"github.com/labstack/echo/v4"
@@ -31,7 +32,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedSavingsInterests, err := core.GeneratedSavingsInterestManager(service).NormalPagination(context, ctx, &core.GeneratedSavingsInterest{
+		generatedSavingsInterests, err := core.GeneratedSavingsInterestManager(service).NormalPagination(context, ctx, &types.GeneratedSavingsInterest{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -74,7 +75,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		entries, err := core.GeneratedSavingsInterestEntryManager(service).Find(context, &core.GeneratedSavingsInterestEntry{
+		entries, err := core.GeneratedSavingsInterestEntryManager(service).Find(context, &types.GeneratedSavingsInterestEntry{
 			GeneratedSavingsInterestID: *generatedSavingsInterestID,
 			OrganizationID:             userOrg.OrganizationID,
 			BranchID:                   *userOrg.BranchID,
@@ -182,7 +183,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		tx, endTx := service.Database.StartTransaction(context)
 		totalTax := decimal.Zero
 		totalInterest := decimal.Zero
-		generatedSavingsInterest := &core.GeneratedSavingsInterest{
+		generatedSavingsInterest := &types.GeneratedSavingsInterest{
 			CreatedAt:                       time.Now().UTC(),
 			CreatedByID:                     userOrg.UserID,
 			UpdatedAt:                       time.Now().UTC(),

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -44,7 +45,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		if err != nil || transactionBatch == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for the user"})
 		}
-		data := &core.DisbursementTransaction{
+		data := &types.DisbursementTransaction{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -97,7 +98,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &types.DisbursementTransaction{
 			TransactionBatchID: *transactionBatchID,
 			BranchID:           *userOrg.BranchID,
 			OrganizationID:     userOrg.OrganizationID,
@@ -126,7 +127,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		if userOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &types.DisbursementTransaction{
 			CreatedByID:    userOrganization.UserID,
 			BranchID:       *userOrganization.BranchID,
 			OrganizationID: userOrganization.OrganizationID,
@@ -151,7 +152,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &types.DisbursementTransaction{
 			CreatedByID:    userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -176,7 +177,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := core.DisbursementTransactionManager(service).FindRaw(context, &core.DisbursementTransaction{
+		disbursementTransactions, err := core.DisbursementTransactionManager(service).FindRaw(context, &types.DisbursementTransaction{
 			CreatedByID:    userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
@@ -201,7 +202,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &types.DisbursementTransaction{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -229,7 +230,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &core.DisbursementTransaction{
+		disbursementTransactions, err := core.DisbursementTransactionManager(service).NormalPagination(context, ctx, &types.DisbursementTransaction{
 			DisbursementID: *disbursementID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,

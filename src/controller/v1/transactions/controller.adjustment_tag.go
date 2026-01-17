@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -50,7 +51,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := core.AdjustmentTagManager(service).NormalPagination(context, ctx, &core.AdjustmentTag{
+		tags, err := core.AdjustmentTagManager(service).NormalPagination(context, ctx, &types.AdjustmentTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -113,7 +114,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tag := &core.AdjustmentTag{
+		tag := &types.AdjustmentTag{
 			AdjustmentEntryID: req.AdjustmentEntryID,
 			Name:              req.Name,
 			Description:       req.Description,
@@ -169,7 +170,7 @@ func AdjustmentTagController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tags, err := core.AdjustmentTagManager(service).Find(context, &core.AdjustmentTag{
+		tags, err := core.AdjustmentTagManager(service).Find(context, &types.AdjustmentTag{
 			AdjustmentEntryID: adjustmentEntryID,
 			OrganizationID:    userOrg.OrganizationID,
 			BranchID:          *userOrg.BranchID,

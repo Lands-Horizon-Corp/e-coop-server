@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -42,7 +43,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		currency := []*core.Currency{}
+		currency := []*types.Currency{}
 		for _, unbal := range userOrg.Branch.BranchSetting.UnbalancedAccounts {
 			if unbal.Currency != nil {
 				currency = append(currency, unbal.Currency)
@@ -67,15 +68,15 @@ func CurrencyController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		accounts, err := core.AccountManager(service).Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		currencies := []*core.Currency{}
-		currencyMap := make(map[uuid.UUID]*core.Currency)
+		currencies := []*types.Currency{}
+		currencyMap := make(map[uuid.UUID]*types.Currency)
 		for _, account := range accounts {
 			if account.Currency != nil {
 				currencyMap[account.Currency.ID] = account.Currency
@@ -145,7 +146,7 @@ func CurrencyController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
 
-		currency := &core.Currency{
+		currency := &types.Currency{
 			Name:         req.Name,
 			Country:      req.Country,
 			CurrencyCode: req.CurrencyCode,
@@ -380,7 +381,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		if timezone == "" {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Timezone is required"})
 		}
-		currency, err := core.CurrencyManager(service).FindOneRaw(context, &core.Currency{Timezone: timezone})
+		currency, err := core.CurrencyManager(service).FindOneRaw(context, &types.Currency{Timezone: timezone})
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Currency not found for timezone: " + err.Error()})
 		}

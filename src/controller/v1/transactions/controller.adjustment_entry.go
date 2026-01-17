@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -51,7 +52,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		adjustmentEntries, err := core.AdjustmentEntryManager(service).NormalPagination(context, ctx, &core.AdjustmentEntry{
+		adjustmentEntries, err := core.AdjustmentEntryManager(service).NormalPagination(context, ctx, &types.AdjustmentEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -129,7 +130,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find active transaction batch: " + err.Error()})
 		}
 
-		adjustmentEntry := &core.AdjustmentEntry{
+		adjustmentEntry := &types.AdjustmentEntry{
 			SignatureMediaID:   req.SignatureMediaID,
 			AccountID:          req.AccountID,
 			MemberProfileID:    req.MemberProfileID,
@@ -344,7 +345,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
-				query := db.Model(&core.AdjustmentEntry{}).
+				query := db.Model(&types.AdjustmentEntry{}).
 					Joins("JOIN accounts a ON a.id = adjustment_entries.account_id").
 					Where("adjustment_entries.organization_id = ?", userOrg.OrganizationID).
 					Where("adjustment_entries.branch_id = ?", *userOrg.BranchID)
@@ -384,7 +385,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID"})
 		}
-		entries, err := core.AdjustmentEntryManager(service).Find(context, &core.AdjustmentEntry{
+		entries, err := core.AdjustmentEntryManager(service).Find(context, &types.AdjustmentEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -432,7 +433,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
-				query := db.Model(&core.AdjustmentEntry{}).
+				query := db.Model(&types.AdjustmentEntry{}).
 					Joins("JOIN accounts a ON a.id = adjustment_entries.account_id").
 					Where("adjustment_entries.organization_id = ?", userOrganization.OrganizationID).
 					Where("adjustment_entries.branch_id = ?", *userOrganization.BranchID).
@@ -477,7 +478,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		if userOrganization.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User organization is not assigned to a branch"})
 		}
-		entries, err := core.AdjustmentEntryManager(service).Find(context, &core.AdjustmentEntry{
+		entries, err := core.AdjustmentEntryManager(service).Find(context, &types.AdjustmentEntry{
 			OrganizationID: userOrganization.OrganizationID,
 			BranchID:       *userOrganization.BranchID,
 			EmployeeUserID: &userOrganization.UserID,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 	"github.com/labstack/echo/v4"
 )
@@ -50,7 +51,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		entries, err := core.GeneratedSavingsInterestEntryManager(service).NormalPagination(context, ctx, &core.GeneratedSavingsInterestEntry{
+		entries, err := core.GeneratedSavingsInterestEntryManager(service).NormalPagination(context, ctx, &types.GeneratedSavingsInterestEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -185,7 +186,7 @@ func GeneratedSavingsInterestEntryController(service *horizon.HorizonService) {
 			InterestTax:    req.InterestTax,
 		})
 
-		entry := &core.GeneratedSavingsInterestEntry{
+		entry := &types.GeneratedSavingsInterestEntry{
 			GeneratedSavingsInterestID: *generatedSavingsInterestID,
 			AccountID:                  req.AccountID,
 			MemberProfileID:            req.MemberProfileID,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -72,7 +73,7 @@ func MediaController(service *horizon.HorizonService) {
 				fileName += ext
 			}
 		}
-		initial := &core.Media{
+		initial := &types.Media{
 			FileName:   fileName,
 			FileSize:   0,
 			FileType:   contentType,
@@ -92,14 +93,14 @@ func MediaController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create media record: " + err.Error()})
 		}
 		storage, err := service.Storage.UploadFromHeader(context, file, func(progress, _ int64, _ *horizon.Storage) {
-			_ = core.MediaManager(service).UpdateByID(context, initial.ID, &core.Media{
+			_ = core.MediaManager(service).UpdateByID(context, initial.ID, &types.Media{
 				Progress:  progress,
 				Status:    "progress",
 				UpdatedAt: time.Now().UTC(),
 			})
 		})
 		if err != nil {
-			_ = core.MediaManager(service).UpdateByID(context, initial.ID, &core.Media{
+			_ = core.MediaManager(service).UpdateByID(context, initial.ID, &types.Media{
 				ID:        initial.ID,
 				Status:    "error",
 				UpdatedAt: time.Now().UTC(),
@@ -111,7 +112,7 @@ func MediaController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "File upload failed: " + err.Error()})
 		}
-		completed := &core.Media{
+		completed := &types.Media{
 			FileName:   storage.FileName,
 			FileType:   storage.FileType,
 			FileSize:   storage.FileSize,

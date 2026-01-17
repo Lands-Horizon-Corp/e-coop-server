@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -40,7 +41,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if generatedReport.MediaID == nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No media associated with this generated report"})
 		}
-		generatedReportsDownloadUsers := &core.GeneratedReportsDownloadUsers{
+		generatedReportsDownloadUsers := &types.GeneratedReportsDownloadUsers{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -101,7 +102,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 	// 		})
 	// 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 	// 	}
-	// 	generatedReport := &core.GeneratedReport{
+	// 	generatedReport := &types.GeneratedReport{
 	// 		Name:                req.Name,
 	// 		Description:         req.Description,
 	// 		FilterSearch:        req.FilterSearch,
@@ -261,7 +262,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		downloadUser := &core.GeneratedReportsDownloadUsers{
+		downloadUser := &types.GeneratedReportsDownloadUsers{
 			UserOrganizationID: req.UserOrganizationID,
 			GeneratedReportID:  req.GeneratedReportID,
 			CreatedAt:          time.Now().UTC(),
@@ -343,7 +344,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -368,7 +369,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -393,7 +394,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
@@ -418,7 +419,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -444,7 +445,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
@@ -468,7 +469,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -495,7 +496,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
@@ -520,7 +521,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -568,7 +569,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			Model:          model,
@@ -594,7 +595,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,
@@ -621,7 +622,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypePDF,
@@ -648,7 +649,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -676,7 +677,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			GeneratedReportType: core.GeneratedReportTypeExcel,
@@ -703,7 +704,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:            *userOrg.BranchID,
 			OrganizationID:      userOrg.OrganizationID,
 			CreatedByID:         userOrg.UserID,
@@ -731,7 +732,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			IsFavorite:     true,
@@ -758,7 +759,7 @@ func GeneratedReportsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 		model := ctx.Param("model")
-		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &core.GeneratedReport{
+		generatedReports, err := core.GeneratedReportManager(service).NormalPagination(context, ctx, &types.GeneratedReport{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 			CreatedByID:    userOrg.UserID,

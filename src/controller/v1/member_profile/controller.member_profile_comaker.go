@@ -7,6 +7,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -28,7 +29,7 @@ func MemberProfileComakerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		loanTransactions, err := core.LoanTransactionManager(service).Find(context, &core.LoanTransaction{
+		loanTransactions, err := core.LoanTransactionManager(service).Find(context, &types.LoanTransaction{
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
 			MemberProfileID: memberProfileID,
@@ -38,7 +39,7 @@ func MemberProfileComakerController(service *horizon.HorizonService) {
 		}
 		comakerResponse := []core.ComakerMemberProfileResponse{}
 		for _, lt := range loanTransactions {
-			comakers, err := core.ComakerMemberProfileManager(service).Find(context, &core.ComakerMemberProfile{
+			comakers, err := core.ComakerMemberProfileManager(service).Find(context, &types.ComakerMemberProfile{
 				OrganizationID:    userOrg.OrganizationID,
 				BranchID:          *userOrg.BranchID,
 				LoanTransactionID: lt.ID,
@@ -47,7 +48,7 @@ func MemberProfileComakerController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve comaker details: " + err.Error()})
 			}
 			for _, cm := range comakers {
-				comakerResponse = append(comakerResponse, *core.ComakerMemberProfileManager(service).ToModel(cm))
+				comakerResponse = append(comakerResponse, *types.ComakerMemberProfileManager(service).ToModel(cm))
 			}
 		}
 		return ctx.JSON(http.StatusOK, comakerResponse)

@@ -5,6 +5,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
@@ -26,7 +27,7 @@ func MemberAccountingLedger(
 	if err != nil {
 		return nil, eris.Wrap(err, "user authentication failed or organization not found")
 	}
-	if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
+	if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 		return nil, eris.New("user is not authorized to view member general ledger totals")
 	}
 
@@ -48,7 +49,7 @@ func MemberAccountingLedger(
 		return nil, eris.Wrap(err, "failed to retrieve member accounting ledger entries")
 	}
 
-	paidUpShareCapital, err := core.MemberAccountingLedgerManager(service).Find(context, &core.MemberAccountingLedger{
+	paidUpShareCapital, err := core.MemberAccountingLedgerManager(service).Find(context, &types.MemberAccountingLedger{
 		MemberProfileID: *memberProfileID,
 		OrganizationID:  userOrg.OrganizationID,
 		BranchID:        *userOrg.BranchID,

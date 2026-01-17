@@ -10,6 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -84,7 +85,7 @@ func ClearCurrentCSRF(ctx context.Context, service *horizon.HorizonService, echo
 
 }
 
-func CurrentUser(ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context) (*core.User, error) {
+func CurrentUser(ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context) (*types.User, error) {
 	claim, err := user(service).GetCSRF(ctx, echoCtx)
 	if err != nil {
 		ClearCurrentCSRF(ctx, service, echoCtx)
@@ -118,7 +119,7 @@ func LoggedInUsers(context context.Context, service *horizon.HorizonService, ctx
 	return user(service).GetLoggedInUsers(context, ctx)
 }
 
-func SetUser(ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context, data *core.User) error {
+func SetUser(ctx context.Context, service *horizon.HorizonService, echoCtx echo.Context, data *types.User) error {
 	ClearCurrentCSRF(ctx, service, echoCtx)
 	if data == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "User cannot be nil")

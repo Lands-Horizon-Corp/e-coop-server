@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -53,7 +54,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		chargesRateSchemes, err := core.ChargesRateSchemeManager(service).Find(context, &core.ChargesRateScheme{
+		chargesRateSchemes, err := core.ChargesRateSchemeManager(service).Find(context, &types.ChargesRateScheme{
 			CurrencyID:     *currencyID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -117,7 +118,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		chargesRateScheme := &core.ChargesRateScheme{
+		chargesRateScheme := &types.ChargesRateScheme{
 			MemberTypeID:          req.MemberTypeID,
 			ModeOfPayment:         req.ModeOfPayment,
 			Name:                  req.Name,
@@ -188,7 +189,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 
 		if len(req.AccountIDs) > 0 {
 			for _, accountID := range req.AccountIDs {
-				chargesRateSchemeAccount := &core.ChargesRateSchemeAccount{
+				chargesRateSchemeAccount := &types.ChargesRateSchemeAccount{
 					ChargesRateSchemeID: chargesRateScheme.ID,
 					AccountID:           accountID,
 					CreatedAt:           time.Now().UTC(),
@@ -394,7 +395,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 					}
 				} else {
-					newAccount := &core.ChargesRateSchemeAccount{
+					newAccount := &types.ChargesRateSchemeAccount{
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						AccountID:           accountReq.AccountID,
 						CreatedAt:           time.Now().UTC(),
@@ -429,7 +430,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by range or minimum amount: " + endTx(err).Error()})
 					}
 				} else {
-					newRange := &core.ChargesRateByRangeOrMinimumAmount{
+					newRange := &types.ChargesRateByRangeOrMinimumAmount{
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						From:                rangeReq.From,
 						To:                  rangeReq.To,
@@ -487,7 +488,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme mode of payment: " + endTx(err).Error()})
 					}
 				} else {
-					newMode := &core.ChargesRateSchemeModeOfPayment{
+					newMode := &types.ChargesRateSchemeModeOfPayment{
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						From:                modeReq.From,
 						To:                  modeReq.To,
@@ -565,7 +566,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate by term: " + endTx(err).Error()})
 					}
 				} else {
-					newTerm := &core.ChargesRateByTerm{
+					newTerm := &types.ChargesRateByTerm{
 						ChargesRateSchemeID: chargesRateScheme.ID,
 						Name:                termReq.Name,
 						Description:         termReq.Description,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -43,7 +44,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		value, err := core.PaymentTypeManager(service).NormalPagination(context, ctx, &core.PaymentType{
+		value, err := core.PaymentTypeManager(service).NormalPagination(context, ctx, &types.PaymentType{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -98,7 +99,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		paymentType := &core.PaymentType{
+		paymentType := &types.PaymentType{
 			Name:           req.Name,
 			Description:    req.Description,
 			NumberOfDays:   req.NumberOfDays,

@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,7 +50,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		tags, err := core.JournalVoucherTagManager(service).NormalPagination(context, ctx, &core.JournalVoucherTag{
+		tags, err := core.JournalVoucherTagManager(service).NormalPagination(context, ctx, &types.JournalVoucherTag{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -112,7 +113,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tag := &core.JournalVoucherTag{
+		tag := &types.JournalVoucherTag{
 			JournalVoucherID: req.JournalVoucherID,
 			Name:             req.Name,
 			Description:      req.Description,
@@ -231,7 +232,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		tags, err := core.JournalVoucherTagManager(service).Find(context, &core.JournalVoucherTag{
+		tags, err := core.JournalVoucherTagManager(service).Find(context, &types.JournalVoucherTag{
 			JournalVoucherID: journalVoucherID,
 			OrganizationID:   userOrg.OrganizationID,
 			BranchID:         *userOrg.BranchID,

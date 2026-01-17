@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 
 	"github.com/google/uuid"
@@ -16,9 +17,9 @@ import (
 func TransactionBatchEnd(
 	context context.Context,
 	service *horizon.HorizonService,
-	userOrg *core.UserOrganization,
-	req *core.TransactionBatchEndRequest,
-) (*core.TransactionBatch, error) {
+	userOrg *types.UserOrganization,
+	req *types.TransactionBatchEndRequest,
+) (*types.TransactionBatch, error) {
 	tx, endTx := service.Database.StartTransaction(context)
 	transactionBatch, err := core.TransactionBatchCurrent(
 		context,
@@ -41,7 +42,7 @@ func TransactionBatchEnd(
 	if err := core.TransactionBatchManager(service).UpdateByIDWithTx(context, tx, transactionBatch.ID, transactionBatch); err != nil {
 		return nil, eris.Wrap(err, "failed to update transaction batch")
 	}
-	disbursementTransactions, err := core.DisbursementTransactionManager(service).Find(context, &core.DisbursementTransaction{
+	disbursementTransactions, err := core.DisbursementTransactionManager(service).Find(context, &types.DisbursementTransaction{
 		TransactionBatchID: transactionBatch.ID,
 		OrganizationID:     userOrg.OrganizationID,
 		BranchID:           *userOrg.BranchID,
@@ -51,7 +52,7 @@ func TransactionBatchEnd(
 	}
 	for _, transaction := range disbursementTransactions {
 		amount := transaction.Amount
-		newGeneralLedger := &core.GeneralLedger{
+		newGeneralLedger := &types.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
 			UpdatedAt:                  now,
@@ -64,10 +65,10 @@ func TransactionBatchEnd(
 			AccountID:                  &transactionBatch.UnbalancedAccount.CashOnHandAccountID,
 			Account:                    transactionBatch.UnbalancedAccount.CashOnHandAccount,
 			TransactionReferenceNumber: transaction.ReferenceNumber,
-			Source:                     core.GeneralLedgerSourcDisbursement,
+			Source:                     types.GeneralLedgerSourcDisbursement,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                transaction.Description,
-			TypeOfPaymentType:          core.PaymentTypeCash,
+			TypeOfPaymentType:          types.PaymentTypeCash,
 			Debit:                      0,
 			Credit:                     amount,
 			CurrencyID:                 &transactionBatch.CurrencyID,
@@ -78,7 +79,7 @@ func TransactionBatchEnd(
 	}
 	difference := decimal.NewFromFloat(transactionBatch.TotalActualSupposedComparison)
 	if difference.GreaterThan(decimal.Zero) {
-		gl := &core.GeneralLedger{
+		gl := &types.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
 			UpdatedAt:                  now,
@@ -91,10 +92,10 @@ func TransactionBatchEnd(
 			AccountID:                  &transactionBatch.UnbalancedAccount.AccountForOverageID,
 			Account:                    transactionBatch.UnbalancedAccount.AccountForOverage,
 			TransactionReferenceNumber: transactionBatch.BatchName,
-			Source:                     core.GeneralLedgerSourcBlotter,
+			Source:                     types.GeneralLedgerSourcBlotter,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                "Cash overage adjustment",
-			TypeOfPaymentType:          core.PaymentTypeCash,
+			TypeOfPaymentType:          types.PaymentTypeCash,
 			Debit:                      0,
 			Credit:                     difference.InexactFloat64(),
 			CurrencyID:                 &transactionBatch.CurrencyID,
@@ -106,7 +107,7 @@ func TransactionBatchEnd(
 	}
 	if difference.LessThan(decimal.Zero) {
 		shortageAmount := difference.Abs()
-		gl := &core.GeneralLedger{
+		gl := &types.GeneralLedger{
 			CreatedAt:                  now,
 			CreatedByID:                userOrg.UserID,
 			UpdatedAt:                  now,
@@ -119,10 +120,10 @@ func TransactionBatchEnd(
 			AccountID:                  &transactionBatch.UnbalancedAccount.AccountForShortageID,
 			Account:                    transactionBatch.UnbalancedAccount.AccountForShortage,
 			TransactionReferenceNumber: transactionBatch.BatchName,
-			Source:                     core.GeneralLedgerSourcBlotter,
+			Source:                     types.GeneralLedgerSourcBlotter,
 			EmployeeUserID:             &userOrg.UserID,
 			Description:                "Cash shortage adjustment",
-			TypeOfPaymentType:          core.PaymentTypeCash,
+			TypeOfPaymentType:          types.PaymentTypeCash,
 			Debit:                      shortageAmount.InexactFloat64(),
 			Credit:                     0,
 			CurrencyID:                 &transactionBatch.CurrencyID,
@@ -241,7 +242,7 @@ func TBBatchFunding(
 	context context.Context, service *horizon.HorizonService,
 	transactionBatchID, orgID, branchID uuid.UUID,
 ) (float64, error) {
-	batchFunding, err := core.BatchFundingManager(service).Find(context, &core.BatchFunding{
+	batchFunding, err := core.BatchFundingManager(service).Find(context, &types.BatchFunding{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -263,7 +264,7 @@ func TBCashCount(
 	context context.Context, service *horizon.HorizonService,
 	transactionBatchID, orgID, branchID uuid.UUID,
 ) (float64, error) {
-	cashCounts, err := core.CashCountManager(service).Find(context, &core.CashCount{
+	cashCounts, err := core.CashCountManager(service).Find(context, &types.CashCount{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -286,7 +287,7 @@ func TBCheckRemittance(
 	context context.Context, service *horizon.HorizonService,
 	transactionBatchID, orgID, branchID uuid.UUID,
 ) (float64, error) {
-	checkRemittances, err := core.CheckRemittanceManager(service).Find(context, &core.CheckRemittance{
+	checkRemittances, err := core.CheckRemittanceManager(service).Find(context, &types.CheckRemittance{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -308,7 +309,7 @@ func TBOnlineRemittance(
 	context context.Context, service *horizon.HorizonService,
 	transactionBatchID, orgID, branchID uuid.UUID,
 ) (float64, error) {
-	onlineRemittances, err := core.OnlineRemittanceManager(service).Find(context, &core.OnlineRemittance{
+	onlineRemittances, err := core.OnlineRemittanceManager(service).Find(context, &types.OnlineRemittance{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -329,7 +330,7 @@ func TBDisbursementTransaction(
 	context context.Context, service *horizon.HorizonService,
 	transactionBatchID, orgID, branchID uuid.UUID,
 ) (float64, error) {
-	disbursementTransactions, err := core.DisbursementTransactionManager(service).Find(context, &core.DisbursementTransaction{
+	disbursementTransactions, err := core.DisbursementTransactionManager(service).Find(context, &types.DisbursementTransaction{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
@@ -348,11 +349,11 @@ func TBDisbursementTransaction(
 }
 
 func TBWithdraw(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	withdrawals, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+	withdrawals, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourceWithdraw,
+		Source:             types.GeneralLedgerSourceWithdraw,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find withdrawals")
@@ -363,11 +364,11 @@ func TBWithdraw(context context.Context, service *horizon.HorizonService, transa
 }
 
 func TBDeposit(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	deposits, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+	deposits, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourceDeposit,
+		Source:             types.GeneralLedgerSourceDeposit,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find deposits")
@@ -378,11 +379,11 @@ func TBDeposit(context context.Context, service *horizon.HorizonService, transac
 }
 
 func TBJournal(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	journals, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+	journals, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourceJournalVoucher,
+		Source:             types.GeneralLedgerSourceJournalVoucher,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find journals")
@@ -393,11 +394,11 @@ func TBJournal(context context.Context, service *horizon.HorizonService, transac
 }
 
 func TBPayment(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	payments, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+	payments, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourcePayment,
+		Source:             types.GeneralLedgerSourcePayment,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find payments")
@@ -408,11 +409,11 @@ func TBPayment(context context.Context, service *horizon.HorizonService, transac
 }
 
 func TBAdjustment(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	adjustments, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+	adjustments, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourceAdjustment,
+		Source:             types.GeneralLedgerSourceAdjustment,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find adjustments")
@@ -423,11 +424,11 @@ func TBAdjustment(context context.Context, service *horizon.HorizonService, tran
 }
 
 func TBJournalVoucher(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	journalVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+	journalVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourceJournalVoucher,
+		Source:             types.GeneralLedgerSourceJournalVoucher,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find journal vouchers")
@@ -438,11 +439,11 @@ func TBJournalVoucher(context context.Context, service *horizon.HorizonService, 
 }
 
 func TBCheckVoucher(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+	checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourceCheckVoucher,
+		Source:             types.GeneralLedgerSourceCheckVoucher,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find check vouchers")
@@ -453,11 +454,11 @@ func TBCheckVoucher(context context.Context, service *horizon.HorizonService, tr
 }
 
 func TBLoan(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
-	loanVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+	loanVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 		TransactionBatchID: &transactionBatchID,
 		OrganizationID:     orgID,
 		BranchID:           branchID,
-		Source:             core.GeneralLedgerSourceLoan,
+		Source:             types.GeneralLedgerSourceLoan,
 	})
 	if err != nil {
 		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find loan vouchers")

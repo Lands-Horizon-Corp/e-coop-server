@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 )
@@ -50,7 +51,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		mutualFunds, err := core.MutualFundManager(service).NormalPagination(context, ctx, &core.MutualFund{
+		mutualFunds, err := core.MutualFundManager(service).NormalPagination(context, ctx, &types.MutualFund{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -335,7 +336,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update additional member: " + err.Error()})
 				}
 			} else {
-				additionalMemberData := &core.MutualFundAdditionalMembers{
+				additionalMemberData := &types.MutualFundAdditionalMembers{
 					MutualFundID:    mutualFund.ID,
 					MemberTypeID:    additionalMember.MemberTypeID,
 					NumberOfMembers: additionalMember.NumberOfMembers,
@@ -386,7 +387,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update mutual fund table: " + err.Error()})
 				}
 			} else {
-				mutualFundTableData := &core.MutualFundTable{
+				mutualFundTableData := &types.MutualFundTable{
 					MutualFundID:   mutualFund.ID,
 					MonthFrom:      mutualFundTable.MonthFrom,
 					MonthTo:        mutualFundTable.MonthTo,
@@ -738,7 +739,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Mutual fund not found"})
 		}
 
-		entries, err := core.MutualFundEntryManager(service).Find(context, &core.MutualFundEntry{
+		entries, err := core.MutualFundEntryManager(service).Find(context, &types.MutualFundEntry{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			MutualFundID:   mutualFund.ID,

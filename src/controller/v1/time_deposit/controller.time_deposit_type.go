@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -88,7 +89,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		timeDepositType := &core.TimeDepositType{
+		timeDepositType := &types.TimeDepositType{
 			Name:           req.Name,
 			Description:    req.Description,
 			PreMature:      req.PreMature,
@@ -257,7 +258,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation: " + endTx(err).Error()})
 					}
 				} else {
-					newComputation := &core.TimeDepositComputation{
+					newComputation := &types.TimeDepositComputation{
 						TimeDepositTypeID: timeDepositType.ID,
 						MinimumAmount:     computationReq.MinimumAmount,
 						MaximumAmount:     computationReq.MaximumAmount,
@@ -303,7 +304,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update time deposit computation pre mature: " + endTx(err).Error()})
 					}
 				} else {
-					newPreMature := &core.TimeDepositComputationPreMature{
+					newPreMature := &types.TimeDepositComputationPreMature{
 						TimeDepositTypeID: timeDepositType.ID,
 						Terms:             preMatureReq.Terms,
 						From:              preMatureReq.From,
@@ -452,7 +453,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User organization not found or authentication failed"})
 		}
-		timeDepositTypes, err := core.TimeDepositTypeManager(service).Find(context, &core.TimeDepositType{
+		timeDepositTypes, err := core.TimeDepositTypeManager(service).Find(context, &types.TimeDepositType{
 			CurrencyID:     *currencyID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,

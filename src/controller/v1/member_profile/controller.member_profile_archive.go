@@ -10,6 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -53,7 +54,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found"})
 		}
-		memberProfileArchiveList, err := core.MemberProfileArchiveManager(service).FindRaw(context, &core.MemberProfileArchive{
+		memberProfileArchiveList, err := core.MemberProfileArchiveManager(service).FindRaw(context, &types.MemberProfileArchive{
 			BranchID:        userOrg.BranchID,
 			OrganizationID:  &userOrg.OrganizationID,
 			MemberProfileID: &memberProfile.ID,
@@ -114,7 +115,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		memberProfileArchive := &core.MemberProfileArchive{
+		memberProfileArchive := &types.MemberProfileArchive{
 			MediaID:        req.MediaID,
 			Name:           req.Name,
 			Description:    req.Description,
@@ -334,13 +335,13 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request data: " + err.Error()})
 		}
 
-		var createdMedia []*core.MemberProfileArchive
+		var createdMedia []*types.MemberProfileArchive
 		for _, mediaID := range req.IDs {
 			media, err := core.MediaManager(service).GetByID(context, mediaID)
 			if err != nil {
 				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Media not found: " + mediaID.String()})
 			}
-			memberProfileArchive := &core.MemberProfileArchive{
+			memberProfileArchive := &types.MemberProfileArchive{
 				MediaID:         &mediaID,
 				CreatedAt:       time.Now().UTC(),
 				CreatedByID:     userOrg.UserID,
@@ -383,7 +384,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		memberProfileArchives, err := core.MemberProfileArchiveManager(service).Find(context, &core.MemberProfileArchive{
+		memberProfileArchives, err := core.MemberProfileArchiveManager(service).Find(context, &types.MemberProfileArchive{
 			MemberProfileID: memberProfileID,
 			OrganizationID:  &userOrg.OrganizationID,
 			BranchID:        userOrg.BranchID,

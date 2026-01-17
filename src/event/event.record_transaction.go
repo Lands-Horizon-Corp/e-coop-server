@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
@@ -37,8 +38,8 @@ type RecordTransactionRequest struct {
 func RecordTransaction(
 	context context.Context, service *horizon.HorizonService,
 	transaction RecordTransactionRequest,
-	source core.GeneralLedgerSource,
-	userOrg *core.UserOrganization,
+	source types.GeneralLedgerSource,
+	userOrg *types.UserOrganization,
 ) error {
 
 	tx, endTx := service.Database.StartTransaction(context)
@@ -70,7 +71,7 @@ func RecordTransaction(
 		return endTx(eris.Wrap(err, "failed to lock account for update"))
 	}
 
-	var paymentType *core.PaymentType
+	var paymentType *types.PaymentType
 	if transaction.PaymentTypeID != nil {
 		paymentType, err = core.PaymentTypeManager(service).GetByID(context, *transaction.PaymentTypeID)
 		if err != nil {
@@ -78,7 +79,7 @@ func RecordTransaction(
 		}
 	}
 
-	var memberProfile *core.MemberProfile
+	var memberProfile *types.MemberProfile
 	if transaction.MemberProfileID != nil {
 		var err error
 		memberProfile, err = core.MemberProfileManager(service).GetByID(context, *transaction.MemberProfileID)
@@ -106,12 +107,12 @@ func RecordTransaction(
 		}
 	}
 
-	var paymentTypeValue core.TypeOfPaymentType
+	var paymentTypeValue types.TypeOfPaymentType
 	if paymentType != nil {
 		paymentTypeValue = paymentType.Type
 	}
 
-	newGeneralLedger := &core.GeneralLedger{
+	newGeneralLedger := &types.GeneralLedger{
 		CreatedAt:                  now,
 		CreatedByID:                userOrg.UserID,
 		UpdatedAt:                  now,

@@ -5,6 +5,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/usecase"
 
 	"github.com/google/uuid"
@@ -18,7 +19,7 @@ func LoanTotalMemberProfile(context context.Context, service *horizon.HorizonSer
 		return nil, eris.Wrapf(err, "failed to get member profile by id: %s", memberProfileID)
 	}
 
-	loanTransactions, err := core.LoanTransactionManager(service).Find(context, &core.LoanTransaction{
+	loanTransactions, err := core.LoanTransactionManager(service).Find(context, &types.LoanTransaction{
 		MemberProfileID: &memberProfile.ID,
 		OrganizationID:  memberProfile.OrganizationID,
 		BranchID:        memberProfile.BranchID,
@@ -30,7 +31,7 @@ func LoanTotalMemberProfile(context context.Context, service *horizon.HorizonSer
 	totalDec := decimal.Zero
 
 	for _, loanTransaction := range loanTransactions {
-		generalLedgers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+		generalLedgers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 			AccountID:      loanTransaction.AccountID,
 			OrganizationID: memberProfile.OrganizationID,
 		})
@@ -45,7 +46,7 @@ func LoanTotalMemberProfile(context context.Context, service *horizon.HorizonSer
 			return nil, eris.Wrapf(err, "failed to compute balance for loan account id: %s", *loanTransaction.AccountID)
 		}
 
-		loanAccounts, err := core.LoanAccountManager(service).Find(context, &core.LoanAccount{
+		loanAccounts, err := core.LoanAccountManager(service).Find(context, &types.LoanAccount{
 			LoanTransactionID: loanTransaction.ID,
 			OrganizationID:    memberProfile.OrganizationID,
 			BranchID:          memberProfile.BranchID,

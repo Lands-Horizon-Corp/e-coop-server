@@ -5,13 +5,14 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 )
 
 func LoanAdjustment(
 	context context.Context, service *horizon.HorizonService,
-	userOrg core.UserOrganization,
-	la core.LoanTransactionAdjustmentRequest,
+	userOrg types.UserOrganization,
+	la types.LoanTransactionAdjustmentRequest,
 ) error {
 	tx, endTx := service.Database.StartTransaction(context)
 	loanAccount, err := core.LoanAccountManager(service).GetByIDLock(context, tx, la.LoanAccountID, "Account")
@@ -34,12 +35,12 @@ func LoanAdjustment(
 	amount := 0.0
 
 	switch la.AdjustmentType {
-	case core.LoanAdjustmentTypeAdd:
+	case types.LoanAdjustmentTypeAdd:
 		loanAccount.TotalAdd += la.Amount
 		loanAccount.TotalAddCount += 1
 		amount = la.Amount
 
-	case core.LoanAdjustmentTypeDeduct:
+	case types.LoanAdjustmentTypeDeduct:
 		loanAccount.TotalDeduction += la.Amount
 		loanAccount.TotalDeductionCount += 1
 		amount = -la.Amount

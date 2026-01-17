@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -139,7 +140,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		transactions, err := core.AccountTransactionManager(service).Find(context, &core.AccountTransaction{
+		transactions, err := core.AccountTransactionManager(service).Find(context, &types.AccountTransaction{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -170,7 +171,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		result, err := core.AccountTransactionManager(service).NormalPagination(
 			context,
 			ctx,
-			&core.AccountTransaction{
+			&types.AccountTransaction{
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
 			},

@@ -10,6 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -35,7 +36,7 @@ func AccountController(service *horizon.HorizonService) {
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
-				return db.Model(&core.Account{}).
+				return db.Model(&types.Account{}).
 					Where("organization_id = ?", userOrg.OrganizationID).
 					Where("branch_id = ?", *userOrg.BranchID).
 					Where(`EXISTS (
@@ -81,7 +82,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     currencyID,
@@ -106,7 +107,7 @@ func AccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeDeposit,
@@ -135,7 +136,7 @@ func AccountController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			PaidUpShareCapital: true,
@@ -166,7 +167,7 @@ func AccountController(service *horizon.HorizonService) {
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
-				return db.Model(&core.Account{}).
+				return db.Model(&types.Account{}).
 					Where("organization_id = ?", userOrg.OrganizationID).
 					Where("branch_id = ?", *userOrg.BranchID).
 					Where("type = ?", core.AccountTypeLoan).
@@ -210,7 +211,7 @@ func AccountController(service *horizon.HorizonService) {
 			context,
 			ctx,
 			func(db *gorm.DB) *gorm.DB {
-				return db.Model(&core.Account{}).
+				return db.Model(&types.Account{}).
 					Where("organization_id = ?", userOrg.OrganizationID).
 					Where("branch_id = ?", *userOrg.BranchID).
 					Where("currency_id = ?", currencyID).
@@ -246,7 +247,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeARLedger,
@@ -272,7 +273,7 @@ func AccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeARAging,
@@ -299,7 +300,7 @@ func AccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeFines,
@@ -326,7 +327,7 @@ func AccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeInterest,
@@ -351,7 +352,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeSVFLedger,
@@ -376,7 +377,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeWOff,
@@ -402,7 +403,7 @@ func AccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeAPLedger,
@@ -428,7 +429,7 @@ func AccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeOther,
@@ -454,7 +455,7 @@ func AccountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
 
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Type:           core.AccountTypeTimeDeposit,
@@ -479,7 +480,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := core.AccountManager(service).Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &types.Account{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -526,7 +527,7 @@ func AccountController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		account := &core.Account{
+		account := &types.Account{
 			CreatedAt:                             time.Now().UTC(),
 			CreatedByID:                           userOrg.UserID,
 			UpdatedAt:                             time.Now().UTC(),
@@ -842,7 +843,7 @@ func AccountController(service *horizon.HorizonService) {
 
 		if len(req.AccountTags) > 0 {
 			for _, tagReq := range req.AccountTags {
-				tag := &core.AccountTag{
+				tag := &types.AccountTag{
 					AccountID:      account.ID,
 					Name:           tagReq.Name,
 					Description:    tagReq.Description,
@@ -1418,7 +1419,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:                    userOrg.OrganizationID,
 			BranchID:                          *userOrg.BranchID,
 			ShowInGeneralLedgerSourceWithdraw: true,
@@ -1443,7 +1444,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournal: true,
@@ -1468,7 +1469,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			ShowInGeneralLedgerSourcePayment: true,
@@ -1497,7 +1498,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Permission denied: Only owner and employee roles can view accounts."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:                   userOrg.OrganizationID,
 			BranchID:                         *userOrg.BranchID,
 			CurrencyID:                       currencyID,
@@ -1523,7 +1524,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:                      userOrg.OrganizationID,
 			BranchID:                            *userOrg.BranchID,
 			ShowInGeneralLedgerSourceAdjustment: true,
@@ -1548,7 +1549,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:                          userOrg.OrganizationID,
 			BranchID:                                *userOrg.BranchID,
 			ShowInGeneralLedgerSourceJournalVoucher: true,
@@ -1573,7 +1574,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:                        userOrg.OrganizationID,
 			BranchID:                              *userOrg.BranchID,
 			ShowInGeneralLedgerSourceCheckVoucher: true,
@@ -1598,7 +1599,7 @@ func AccountController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1627,7 +1628,7 @@ func AccountController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid currency ID: " + err.Error()})
 		}
-		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &core.Account{
+		accounts, err := core.AccountManager(service).NormalPagination(context, ctx, &types.Account{
 			OrganizationID:         userOrg.OrganizationID,
 			BranchID:               *userOrg.BranchID,
 			CashAndCashEquivalence: true,
@@ -1654,7 +1655,7 @@ func AccountController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
 		}
-		accounts, err := core.AccountManager(service).FindRaw(context, &core.Account{
+		accounts, err := core.AccountManager(service).FindRaw(context, &types.Account{
 			ComputationSheetID: computationSheetID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,

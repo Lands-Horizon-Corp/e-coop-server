@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 	"github.com/rotisserie/eris"
 )
@@ -29,7 +30,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		transactionBatch, err := core.TransactionBatchManager(service).Find(context, &core.TransactionBatch{
+		transactionBatch, err := core.TransactionBatchManager(service).Find(context, &types.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -50,7 +51,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		transactionBatch, err := core.TransactionBatchManager(service).NormalPagination(context, ctx, &core.TransactionBatch{
+		transactionBatch, err := core.TransactionBatchManager(service).NormalPagination(context, ctx, &types.TransactionBatch{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -339,7 +340,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		branchSetting, err := core.BranchSettingManager(service).FindOne(context, &core.BranchSetting{BranchID: *userOrg.BranchID})
+		branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{BranchID: *userOrg.BranchID})
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -367,7 +368,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusConflict, map[string]string{"error": "There is an ongoing transaction batch"})
 		}
-		unbalanced, err := core.UnbalancedAccountManager(service).FindOne(context, &core.UnbalancedAccount{
+		unbalanced, err := core.UnbalancedAccountManager(service).FindOne(context, &types.UnbalancedAccount{
 			CurrencyID:       req.CurrencyID,
 			BranchSettingsID: branchSetting.ID,
 		})
@@ -390,7 +391,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start transaction: " + endTx(tx.Error).Error()})
 		}
 
-		transBatch := &core.TransactionBatch{
+		transBatch := &types.TransactionBatch{
 			CreatedAt:                     time.Now().UTC(),
 			CreatedByID:                   userOrg.UserID,
 			UpdatedAt:                     time.Now().UTC(),
@@ -432,7 +433,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create transaction batch: " + endTx(err).Error()})
 		}
 
-		batchFunding := &core.BatchFunding{
+		batchFunding := &types.BatchFunding{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -808,7 +809,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
 		}
 
-		paginated, err := core.TransactionBatchManager(service).NormalPagination(context, ctx, &core.TransactionBatch{
+		paginated, err := core.TransactionBatchManager(service).NormalPagination(context, ctx, &types.TransactionBatch{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			EmployeeUserID: &userOrganization.UserID,

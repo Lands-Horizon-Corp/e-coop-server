@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -35,7 +36,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		if transactionBatch == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for the current branch"})
 		}
-		disbursements, err := core.DisbursementManager(service).Find(context, &core.Disbursement{
+		disbursements, err := core.DisbursementManager(service).Find(context, &types.Disbursement{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CurrencyID:     transactionBatch.CurrencyID,
@@ -60,7 +61,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		disbursements, err := core.DisbursementManager(service).NormalPagination(context, ctx, &core.Disbursement{
+		disbursements, err := core.DisbursementManager(service).NormalPagination(context, ctx, &types.Disbursement{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -123,7 +124,7 @@ func DisbursementController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		disbursement := &core.Disbursement{
+		disbursement := &types.Disbursement{
 			Name:           req.Name,
 			Icon:           req.Icon,
 			Description:    req.Description,

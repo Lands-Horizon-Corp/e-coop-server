@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -49,7 +50,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cancelledVouchers, err := core.CancelledCashCheckVoucherManager(service).NormalPagination(context, ctx, &core.CancelledCashCheckVoucher{
+		cancelledVouchers, err := core.CancelledCashCheckVoucherManager(service).NormalPagination(context, ctx, &types.CancelledCashCheckVoucher{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -112,7 +113,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		cancelledVoucher := &core.CancelledCashCheckVoucher{
+		cancelledVoucher := &types.CancelledCashCheckVoucher{
 			CheckNumber:    req.CheckNumber,
 			EntryDate:      req.EntryDate,
 			Description:    req.Description,

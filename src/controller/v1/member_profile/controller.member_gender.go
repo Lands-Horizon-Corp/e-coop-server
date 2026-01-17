@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -47,7 +48,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGenderHistory, err := core.MemberGenderHistoryManager(service).NormalPagination(context, ctx, &core.MemberGenderHistory{
+		memberGenderHistory, err := core.MemberGenderHistoryManager(service).NormalPagination(context, ctx, &types.MemberGenderHistory{
 			MemberProfileID: *memberProfileID,
 			BranchID:        *userOrg.BranchID,
 			OrganizationID:  userOrg.OrganizationID,
@@ -109,7 +110,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
-		memberGender, err := core.MemberGenderManager(service).NormalPagination(context, ctx, &core.MemberGender{
+		memberGender, err := core.MemberGenderManager(service).NormalPagination(context, ctx, &types.MemberGender{
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		})
@@ -146,7 +147,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
 
-		memberGender := &core.MemberGender{
+		memberGender := &types.MemberGender{
 			Name:           req.Name,
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),

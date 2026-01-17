@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -71,7 +72,7 @@ func PaymentController(service *horizon.HorizonService) {
 			}
 		}
 
-		var generalLedgers []*core.GeneralLedger
+		var generalLedgers []*types.GeneralLedger
 
 		for i, payment := range req {
 			tx, endTx := service.Database.StartTransaction(context)
@@ -125,7 +126,7 @@ func PaymentController(service *horizon.HorizonService) {
 
 		var response []core.GeneralLedgerResponse
 		for _, gl := range generalLedgers {
-			response = append(response, *core.GeneralLedgerManager(service).ToModel(gl))
+			response = append(response, *types.GeneralLedgerManager(service).ToModel(gl))
 		}
 
 		return ctx.JSON(http.StatusOK, response)
@@ -696,7 +697,7 @@ func PaymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction ID: " + err.Error()})
 		}
 
-		generalLedgers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+		generalLedgers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 			TransactionID: transactionID,
 		})
 		if err != nil {
@@ -721,7 +722,7 @@ func PaymentController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
 		}
 
-		var reversedLedgers []*core.GeneralLedger
+		var reversedLedgers []*types.GeneralLedger
 
 		for _, generalLedger := range generalLedgers {
 			amount := 0.0

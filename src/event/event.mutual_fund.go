@@ -7,21 +7,22 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
 func GenerateMutualFundEntries(
 	context context.Context, service *horizon.HorizonService,
-	userOrg *core.UserOrganization,
-	mutualFund *core.MutualFund,
-) ([]*core.MutualFundEntry, error) {
-	result := []*core.MutualFundEntry{}
+	userOrg *types.UserOrganization,
+	mutualFund *types.MutualFund,
+) ([]*types.MutualFundEntry, error) {
+	result := []*types.MutualFundEntry{}
 	if mutualFund == nil {
 		return result, nil
 	}
 	now := time.Now().UTC()
-	memberProfile, err := core.MemberProfileManager(service).Find(context, &core.MemberProfile{
+	memberProfile, err := core.MemberProfileManager(service).Find(context, &types.MemberProfile{
 		BranchID:       *userOrg.BranchID,
 		OrganizationID: userOrg.OrganizationID,
 	})
@@ -42,10 +43,10 @@ func GenerateMutualFundEntries(
 
 		amount := 0.0
 		switch mutualFund.ComputationType {
-		case core.ComputationTypeContinuous:
+		case types.ComputationTypeContinuous:
 			amount = mutualFund.Amount
-		case core.ComputationTypeUpToZero:
-			memberAccuntingLedger, err := core.MemberAccountingLedgerManager(service).FindOne(context, &core.MemberAccountingLedger{
+		case types.ComputationTypeUpToZero:
+			memberAccuntingLedger, err := core.MemberAccountingLedgerManager(service).FindOne(context, &types.MemberAccountingLedger{
 				MemberProfileID: profile.ID,
 				AccountID:       *mutualFund.AccountID,
 				BranchID:        *userOrg.BranchID,
@@ -68,9 +69,9 @@ func GenerateMutualFundEntries(
 				amount = currentBalance - deduction
 			}
 
-		case core.ComputationTypeSufficient:
+		case types.ComputationTypeSufficient:
 
-			memberAccuntingLedger, err := core.MemberAccountingLedgerManager(service).FindOne(context, &core.MemberAccountingLedger{
+			memberAccuntingLedger, err := core.MemberAccountingLedgerManager(service).FindOne(context, &types.MemberAccountingLedger{
 				MemberProfileID: profile.ID,
 				AccountID:       *mutualFund.AccountID,
 				BranchID:        *userOrg.BranchID,
@@ -91,7 +92,7 @@ func GenerateMutualFundEntries(
 				}
 			}
 
-		case core.ComputationTypeByMembershipYear:
+		case types.ComputationTypeByMembershipYear:
 			monthsOfMembership := int(time.Since(profile.CreatedAt).Hours() / 24 / 30)
 			for _, tier := range mutualFund.MutualFundTables {
 				if monthsOfMembership >= tier.MonthFrom && monthsOfMembership <= tier.MonthTo {
@@ -105,7 +106,7 @@ func GenerateMutualFundEntries(
 		}
 
 		if amount != 0 {
-			entry := &core.MutualFundEntry{
+			entry := &types.MutualFundEntry{
 				CreatedAt:       now,
 				CreatedByID:     userOrg.UserID,
 				UpdatedAt:       now,

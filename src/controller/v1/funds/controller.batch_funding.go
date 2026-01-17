@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -71,7 +72,7 @@ func BatchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch is open for this branch."})
 		}
 
-		batchFunding := &core.BatchFunding{
+		batchFunding := &types.BatchFunding{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -137,7 +138,7 @@ func BatchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this transaction batch. The batch does not belong to your organization or branch."})
 		}
 
-		batchFunding, err := core.BatchFundingManager(service).NormalPagination(context, ctx, &core.BatchFunding{
+		batchFunding, err := core.BatchFundingManager(service).NormalPagination(context, ctx, &types.BatchFunding{
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
 			TransactionBatchID: *transactionBatchID,
@@ -164,7 +165,7 @@ func BatchFundingController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view batch funding records"})
 		}
 
-		batchFundings, err := core.BatchFundingManager(service).NormalPagination(context, ctx, &core.BatchFunding{
+		batchFundings, err := core.BatchFundingManager(service).NormalPagination(context, ctx, &types.BatchFunding{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})

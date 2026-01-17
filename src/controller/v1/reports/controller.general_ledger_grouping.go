@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -128,7 +129,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		if userOrg.UserType != core.UserOrganizationTypeOwner && userOrg.UserType != core.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view general ledger definitions"})
 		}
-		gl, err := core.GeneralLedgerDefinitionManager(service).FindRaw(context, &core.GeneralLedgerDefinition{
+		gl, err := core.GeneralLedgerDefinitionManager(service).FindRaw(context, &types.GeneralLedgerDefinition{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -172,7 +173,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to create general ledger definitions"})
 		}
-		glDefinition := &core.GeneralLedgerDefinition{
+		glDefinition := &types.GeneralLedgerDefinition{
 			OrganizationID:                  userOrg.OrganizationID,
 			BranchID:                        *userOrg.BranchID,
 			CreatedByID:                     userOrg.UserID,
@@ -537,7 +538,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		if account.GeneralLedgerDefinitionID == nil || *account.GeneralLedgerDefinitionID != *glDefinitionID {
 			account.GeneralLedgerDefinitionID = glDefinitionID
 		}
-		accounts, err := core.AccountManager(service).Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &types.Account{
 			GeneralLedgerDefinitionID: glDefinitionID,
 			OrganizationID:            userOrg.OrganizationID,
 			BranchID:                  *userOrg.BranchID,
@@ -550,7 +551,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
-		var updatedAccounts []*core.Account
+		var updatedAccounts []*types.Account
 		for _, acc := range accounts {
 			if acc.ID != account.ID {
 				updatedAccounts = append(updatedAccounts, acc)
@@ -562,7 +563,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		if reqBody.AccountIndex > len(updatedAccounts) {
 			reqBody.AccountIndex = len(updatedAccounts)
 		}
-		updatedAccounts = append(updatedAccounts[:reqBody.AccountIndex], append([]*core.Account{account}, updatedAccounts[reqBody.AccountIndex:]...)...)
+		updatedAccounts = append(updatedAccounts[:reqBody.AccountIndex], append([]*types.Account{account}, updatedAccounts[reqBody.AccountIndex:]...)...)
 		for idx, acc := range updatedAccounts {
 			acc.Index = float64(idx)
 			acc.UpdatedAt = time.Now().UTC()
@@ -646,7 +647,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot delete: general ledger definition has sub-entries"})
 		}
-		accounts, err := core.AccountManager(service).Find(context, &core.Account{
+		accounts, err := core.AccountManager(service).Find(context, &types.Account{
 			GeneralLedgerDefinitionID: glDefinitionID,
 			OrganizationID:            userOrg.OrganizationID,
 			BranchID:                  *userOrg.BranchID,

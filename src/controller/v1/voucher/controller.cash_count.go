@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
@@ -30,7 +31,7 @@ func CashCountController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		cashCount, err := core.CashCountManager(service).NormalPagination(context, ctx, &core.CashCount{
+		cashCount, err := core.CashCountManager(service).NormalPagination(context, ctx, &types.CashCount{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -58,7 +59,7 @@ func CashCountController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction batch ID"})
 		}
-		cashCount, err := core.CashCountManager(service).NormalPagination(context, ctx, &core.CashCount{
+		cashCount, err := core.CashCountManager(service).NormalPagination(context, ctx, &types.CashCount{
 			TransactionBatchID: *transactionBatchID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -92,7 +93,7 @@ func CashCountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No active transaction batch found for your branch"})
 		}
 
-		cashCounts, err := core.CashCountManager(service).Find(context, &core.CashCount{
+		cashCounts, err := core.CashCountManager(service).Find(context, &types.CashCount{
 			TransactionBatchID: transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,
@@ -176,7 +177,7 @@ func CashCountController(service *horizon.HorizonService) {
 			Mul(decimal.NewFromFloat(float64(cashCountReq.Quantity))).
 			InexactFloat64()
 
-		newCashCount := &core.CashCount{
+		newCashCount := &types.CashCount{
 			CreatedAt:          time.Now().UTC(),
 			CreatedByID:        userOrg.UserID,
 			UpdatedAt:          time.Now().UTC(),
@@ -290,7 +291,7 @@ func CashCountController(service *horizon.HorizonService) {
 			}
 		}
 
-		var updatedCashCounts []*core.CashCount
+		var updatedCashCounts []*types.CashCount
 		for _, cashCountReq := range batchRequest.CashCounts {
 			if err := service.Validator.Struct(cashCountReq); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
@@ -338,7 +339,7 @@ func CashCountController(service *horizon.HorizonService) {
 				}
 				updatedCashCounts = append(updatedCashCounts, updatedCashCount)
 			} else {
-				newCashCount := &core.CashCount{
+				newCashCount := &types.CashCount{
 					CreatedAt:          time.Now().UTC(),
 					CreatedByID:        userOrg.UserID,
 					UpdatedAt:          time.Now().UTC(),
@@ -364,7 +365,7 @@ func CashCountController(service *horizon.HorizonService) {
 				updatedCashCounts = append(updatedCashCounts, newCashCount)
 			}
 		}
-		allCashCounts, err := core.CashCountManager(service).Find(context, &core.CashCount{
+		allCashCounts, err := core.CashCountManager(service).Find(context, &types.CashCount{
 			TransactionBatchID: transactionBatch.ID,
 			OrganizationID:     userOrg.OrganizationID,
 			BranchID:           *userOrg.BranchID,

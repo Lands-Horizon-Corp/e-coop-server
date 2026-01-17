@@ -9,6 +9,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
 
@@ -50,7 +51,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		if userOrg.BranchID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
-		accountTags, err := core.AccountTagManager(service).NormalPagination(context, ctx, &core.AccountTag{
+		accountTags, err := core.AccountTagManager(service).NormalPagination(context, ctx, &types.AccountTag{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 		})
@@ -97,7 +98,7 @@ func AccountTagController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		accountTags, err := core.AccountTagManager(service).Find(context, &core.AccountTag{
+		accountTags, err := core.AccountTagManager(service).Find(context, &types.AccountTag{
 			AccountID:      *accountID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
@@ -143,7 +144,7 @@ func AccountTagController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User is not assigned to a branch"})
 		}
 
-		accountTag := &core.AccountTag{
+		accountTag := &types.AccountTag{
 			AccountID:      req.AccountID,
 			Name:           req.Name,
 			Description:    req.Description,

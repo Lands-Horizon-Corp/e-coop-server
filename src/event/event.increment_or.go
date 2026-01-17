@@ -5,6 +5,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
@@ -15,10 +16,10 @@ func IncrementOfficialReceipt(
 	service *horizon.HorizonService,
 	tx *gorm.DB,
 	referenceNumber string,
-	source core.GeneralLedgerSource,
-	userOrg *core.UserOrganization,
+	source types.GeneralLedgerSource,
+	userOrg *types.UserOrganization,
 ) error {
-	branchSetting, err := core.BranchSettingManager(service).FindOne(context, &core.BranchSetting{})
+	branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{})
 	if err != nil {
 		return eris.Wrapf(err, "IncrementOfficialReceipt: failed to find branch setting")
 	}
@@ -27,7 +28,7 @@ func IncrementOfficialReceipt(
 		return eris.Wrapf(err, "IncrementOfficialReceipt: failed to get user organization by ID")
 	}
 	switch source {
-	case core.GeneralLedgerSourcePayment:
+	case types.GeneralLedgerSourcePayment:
 		if userOrganization.PaymentORUseDateOR || branchSetting.WithdrawCommonOR != "" {
 			break
 		}
@@ -36,11 +37,11 @@ func IncrementOfficialReceipt(
 			if err != nil {
 				return eris.Wrapf(err, "IncrementOfficialReceipt: failed to get current transaction batch")
 			}
-			payments, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+			payments, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 				TransactionBatchID: &transactionBatch.ID,
 				OrganizationID:     userOrg.OrganizationID,
 				BranchID:           *userOrg.BranchID,
-				Source:             core.GeneralLedgerSourcePayment,
+				Source:             types.GeneralLedgerSourcePayment,
 				ReferenceNumber:    referenceNumber,
 			})
 			if err != nil {
@@ -55,7 +56,7 @@ func IncrementOfficialReceipt(
 			userOrganization.PaymentORIteration++
 			userOrganization.PaymentORCurrent = userOrganization.PaymentORStart
 		}
-	case core.GeneralLedgerSourceWithdraw:
+	case types.GeneralLedgerSourceWithdraw:
 		if branchSetting.WithdrawUseDateOR || branchSetting.WithdrawCommonOR != "" {
 			break
 		}
@@ -64,7 +65,7 @@ func IncrementOfficialReceipt(
 			branchSetting.WithdrawORIteration++
 			branchSetting.WithdrawORCurrent = branchSetting.WithdrawORStart
 		}
-	case core.GeneralLedgerSourceDeposit:
+	case types.GeneralLedgerSourceDeposit:
 		if branchSetting.DepositUseDateOR || branchSetting.DepositCommonOR != "" {
 			break
 		}
@@ -73,12 +74,12 @@ func IncrementOfficialReceipt(
 			branchSetting.DepositORIteration++
 			branchSetting.DepositORCurrent = branchSetting.DepositORStart
 		}
-	case core.GeneralLedgerSourceJournalVoucher:
+	case types.GeneralLedgerSourceJournalVoucher:
 		if branchSetting.JournalVoucherORUnique {
-			journalVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+			journalVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceJournalVoucher,
+				Source:          types.GeneralLedgerSourceJournalVoucher,
 				ReferenceNumber: referenceNumber,
 			})
 			if err != nil {
@@ -89,12 +90,12 @@ func IncrementOfficialReceipt(
 			}
 		}
 		branchSetting.JournalVoucherORCurrent++
-	case core.GeneralLedgerSourceAdjustment:
+	case types.GeneralLedgerSourceAdjustment:
 		if branchSetting.AdjustmentVoucherORUnique {
-			adjustments, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+			adjustments, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceAdjustment,
+				Source:          types.GeneralLedgerSourceAdjustment,
 				ReferenceNumber: referenceNumber,
 			})
 			if err != nil {
@@ -105,15 +106,15 @@ func IncrementOfficialReceipt(
 			}
 		}
 		branchSetting.AdjustmentVoucherORCurrent++
-	case core.GeneralLedgerSourceCheckVoucher:
+	case types.GeneralLedgerSourceCheckVoucher:
 		if branchSetting.CheckVoucherGeneral {
 			break
 		}
 		if branchSetting.CashCheckVoucherORUnique {
-			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceCheckVoucher,
+				Source:          types.GeneralLedgerSourceCheckVoucher,
 				ReferenceNumber: referenceNumber,
 			})
 			if err != nil {
@@ -124,15 +125,15 @@ func IncrementOfficialReceipt(
 			}
 		}
 		branchSetting.CashCheckVoucherORCurrent++
-	case core.GeneralLedgerSourceLoan:
+	case types.GeneralLedgerSourceLoan:
 		if branchSetting.CheckVoucherGeneral {
 			break
 		}
 		if branchSetting.LoanVoucherORUnique {
-			loans, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+			loans, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceLoan,
+				Source:          types.GeneralLedgerSourceLoan,
 				ReferenceNumber: referenceNumber,
 			})
 			if err != nil {
@@ -147,10 +148,10 @@ func IncrementOfficialReceipt(
 
 	if branchSetting.CheckVoucherGeneral {
 		if branchSetting.CheckVoucherGeneralORUnique {
-			loans, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+			loans, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceLoan,
+				Source:          types.GeneralLedgerSourceLoan,
 				ReferenceNumber: referenceNumber,
 			})
 			if err != nil {
@@ -159,10 +160,10 @@ func IncrementOfficialReceipt(
 			if len(loans) > 0 {
 				return eris.New("IncrementOfficialReceipt: (general) loan with the same reference number already exists")
 			}
-			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &core.GeneralLedger{
+			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          core.GeneralLedgerSourceCheckVoucher,
+				Source:          types.GeneralLedgerSourceCheckVoucher,
 				ReferenceNumber: referenceNumber,
 			})
 			if err != nil {

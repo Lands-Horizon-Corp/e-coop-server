@@ -6,6 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 	"github.com/shopspring/decimal"
@@ -13,9 +14,9 @@ import (
 
 func GenerateMutualFundEntriesPost(
 	context context.Context, service *horizon.HorizonService,
-	userOrg *core.UserOrganization,
+	userOrg *types.UserOrganization,
 	mutualFundID *uuid.UUID,
-	request core.MutualFundViewPostRequest,
+	request types.MutualFundViewPostRequest,
 ) error {
 	tx, endTx := service.Database.StartTransaction(context)
 
@@ -24,7 +25,7 @@ func GenerateMutualFundEntriesPost(
 		return endTx(err)
 	}
 
-	mutualFundEntries, err := core.MutualFundEntryManager(service).Find(context, &core.MutualFundEntry{
+	mutualFundEntries, err := core.MutualFundEntryManager(service).Find(context, &types.MutualFundEntry{
 		OrganizationID: userOrg.OrganizationID,
 		BranchID:       *userOrg.BranchID,
 		MutualFundID:   mutualFund.ID,
@@ -54,7 +55,7 @@ func GenerateMutualFundEntriesPost(
 		}
 
 		// Create member ledger entry
-		if err := core.CreateGeneralLedgerEntry(context, service, tx, &core.GeneralLedger{
+		if err := core.CreateGeneralLedgerEntry(context, service, tx, &types.GeneralLedger{
 			CreatedAt:       now,
 			CreatedByID:     userOrg.UserID,
 			UpdatedAt:       now,
@@ -65,10 +66,10 @@ func GenerateMutualFundEntriesPost(
 			EntryDate:       userOrgTime,
 
 			MemberProfileID:   &entry.MemberProfileID,
-			Source:            core.GeneralLedgerSourceMutualContribution,
+			Source:            types.GeneralLedgerSourceMutualContribution,
 			EmployeeUserID:    &userOrg.UserID,
 			Description:       entry.Account.Description + " - Generated in mutual fund post",
-			TypeOfPaymentType: core.PaymentTypeSystem,
+			TypeOfPaymentType: types.PaymentTypeSystem,
 			Credit:            creditDec.InexactFloat64(),
 			Debit:             debitDec.InexactFloat64(),
 
@@ -81,7 +82,7 @@ func GenerateMutualFundEntriesPost(
 
 		// Create post account entry if applicable
 		if mutualFund.PostAccountID != nil {
-			if err := core.CreateGeneralLedgerEntry(context, service, tx, &core.GeneralLedger{
+			if err := core.CreateGeneralLedgerEntry(context, service, tx, &types.GeneralLedger{
 				CreatedAt:       now,
 				CreatedByID:     userOrg.UserID,
 				UpdatedAt:       now,
@@ -92,10 +93,10 @@ func GenerateMutualFundEntriesPost(
 				EntryDate:       userOrgTime,
 
 				MemberProfileID:   &entry.MemberProfileID,
-				Source:            core.GeneralLedgerSourceMutualContribution,
+				Source:            types.GeneralLedgerSourceMutualContribution,
 				EmployeeUserID:    &userOrg.UserID,
 				Description:       mutualFund.PostAccount.Description + " - Generated in mutual fund post",
-				TypeOfPaymentType: core.PaymentTypeSystem,
+				TypeOfPaymentType: types.PaymentTypeSystem,
 				Credit:            debitDec.InexactFloat64(),
 				Debit:             creditDec.InexactFloat64(),
 
