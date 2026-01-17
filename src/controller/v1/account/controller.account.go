@@ -1239,7 +1239,7 @@ func AccountController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
 		}
-		account.Index = account.Index + 1
+		account.Index++
 		account.UpdatedAt = time.Now().UTC()
 		account.UpdatedByID = userOrg.UserID
 		if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {

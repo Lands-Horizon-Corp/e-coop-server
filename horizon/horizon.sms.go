@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	"os"
-	"sync"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/microcosm-cc/bluemonday"
@@ -22,8 +21,7 @@ type SMSRequest struct {
 }
 
 type SMSImpl struct {
-	limiterOnce sync.Once
-	twilio      *twilio.RestClient
+	twilio *twilio.RestClient
 
 	accountSID    string // Twilio Account SID
 	authToken     string // Twilio Auth Token

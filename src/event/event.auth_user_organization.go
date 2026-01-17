@@ -163,9 +163,11 @@ func GetOrganization(service *horizon.HorizonService, ctx echo.Context) (*types.
 	}
 	org, err := core.OrganizationManager(service).GetByID(ctx.Request().Context(), orgID)
 	if err != nil || org == nil {
-		ctx.JSON(http.StatusNotFound, map[string]string{
+		if err := ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": "organization not found",
-		})
+		}); err != nil {
+			return nil, false
+		}
 		return nil, false
 	}
 	return org, true

@@ -599,8 +599,7 @@ func (h *APIImpl) RegisterWebRoute(
 	route Route,
 	callback func(c echo.Context) error,
 	mid ...echo.MiddlewareFunc,
-) error {
-
+) {
 	method := strings.ToUpper(strings.TrimSpace(route.Method))
 	route.Route = "/web/" + strings.TrimPrefix(route.Route, "/")
 
@@ -610,34 +609,47 @@ func (h *APIImpl) RegisterWebRoute(
 		http.MethodPut,
 		http.MethodPatch,
 		http.MethodDelete:
+		// ok
 	default:
-		return eris.Errorf("unsupported HTTP method: %s for route: %s", method, route.Route)
+		panic(eris.Errorf(
+			"unsupported HTTP method: %s for route: %s",
+			method,
+			route.Route,
+		))
 	}
+
 	for _, existing := range h.routesList {
 		if strings.EqualFold(existing.Route, route.Route) &&
 			strings.EqualFold(existing.Method, method) {
-			return eris.Errorf("route already registered: %s %s", method, route.Route)
+			panic(eris.Errorf(
+				"route already registered: %s %s",
+				method,
+				route.Route,
+			))
 		}
 	}
+
 	if route.Private {
-		return nil
+		return
 	}
+
 	request := go2ts.Convert(route.RequestType)
 	response := go2ts.Convert(route.ResponseType)
 
 	if route.RequestType != nil {
-
 		h.interfacesList = append(h.interfacesList, APIInterfaces{
 			Key:   helpers.ExtractInterfaceName(route.RequestType),
 			Value: request,
 		})
 	}
+
 	if route.ResponseType != nil {
 		h.interfacesList = append(h.interfacesList, APIInterfaces{
 			Key:   helpers.ExtractInterfaceName(route.ResponseType),
 			Value: response,
 		})
 	}
+
 	h.routesList = append(h.routesList, Route{
 		Route:    route.Route,
 		Method:   method,
@@ -645,6 +657,7 @@ func (h *APIImpl) RegisterWebRoute(
 		Response: response,
 		Note:     route.Note,
 	})
+
 	switch method {
 	case http.MethodGet:
 		h.service.GET(route.Route, callback, mid...)
@@ -657,7 +670,6 @@ func (h *APIImpl) RegisterWebRoute(
 	case http.MethodDelete:
 		h.service.DELETE(route.Route, callback, mid...)
 	}
-	return nil
 }
 
 func (h *APIImpl) GroupedRoutes() API {

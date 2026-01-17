@@ -196,7 +196,9 @@ func TransactionPayment(
 				loanAccount.TotalDeductionCount += 1
 				loanAccount.TotalDeduction = decimal.NewFromFloat(loanAccount.TotalDeduction).Add(debitDec).InexactFloat64()
 			}
-			core.LoanAccountManager(service).UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount)
+			if err := core.LoanAccountManager(service).UpdateByIDWithTx(context, tx, loanAccount.ID, loanAccount); err != nil {
+				return nil, endTx(err)
+			}
 		}
 	}
 	newGeneralLedger := &types.GeneralLedger{

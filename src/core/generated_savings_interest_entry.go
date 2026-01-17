@@ -202,13 +202,14 @@ func DailyBalances(
 		balanceDecimal := decimal.NewFromFloat(balance)
 		var changeType string
 
-		if previousBalance.Equal(decimal.NewFromFloat(-1)) {
+		switch {
+		case previousBalance.Equal(decimal.NewFromFloat(-1)):
 			changeType = "no_change"
-		} else if balanceDecimal.GreaterThan(previousBalance) {
+		case balanceDecimal.GreaterThan(previousBalance):
 			changeType = "increase"
-		} else if balanceDecimal.LessThan(previousBalance) {
+		case balanceDecimal.LessThan(previousBalance):
 			changeType = "decrease"
-		} else {
+		default:
 			changeType = "no_change"
 		}
 

@@ -108,7 +108,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid month"})
 		}
-		month = month % 12
+		month %= 12
 		if month == 0 {
 			month = 12
 		}

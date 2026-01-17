@@ -9,7 +9,6 @@ import (
 	"net/smtp"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/rotisserie/eris"
@@ -29,8 +28,7 @@ type SMTPImpl struct {
 	password string
 	from     string
 
-	secured     bool
-	limiterOnce sync.Once
+	secured bool
 }
 
 func NewSMTPImpl(host string, port int, username, password string, from string, secured bool) *SMTPImpl {
