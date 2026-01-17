@@ -186,7 +186,7 @@ func Heartbeat(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve active timesheets: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, core.UserOrganizationStatusResponse{
+		return ctx.JSON(http.StatusOK, types.UserOrganizationStatusResponse{
 			OfflineUsers:   offlineUsers,
 			OnlineUsers:    onlineUsers,
 			CommutingUsers: commutingUsers,

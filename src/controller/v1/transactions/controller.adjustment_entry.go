@@ -315,7 +315,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
+		return ctx.JSON(http.StatusOK, types.AdjustmentEntryTotalResponse{
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 			Balance:     balance.Balance,
@@ -399,7 +399,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
+		return ctx.JSON(http.StatusOK, types.AdjustmentEntryTotalResponse{
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 			Balance:     balance.Balance,
@@ -493,7 +493,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute total balance: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, core.AdjustmentEntryTotalResponse{
+		return ctx.JSON(http.StatusOK, types.AdjustmentEntryTotalResponse{
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,
 			Balance:     balance.Balance,

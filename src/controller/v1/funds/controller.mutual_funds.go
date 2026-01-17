@@ -108,7 +108,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund",
 		Method:       "POST",
 		Note:         "Creates a new mutual fund for the current user's organization and branch.",
-		RequestType: types.MutualFundRequest{},
+		RequestType:  types.MutualFundRequest{},
 		ResponseType: types.MutualFundResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -212,7 +212,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id",
 		Method:       "PUT",
 		Note:         "Updates an existing mutual fund by its ID.",
-		RequestType: types.MutualFundRequest{},
+		RequestType:  types.MutualFundRequest{},
 		ResponseType: types.MutualFundResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
@@ -597,7 +597,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		for _, entry := range mutualFundEntries {
 			total += entry.Amount
 		}
-		return ctx.JSON(http.StatusOK, core.MutualFundView{
+		return ctx.JSON(http.StatusOK, types.MutualFundView{
 			TotalAmount:       total,
 			MutualFundEntries: core.MutualFundEntryManager(service).ToModels(mutualFundEntries),
 		})
@@ -753,7 +753,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 			totalAmount = totalAmount.Add(decimal.NewFromFloat(entry.Amount))
 		}
 		totalAmountFloat := totalAmount.InexactFloat64()
-		return ctx.JSON(http.StatusOK, core.MutualFundView{
+		return ctx.JSON(http.StatusOK, types.MutualFundView{
 			MutualFundEntries: core.MutualFundEntryManager(service).ToModels(entries),
 			TotalAmount:       totalAmountFloat,
 			MutualFund:        core.MutualFundManager(service).ToModel(mutualFund),

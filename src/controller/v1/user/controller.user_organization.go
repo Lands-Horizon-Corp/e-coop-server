@@ -536,7 +536,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 			Description: "Refreshed developer key for user organization " + userOrg.ID.String(),
 			Module:      "UserOrganization",
 		})
-		return ctx.JSON(http.StatusOK, core.DeveloperSecretKeyResponse{
+		return ctx.JSON(http.StatusOK, types.DeveloperSecretKeyResponse{
 			DeveloperSecretKey: userOrg.DeveloperSecretKey,
 		})
 	})

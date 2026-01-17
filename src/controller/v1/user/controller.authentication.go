@@ -33,7 +33,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		if userOrganization != nil {
 			userOrg = core.UserOrganizationManager(service).ToModel(userOrganization)
 		}
-		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
+		return ctx.JSON(http.StatusOK, types.CurrentUserResponse{
 			UserID:           user.ID,
 			User:             core.UserManager(service).ToModel(user),
 			UserOrganization: userOrg,
@@ -112,7 +112,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 			Description: "User logged in successfully: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
+		return ctx.JSON(http.StatusOK, types.CurrentUserResponse{
 			UserID: user.ID,
 			User:   core.UserManager(service).ToModel(user),
 		})
@@ -197,7 +197,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 			Description: "User registered successfully: " + user.ID.String(),
 			Module:      "User",
 		})
-		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
+		return ctx.JSON(http.StatusOK, types.CurrentUserResponse{
 			UserID: user.ID,
 			User:   core.UserManager(service).ToModel(user),
 		})

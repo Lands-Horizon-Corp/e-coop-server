@@ -278,7 +278,7 @@ func OrganizationController(service *horizon.HorizonService) {
 			Description: "Created organization: " + organization.Name,
 			Module:      "Organization",
 		})
-		return ctx.JSON(http.StatusOK, core.CreateOrganizationResponse{
+		return ctx.JSON(http.StatusOK, types.CreateOrganizationResponse{
 			Organization:     core.OrganizationManager(service).ToModel(organization),
 			UserOrganization: core.UserOrganizationManager(service).ToModel(userOrganization),
 		})

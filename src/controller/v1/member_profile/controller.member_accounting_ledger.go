@@ -76,7 +76,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to compute balance: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerAccountSummary{
+		return ctx.JSON(http.StatusOK, types.MemberAccountingLedgerAccountSummary{
 			Balance:     balance.Balance,
 			TotalDebit:  balance.Debit,
 			TotalCredit: balance.Credit,

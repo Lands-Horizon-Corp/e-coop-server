@@ -91,7 +91,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 			totalInterest = totalInterest.Add(decimal.NewFromFloat(entry.InterestAmount))
 		}
 
-		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
+		return ctx.JSON(http.StatusOK, types.GeneratedSavingsInterestViewResponse{
 			Entries:       core.GeneratedSavingsInterestEntryManager(service).ToModels(entries),
 			TotalTax:      totalTax.InexactFloat64(),
 			TotalInterest: totalInterest.InexactFloat64(),
@@ -146,7 +146,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 			totalInterest = totalInterest.Add(decimal.NewFromFloat(entry.InterestAmount))
 		}
 
-		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestViewResponse{
+		return ctx.JSON(http.StatusOK, types.GeneratedSavingsInterestViewResponse{
 			Entries:       core.GeneratedSavingsInterestEntryManager(service).ToModels(entries),
 			TotalTax:      totalTax.InexactFloat64(),
 			TotalInterest: totalInterest.InexactFloat64(),

@@ -640,7 +640,7 @@ func KYCController(service *horizon.HorizonService) {
 			}
 			return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrganization))
 		}
-		return ctx.JSON(http.StatusOK, core.CurrentUserResponse{
+		return ctx.JSON(http.StatusOK, types.CurrentUserResponse{
 			UserID:           user.ID,
 			User:             core.UserManager(service).ToModel(user),
 			UserOrganization: core.UserOrganizationManager(service).ToModel(userOrganization),
