@@ -52,7 +52,7 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization",
 		Method:       "POST",
-		RequestType: types.OrganizationRequest{},
+		RequestType:  types.OrganizationRequest{},
 		ResponseType: types.CreateOrganizationResponse{},
 		Note:         "Creates a new organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
@@ -206,12 +206,12 @@ func OrganizationController(service *horizon.HorizonService) {
 			OrganizationID:         organization.ID,
 			UserID:                 user.ID,
 			BranchID:               &branch.ID,
-			UserType:               core.UserOrganizationTypeOwner,
+			UserType:               types.UserOrganizationTypeOwner,
 			Description:            "",
 			ApplicationDescription: "",
 			ApplicationStatus:      "accepted",
 			DeveloperSecretKey:     developerKey + uuid.NewString() + "-horizon",
-			PermissionName:         string(core.UserOrganizationTypeOwner),
+			PermissionName:         string(types.UserOrganizationTypeOwner),
 			PermissionDescription:  "",
 			Permissions:            []string{},
 		}
@@ -239,7 +239,7 @@ func OrganizationController(service *horizon.HorizonService) {
 			}
 		}
 
-		organizationMedia := &[]core.OrganizationMedia{
+		organizationMedia := &[]types.OrganizationMedia{
 			{
 				Name:           "Cover Image",
 				CreatedAt:      time.Now().UTC(),
@@ -287,7 +287,7 @@ func OrganizationController(service *horizon.HorizonService) {
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "PUT",
-		RequestType: types.OrganizationRequest{},
+		RequestType:  types.OrganizationRequest{},
 		ResponseType: types.OrganizationResponse{},
 		Note:         "Updates an organization. User must be logged in.",
 	}, func(ctx echo.Context) error {
@@ -606,7 +606,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve organizations: " + err.Error()})
 		}
-		result := []core.OrganizationPerCategoryResponse{}
+		result := []types.OrganizationPerCategoryResponse{}
 		for _, category := range categories {
 			orgs := []*types.Organization{}
 			for _, org := range organizations {
@@ -621,7 +621,7 @@ func OrganizationController(service *horizon.HorizonService) {
 					orgs = append(orgs, org)
 				}
 			}
-			result = append(result, core.OrganizationPerCategoryResponse{
+			result = append(result, types.OrganizationPerCategoryResponse{
 				Category:      core.CategoryManager(service).ToModel(category),
 				Organizations: core.OrganizationManager(service).ToModels(orgs),
 			})

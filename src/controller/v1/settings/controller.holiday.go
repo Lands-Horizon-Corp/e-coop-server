@@ -345,7 +345,7 @@ func HolidayController(service *horizon.HorizonService) {
 			yearCount[maxYear+1] = 0
 		}
 
-		var response []core.HoldayYearAvaiable
+		var response []types.HoldayYearAvaiable
 		for year, count := range yearCount {
 			response = append(response, core.HoldayYearAvaiable{
 				Year:  year,
@@ -403,7 +403,7 @@ func HolidayController(service *horizon.HorizonService) {
 			yearCount[maxYear+1] = 0
 		}
 
-		var response []core.HoldayYearAvaiable
+		var response []types.HoldayYearAvaiable
 		for year, count := range yearCount {
 			response = append(response, core.HoldayYearAvaiable{
 				Year:  year,

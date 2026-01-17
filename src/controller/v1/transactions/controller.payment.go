@@ -124,7 +124,7 @@ func PaymentController(service *horizon.HorizonService) {
 			generalLedgers = append(generalLedgers, generalLedger)
 		}
 
-		var response []core.GeneralLedgerResponse
+		var response []types.GeneralLedgerResponse
 		for _, gl := range generalLedgers {
 			response = append(response, *types.GeneralLedgerManager(service).ToModel(gl))
 		}

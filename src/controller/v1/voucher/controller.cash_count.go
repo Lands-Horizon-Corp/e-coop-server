@@ -239,7 +239,7 @@ func CashCountController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to update cash counts"})
 		}
 		type CashCountBatchRequest struct {
-			CashCounts        []core.CashCountRequest `json:"cash_counts" validate:"required"`
+			CashCounts        []types.CashCountRequest `json:"cash_counts" validate:"required"`
 			DeletedCashCounts *uuid.UUIDs             `json:"deleted_cash_counts,omitempty"`
 			DepositInBank     *float64                `json:"deposit_in_bank,omitempty"`
 			CashCountTotal    *float64                `json:"cash_count_total,omitempty"`
@@ -394,7 +394,7 @@ func CashCountController(service *horizon.HorizonService) {
 			Add(decimal.NewFromFloat(depositInBank)).
 			InexactFloat64()
 
-		var responseRequests []core.CashCountRequest
+		var responseRequests []types.CashCountRequest
 		for _, cashCount := range updatedCashCounts {
 			responseRequests = append(responseRequests, core.CashCountRequest{
 				ID:                 &cashCount.ID,
