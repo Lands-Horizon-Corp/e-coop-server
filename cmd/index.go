@@ -10,7 +10,7 @@ type CommandConfig struct {
 	RunFunc func(cmd *cobra.Command, args []string) error
 }
 
-func buildCommands() {
+func Execute() {
 	command.AddCommand(versionCmd)
 
 	for _, group := range commandGroups {
@@ -37,10 +37,6 @@ func buildCommands() {
 			},
 		})
 	}
-}
-
-func Execute() {
-	buildCommands()
 	if err := command.Execute(); err != nil {
 		panic(err)
 	}
