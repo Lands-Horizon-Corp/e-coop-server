@@ -479,6 +479,7 @@ func (h *APIImpl) Init() error {
 			"Location",
 			"X-Device-Type",
 			"X-User-Agent",
+			"X-Organization-id",
 		},
 
 		ExposeHeaders: []string{
