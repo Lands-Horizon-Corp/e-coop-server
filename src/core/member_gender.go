@@ -106,7 +106,7 @@ func memberGenderSeed(context context.Context, service *horizon.HorizonService, 
 			Description:    "Identifies outside the binary gender categories.",
 		},
 	}
-	branchSetting, err := BranchSettingManager(service).FindOneWithTx(context, tx, &types.BranchSetting{
+	branchSetting, err := BranchSettingManager(service).FindOne(context, &types.BranchSetting{
 		BranchID: branchID,
 	})
 	if err != nil {
