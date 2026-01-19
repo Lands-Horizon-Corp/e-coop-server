@@ -82,10 +82,9 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 	now := time.Now().UTC()
 	memberType := []*types.MemberType{
 		{
-
-			Name:           "New",
-			Prefix:         "NEW",
-			Description:    "Recently registered member, no activity yet.",
+			Name:           "Regular",
+			Prefix:         "REG",
+			Description:    "Standard member with full rights and privileges.",
 			CreatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedAt:      now,
@@ -94,10 +93,9 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 			BranchID:       branchID,
 		},
 		{
-
-			Name:           "Active",
-			Prefix:         "ACT",
-			Description:    "Regularly engaged member with no issues.",
+			Name:           "Associate",
+			Prefix:         "ASC",
+			Description:    "Member with limited rights, typically non-voting.",
 			CreatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedAt:      now,
@@ -106,10 +104,9 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 			BranchID:       branchID,
 		},
 		{
-
-			Name:           "Loyal",
-			Prefix:         "LOY",
-			Description:    "Consistently active over a long period; high retention.",
+			Name:           "Special Depositor",
+			Prefix:         "SPD",
+			Description:    "Member allowed to deposit but without full membership benefits.",
 			CreatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedAt:      now,
@@ -118,10 +115,9 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 			BranchID:       branchID,
 		},
 		{
-
-			Name:           "VIP",
-			Prefix:         "VIP",
-			Description:    "Very high-value member with premium privileges.",
+			Name:           "Kiddie Savers",
+			Prefix:         "KID",
+			Description:    "Savings account for children, usually managed by a guardian.",
 			CreatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedAt:      now,
@@ -130,10 +126,9 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 			BranchID:       branchID,
 		},
 		{
-
-			Name:           "Reported",
-			Prefix:         "RPT",
-			Description:    "Flagged by community or system for review.",
+			Name:           "Youth Savers",
+			Prefix:         "YTH",
+			Description:    "Savings account designed for youth members.",
 			CreatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedAt:      now,
@@ -142,34 +137,9 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 			BranchID:       branchID,
 		},
 		{
-
-			Name:           "Suspended",
-			Prefix:         "SUS",
-			Description:    "Temporarily barred from activities pending resolution.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Banned",
-			Prefix:         "BAN",
-			Description:    "Permanently barred due to policy violations.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
 			Name:           "Closed",
 			Prefix:         "CLS",
-			Description:    "Account closed by user request or administrative action.",
+			Description:    "Account officially closed.",
 			CreatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedAt:      now,
@@ -178,70 +148,9 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 			BranchID:       branchID,
 		},
 		{
-
-			Name:           "Alumni",
-			Prefix:         "ALM",
-			Description:    "Former member with notable contributions.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Pending",
-			Prefix:         "PND",
-			Description:    "Awaiting verification or approval.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Dormant",
-			Prefix:         "DRM",
-			Description:    "Inactive for a long period with no recent engagement.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Guest",
-			Prefix:         "GST",
-			Description:    "Limited access member without full privileges.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Moderator",
-			Prefix:         "MOD",
-			Description:    "Member with special privileges to manage content or users.",
-			CreatedAt:      now,
-			CreatedByID:    userID,
-			UpdatedAt:      now,
-			UpdatedByID:    userID,
-			OrganizationID: organizationID,
-			BranchID:       branchID,
-		},
-		{
-
-			Name:           "Admin",
-			Prefix:         "ADM",
-			Description:    "Administrator with full access and control.",
+			Name:           "Withdrawn",
+			Prefix:         "WDR",
+			Description:    "Member has voluntarily withdrawn membership.",
 			CreatedAt:      now,
 			CreatedByID:    userID,
 			UpdatedAt:      now,
@@ -250,6 +159,7 @@ func memberTypeSeed(context context.Context, service *horizon.HorizonService, tx
 			BranchID:       branchID,
 		},
 	}
+
 	for _, data := range memberType {
 		if err := MemberTypeManager(service).CreateWithTx(context, tx, data); err != nil {
 			return eris.Wrapf(err, "failed to seed member type %s", data.Name)

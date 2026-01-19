@@ -18,6 +18,8 @@ const (
 )
 
 type (
+	Sex string
+
 	MemberStatus string
 
 	MemberProfile struct {
@@ -94,6 +96,8 @@ type (
 
 		Latitude  *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
 		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
+
+		Sex Sex `gorm:"type:varchar(10);not null;default:'n/a'" json:"sex"`
 	}
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
@@ -167,6 +171,7 @@ type (
 		MemberCloseRemarks           []*MemberCloseRemarkResponse           `json:"member_close_remarks,omitempty"`
 		RecruitedMembers             []*MemberProfileResponse               `json:"recruited_members,omitempty"`
 		BirthPlace                   string                                 `json:"birth_place"`
+		Sex                          Sex                                    `json:"sex"`
 	}
 
 	MemberProfileRequest struct {
@@ -277,6 +282,7 @@ type (
 		MemberTypeID         *uuid.UUID   `json:"member_type_id"`
 		AccountInfo          *AccountInfo `json:"new_user_info,omitempty" validate:"omitempty"`
 		BirthPlace           string       `json:"birth_place,omitempty" validate:"max=255"`
+		Sex                  Sex          `json:"sex,omitempty" validate:"omitempty,sex"`
 	}
 
 	MemberProfileUserAccountRequest struct {

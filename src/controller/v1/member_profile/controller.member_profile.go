@@ -656,6 +656,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			IsMutualFundMember:   req.IsMutualFundMember,
 			IsMicroFinanceMember: req.IsMicroFinanceMember,
 			MemberTypeID:         req.MemberTypeID,
+			Sex:                  req.Sex,
 			BirthPlace:           req.BirthPlace,
 		}
 		if err := core.MemberProfileManager(service).CreateWithTx(context, tx, profile); err != nil {
