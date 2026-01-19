@@ -67,7 +67,7 @@ func OrganizationSeeder(context context.Context, service *horizon.HorizonService
 		return err
 	}
 	if err := loanPurposeSeed(context, service, tx, userID, organizationID, branchID); err != nil {
-		return nil
+		return err
 	}
 	if err := accountClassificationSeed(context, service, tx, userID, organizationID, branchID); err != nil {
 		return err

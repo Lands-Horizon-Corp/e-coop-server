@@ -175,7 +175,7 @@ func accountSeed(context context.Context,
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
-	branchSetting, err := BranchSettingManager(service).FindOne(context, &types.BranchSetting{
+	branchSetting, err := BranchSettingManager(service).FindOneWithTx(context, tx, &types.BranchSetting{
 		BranchID: branchID,
 	})
 	wallet := &types.Account{
