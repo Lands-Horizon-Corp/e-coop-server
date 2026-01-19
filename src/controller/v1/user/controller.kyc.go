@@ -545,6 +545,7 @@ func KYCController(service *horizon.HorizonService) {
 			IsMicroFinanceMember: false,
 			MediaID:              req.SelfieMediaID,
 			Sex:                  req.Sex,
+			BirthPlace:           req.BirthPlace,
 		}
 		if err := core.MemberProfileManager(service).CreateWithTx(context, tx, memberProfile); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create member profile: " + endTx(err).Error()})

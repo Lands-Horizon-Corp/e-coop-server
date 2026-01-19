@@ -16,6 +16,7 @@ type (
 		LastName       string    `json:"last_name" validate:"required,alpha"`
 		MemberGenderID uuid.UUID `json:"member_gender_id" validate:"required"`
 		Sex            Sex       `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
+		BirthPlace     string    `json:"birth_place,omitempty" validate:"max=255"`
 	}
 
 	// POST /api/v1/kyc/security-details
@@ -109,6 +110,7 @@ type (
 		BranchID           *uuid.UUID `json:"branch_id" validate:"omitempty"`
 		Password           string     `json:"password" validate:"required,min=8,max=50"`
 		OldPassbook        string     `json:"old_passbook" validate:"omitempty"`
+		BirthPlace         string     `json:"birth_place,omitempty" validate:"max=255"`
 
 		Sex Sex `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
 
