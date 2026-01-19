@@ -607,6 +607,7 @@ func (h *APIImpl) RegisterWebRoute(
 	case http.MethodGet,
 		http.MethodPost,
 		http.MethodPut,
+		http.MethodOptions,
 		http.MethodPatch,
 		http.MethodDelete:
 		// ok
