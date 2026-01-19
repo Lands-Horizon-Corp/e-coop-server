@@ -631,6 +631,19 @@ func MemberProfileController(service *horizon.HorizonService) {
 			}
 			userProfileID = &userProfile.ID
 		}
+		branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
+			BranchID: *userOrg.BranchID,
+		})
+		if err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "create-error",
+				Description: "Quick create member profile failed: branch setting not found: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Branch settings not found",
+			})
+		}
 
 		profile := &types.MemberProfile{
 			OrganizationID:       userOrg.OrganizationID,
@@ -665,7 +678,44 @@ func MemberProfileController(service *horizon.HorizonService) {
 				Description: "Quick create member profile failed: create profile error: " + err.Error(),
 				Module:      "MemberProfile",
 			})
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not create member profile: " + endTx(err).Error()})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": "Could not create member profile: " + endTx(err).Error(),
+			})
+		}
+
+		if req.Status == types.MemberStatusVerified {
+			memberAccountingLedger, err := core.MemberAccountingLedgerUpdateOrCreate(
+				context,
+				service,
+				tx, 0, types.MemberAccountingLedgerUpdateOrCreateParams{
+					MemberProfileID: profile.ID,
+					AccountID:       *branchSetting.AccountWalletID,
+					OrganizationID:  userOrg.OrganizationID,
+					BranchID:        *userOrg.BranchID,
+					UserID:          userProfile.ID,
+					LastPayTime:     time.Now().UTC(),
+				},
+			)
+			if err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Quick create member profile failed: create member accounting ledger error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member accounting ledger: " + endTx(err).Error()})
+			}
+
+			profile.MemberAccountingLedgerWalletID = &memberAccountingLedger.ID
+			if err := core.MemberProfileManager(service).UpdateByIDWithTx(context, tx, profile.ID, profile); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Quick create member profile failed: update ledger wallet error: " + err.Error(),
+					Module:      "MemberProfile",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{
+					"error": "Could not update member profile ledger wallet: " + endTx(err).Error(),
+				})
+			}
 		}
 
 		if userProfile != nil {

@@ -90,8 +90,6 @@ type (
 		OrganizationID  uuid.UUID `validate:"required"`
 		BranchID        uuid.UUID `validate:"required"`
 		UserID          uuid.UUID `validate:"required"`
-		DebitAmount     float64
-		CreditAmount    float64
 		LastPayTime     time.Time `validate:"required"`
 	}
 

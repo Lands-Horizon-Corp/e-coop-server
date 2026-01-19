@@ -161,9 +161,6 @@ func MemberAccountingLedgerUpdateOrCreate(
 	balance float64,
 	params types.MemberAccountingLedgerUpdateOrCreateParams,
 ) (*types.MemberAccountingLedger, error) {
-	if (params.DebitAmount == 0 && params.CreditAmount == 0) || (params.DebitAmount != 0 && params.CreditAmount != 0) {
-		return nil, eris.New("exactly one of debit or credit must be non-zero")
-	}
 
 	ledger, err := MemberAccountingLedgerFindForUpdate(
 		ctx, service, tx,

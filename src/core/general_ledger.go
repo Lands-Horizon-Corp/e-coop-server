@@ -190,8 +190,6 @@ func CreateGeneralLedgerEntry(
 				OrganizationID:  data.OrganizationID,
 				BranchID:        data.BranchID,
 				UserID:          data.CreatedByID,
-				DebitAmount:     data.Debit,
-				CreditAmount:    data.Credit,
 				LastPayTime:     data.EntryDate,
 			},
 		)

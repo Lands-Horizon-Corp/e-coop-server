@@ -99,8 +99,8 @@ type (
 
 		Sex Sex `gorm:"type:varchar(10);not null;default:'n/a'" json:"sex"`
 
-		AccountWalletID *uuid.UUID `gorm:"type:uuid" json:"account_wallet_id,omitempty"`
-		AccountWallet   *Account   `gorm:"foreignKey:AccountWalletID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"account_wallet,omitempty"`
+		MemberAccountingLedgerWalletID *uuid.UUID              `gorm:"type:uuid" json:"member_accounting_ledger_wallet_id,omitempty"`
+		MemberAccountingLedgerWallet   *MemberAccountingLedger `gorm:"foreignKey:MemberAccountingLedgerWalletID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"member_accounting_ledger_wallet,omitempty"`
 	}
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
@@ -176,8 +176,8 @@ type (
 		BirthPlace                   string                                 `json:"birth_place"`
 		Sex                          Sex                                    `json:"sex"`
 
-		AccountWalletID *uuid.UUID       `json:"account_wallet_id,omitempty"`
-		AccountWallet   *AccountResponse `json:"account_wallet,omitempty"`
+		MemberAccountingLedgerWalletID *uuid.UUID                      `json:"member_accounting_ledger_wallet_id,omitempty"`
+		MemberAccountingLedgerWallet   *MemberAccountingLedgerResponse `json:"member_accounting_ledger_wallet,omitempty"`
 	}
 
 	MemberProfileRequest struct {

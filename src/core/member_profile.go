@@ -133,8 +133,8 @@ func MemberProfileManager(service *horizon.HorizonService) *registry.Registry[
 				MemberDepartmentID:             data.MemberDepartmentID,
 				MemberDepartment:               MemberDepartmentManager(service).ToModel(data.MemberDepartment),
 				BirthPlace:                     data.BirthPlace,
-				AccountWalletID:                data.AccountWalletID,
-				AccountWallet:                  AccountManager(service).ToModel(data.AccountWallet),
+				MemberAccountingLedgerWalletID: data.MemberAccountingLedgerWalletID,
+				MemberAccountingLedgerWallet:   MemberAccountingLedgerManager(service).ToModel(data.MemberAccountingLedgerWallet),
 			}
 		},
 
