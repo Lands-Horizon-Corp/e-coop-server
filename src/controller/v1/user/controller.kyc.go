@@ -605,7 +605,7 @@ func KYCController(service *horizon.HorizonService) {
 			CreatedAt:              time.Now().UTC(),
 			CreatedByID:            userProfile.ID,
 			UpdatedAt:              time.Now().UTC(),
-			UpdatedByID:            memberProfile.ID,
+			UpdatedByID:            userProfile.ID,
 			OrganizationID:         org.ID,
 			BranchID:               req.BranchID,
 			UserID:                 userProfile.ID,
