@@ -98,9 +98,6 @@ type (
 		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
 
 		Sex Sex `gorm:"type:varchar(10);not null;default:'n/a'" json:"sex"`
-
-		MemberAccountingLedgerWalletID *uuid.UUID              `gorm:"type:uuid" json:"member_accounting_ledger_wallet_id,omitempty"`
-		MemberAccountingLedgerWallet   *MemberAccountingLedger `gorm:"foreignKey:MemberAccountingLedgerWalletID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"member_accounting_ledger,omitempty"`
 	}
 	MemberProfileResponse struct {
 		ID                             uuid.UUID                     `json:"id"`
@@ -175,9 +172,6 @@ type (
 		RecruitedMembers             []*MemberProfileResponse               `json:"recruited_members,omitempty"`
 		BirthPlace                   string                                 `json:"birth_place"`
 		Sex                          Sex                                    `json:"sex"`
-
-		MemberAccountingLedgerWalletID *uuid.UUID                      `json:"member_accounting_ledger_wallet_id,omitempty"`
-		MemberAccountingLedgerWallet   *MemberAccountingLedgerResponse `json:"member_accounting_ledger_wallet,omitempty"`
 	}
 
 	MemberProfileRequest struct {

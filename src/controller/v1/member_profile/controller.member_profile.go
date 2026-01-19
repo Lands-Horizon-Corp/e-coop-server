@@ -267,7 +267,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		}
 
 		// Create Member Accounting Ledger if user account is connected
-		if memberProfile.UserID != nil && memberProfile.MemberAccountingLedgerWalletID == nil {
+		if memberProfile.UserID != nil {
 			branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
 				BranchID: memberProfile.BranchID,
 			})
@@ -280,7 +280,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch settings not found"})
 			}
 
-			memberAccountingLedger, err := core.MemberAccountingLedgerUpdateOrCreate(
+			_, err = core.MemberAccountingLedgerUpdateOrCreate(
 				context,
 				service,
 				tx, 0, types.MemberAccountingLedgerUpdateOrCreateParams{
@@ -301,17 +301,6 @@ func MemberProfileController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member accounting ledger: " + err.Error()})
 			}
 
-			memberProfile.MemberAccountingLedgerWalletID = &memberAccountingLedger.ID
-			if err := core.MemberProfileManager(service).UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
-				event.Footstep(ctx, service, event.FootstepEvent{
-					Activity:    "approve-error",
-					Description: "Approve member profile failed: update ledger wallet error: " + endTx(err).Error(),
-					Module:      "MemberProfile",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{
-					"error": "Could not update member profile ledger wallet: " + endTx(err).Error(),
-				})
-			}
 		}
 		if err := endTx(nil); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -759,7 +748,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		}
 
 		if req.Status == types.MemberStatusVerified {
-			memberAccountingLedger, err := core.MemberAccountingLedgerUpdateOrCreate(
+			_, err := core.MemberAccountingLedgerUpdateOrCreate(
 				context,
 				service,
 				tx, 0, types.MemberAccountingLedgerUpdateOrCreateParams{
@@ -780,17 +769,6 @@ func MemberProfileController(service *horizon.HorizonService) {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member accounting ledger: " + endTx(err).Error()})
 			}
 
-			profile.MemberAccountingLedgerWalletID = &memberAccountingLedger.ID
-			if err := core.MemberProfileManager(service).UpdateByIDWithTx(context, tx, profile.ID, profile); err != nil {
-				event.Footstep(ctx, service, event.FootstepEvent{
-					Activity:    "create-error",
-					Description: "Quick create member profile failed: update ledger wallet error: " + err.Error(),
-					Module:      "MemberProfile",
-				})
-				return ctx.JSON(http.StatusBadRequest, map[string]string{
-					"error": "Could not update member profile ledger wallet: " + endTx(err).Error(),
-				})
-			}
 		}
 
 		if userProfile != nil {

@@ -191,10 +191,9 @@ func Models() ([]any, []any) {
 		VoucherPayTo{},
 		AccountTransaction{},
 		AccountTransactionEntry{},
-	}
-	second := []any{
 		MemberAccountingLedger{},
 	}
+	second := []any{}
 	return first, second
 }
 
