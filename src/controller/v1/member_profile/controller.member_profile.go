@@ -250,11 +250,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
-
-		// Start transaction
 		tx, endTx := service.Database.StartTransaction(context)
-
-		// Approve member profile
 		memberProfile.Status = types.MemberStatusVerified
 		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
 		if err := core.MemberProfileManager(service).UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
@@ -265,8 +261,6 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
-
-		// Create Member Accounting Ledger if user account is connected
 		if memberProfile.UserID != nil {
 			branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
 				BranchID: memberProfile.BranchID,
@@ -290,6 +284,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 					BranchID:        *userOrg.BranchID,
 					UserID:          *memberProfile.UserID,
 					LastPayTime:     time.Now().UTC(),
+					Wallet:          true,
 				},
 			)
 			if err != nil {
@@ -758,6 +753,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 					BranchID:        *userOrg.BranchID,
 					UserID:          userProfile.ID,
 					LastPayTime:     time.Now().UTC(),
+					Wallet:          true,
 				},
 			)
 			if err != nil {

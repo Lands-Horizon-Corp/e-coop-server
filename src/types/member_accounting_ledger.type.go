@@ -39,6 +39,8 @@ type (
 		StoredValueFacility float64    `gorm:"type:decimal"`
 		PrincipalDue        float64    `gorm:"type:decimal"`
 		LastPay             *time.Time `gorm:"type:timestamp"`
+
+		Wallet bool `gorm:"default:false" json:"wallet"`
 	}
 
 	MemberAccountingLedgerResponse struct {
@@ -66,6 +68,7 @@ type (
 		StoredValueFacility float64                `json:"stored_value_facility"`
 		PrincipalDue        float64                `json:"principal_due"`
 		LastPay             *string                `json:"last_pay,omitempty"`
+		Wallet              bool                   `json:"wallet"`
 	}
 
 	MemberAccountingLedgerRequest struct {
@@ -91,6 +94,7 @@ type (
 		BranchID        uuid.UUID `validate:"required"`
 		UserID          uuid.UUID `validate:"required"`
 		LastPayTime     time.Time `validate:"required"`
+		Wallet          bool
 	}
 
 	MemberAccountingLedgerAccountSummary struct {

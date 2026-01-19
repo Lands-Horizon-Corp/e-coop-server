@@ -63,6 +63,7 @@ func MemberAccountingLedgerManager(service *horizon.HorizonService) *registry.Re
 				StoredValueFacility: data.StoredValueFacility,
 				PrincipalDue:        data.PrincipalDue,
 				LastPay:             lastPay,
+				Wallet:              data.Wallet,
 			}
 		},
 
@@ -193,6 +194,7 @@ func MemberAccountingLedgerUpdateOrCreate(
 			CarriedForwardDue:   0,
 			StoredValueFacility: 0,
 			PrincipalDue:        0,
+			Wallet:              params.Wallet,
 		}
 		if tx == nil {
 			return nil, eris.New("database tx is nil")

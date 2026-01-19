@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
@@ -159,42 +158,21 @@ func refreshDatabase() error {
 			OnStopMessageText:  "Database refreshed successfully.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
 
-				fmt.Println("Step 1: Flushing cache...")
 				if err := service.Cache.Flush(ctx); err != nil {
-					fmt.Println("Error flushing cache:", err)
 					return err
 				}
-				fmt.Println("Cache flushed successfully.")
-
-				fmt.Println("Step 2: Removing all files from storage...")
 				if err := service.Storage.RemoveAllFiles(ctx); err != nil {
-					fmt.Println("Error removing files:", err)
 					return err
 				}
-				fmt.Println("Storage cleared successfully.")
-
-				fmt.Println("Step 3: Dropping tables...")
 				if err := types.Drop(service); err != nil {
-					fmt.Println("Error dropping tables:", err)
 					return err
 				}
-				fmt.Println("Tables dropped successfully.")
-
-				fmt.Println("Step 4: Auto-migrating models...")
 				if err := types.Migrate(service); err != nil {
-					fmt.Println("Error auto-migrating models:", err)
 					return err
 				}
-				fmt.Println("Models migrated successfully.")
-
-				fmt.Println("Step 5: Seeding database...")
 				if err := core.Seed(ctx, service, 5); err != nil {
-					fmt.Println("Error seeding database:", err)
 					return err
 				}
-				fmt.Println("Database seeded successfully.")
-
-				fmt.Println("Database refresh completed.")
 				return nil
 			},
 		},
