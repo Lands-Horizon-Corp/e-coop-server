@@ -12,7 +12,6 @@ type CommandConfig struct {
 
 func Execute() {
 	command.AddCommand(versionCmd)
-
 	for _, group := range commandGroups {
 		command.AddCommand(group.Parent)
 
