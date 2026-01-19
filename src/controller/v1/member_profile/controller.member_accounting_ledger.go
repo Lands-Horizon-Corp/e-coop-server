@@ -36,6 +36,36 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 	})
 
 	req.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/wallet",
+		Method:       "GET",
+		ResponseType: event.MemberAccountingLedgerSummary{},
+		Note:         "Returns the total amount for a specific member profile's general ledger entries.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID: " + err.Error()})
+		}
+		memberProfile, err := core.MemberProfileManager(service).GetByID(context, memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Member profile not found: " + err.Error()})
+		}
+		wallet, err := core.MemberAccountingLedgerManager(service).FindOne(context, &types.MemberAccountingLedger{
+			MemberProfileID: memberProfile.ID,
+			Wallet:          true,
+			OrganizationID:  memberProfile.OrganizationID,
+			BranchID:        memberProfile.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch wallet ledger: " + err.Error()})
+		}
+		if wallet == nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Wallet ledger not found for this member profile"})
+		}
+		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerManager(service).ToModel(wallet))
+	})
+
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:       "GET",
 		ResponseType: types.MemberAccountingLedgerAccountSummary{},
