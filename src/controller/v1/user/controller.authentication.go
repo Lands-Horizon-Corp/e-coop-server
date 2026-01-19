@@ -33,7 +33,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		var userOrg *types.UserOrganizationResponse
 		if userOrganization != nil {
 			userOrg = core.UserOrganizationManager(service).ToModel(userOrganization)
-			if userOrganization.UserType == types.UserOrganizationTypeMember {
+			if userOrganization.UserType == types.UserOrganizationTypeMember || userOrganization.UserType == types.UserOrganizationTypeOwner {
 				memberProfile, _ = core.MemberProfileManager(service).FindOneRaw(context, &types.MemberProfile{
 					UserID:         &userOrg.UserID,
 					BranchID:       *userOrg.BranchID,
