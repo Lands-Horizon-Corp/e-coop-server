@@ -1,6 +1,10 @@
 package types
 
-import "github.com/google/uuid"
+import (
+	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
+)
 
 type (
 	IDSRequest struct {
@@ -40,8 +44,8 @@ type (
 	}
 )
 
-func Models() []any {
-	return []any{
+func Models() ([]any, []any) {
+	first := []any{
 		AccountCategory{},
 		AccountClassification{},
 		Account{},
@@ -124,7 +128,7 @@ func Models() []any {
 		LoanTransactionEntry{},
 		LoanTransaction{},
 		Media{},
-		MemberAccountingLedger{},
+		MemberProfile{},
 		MemberAddress{},
 		MemberAsset{},
 		MemberBankCard{},
@@ -153,7 +157,6 @@ func Models() []any {
 		MemberOccupationHistory{},
 		MemberOtherInformationEntry{},
 		MemberProfileArchive{},
-		MemberProfile{},
 		MemberProfileMedia{},
 		MemberRelativeAccount{},
 		MemberType{},
@@ -189,4 +192,30 @@ func Models() []any {
 		AccountTransaction{},
 		AccountTransactionEntry{},
 	}
+	second := []any{
+		MemberAccountingLedger{},
+	}
+	return first, second
+}
+
+func Migrate(service *horizon.HorizonService) error {
+	parents, dependents := Models()
+	if err := service.Database.Client().AutoMigrate(parents...); err != nil {
+		return eris.Wrapf(err, "failed to migrate parent tables")
+	}
+	if err := service.Database.Client().AutoMigrate(dependents...); err != nil {
+		return eris.Wrapf(err, "failed to migrate dependent tables")
+	}
+	return nil
+}
+
+func Drop(service *horizon.HorizonService) error {
+	parents, dependents := Models()
+	if err := service.Database.Client().Migrator().DropTable(dependents...); err != nil {
+		return eris.Wrapf(err, "failed to drop dependent tables")
+	}
+	if err := service.Database.Client().Migrator().DropTable(parents...); err != nil {
+		return eris.Wrapf(err, "failed to drop parent tables")
+	}
+	return nil
 }

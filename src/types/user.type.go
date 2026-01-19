@@ -70,8 +70,9 @@ type (
 		UserID                  uuid.UUID                 `json:"user_id"`
 		User                    *UserResponse             `json:"user"`
 		UserOrganization        *UserOrganizationResponse `json:"user_organization"`
+		MemberProfile           *MemberProfileResponse    `json:"member_profile"`
 		IsLoggedInOnOtherDevice bool                      `json:"is_logged_in_on_other_device"`
-		Users                   any                       `json:"users,omitempty"` // This can be used to return multiple users if needed
+		Users                   any                       `json:"users,omitempty"`
 	}
 
 	UserLoginRequest struct {

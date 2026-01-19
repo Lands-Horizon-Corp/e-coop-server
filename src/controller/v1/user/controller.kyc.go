@@ -16,6 +16,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/image/webp"
 	"gorm.io/gorm"
@@ -593,6 +594,33 @@ func KYCController(service *horizon.HorizonService) {
 			if err := core.MemberGovernmentBenefitManager(service).CreateWithTx(context, tx, value); err != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address record: " + err.Error()})
 			}
+
+		}
+		developerKey, err := service.Security.GenerateUUIDv5(memberProfile.ID.String())
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate developer key: " + endTx(err).Error()})
+		}
+		developerKey = developerKey + uuid.NewString() + "-horizon"
+		userOrg := &types.UserOrganization{
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            userProfile.ID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            memberProfile.ID,
+			OrganizationID:         org.ID,
+			BranchID:               req.BranchID,
+			UserID:                 userProfile.ID,
+			UserType:               types.UserOrganizationTypeMember,
+			Description:            "",
+			ApplicationDescription: "anything",
+			ApplicationStatus:      "accepted",
+			DeveloperSecretKey:     developerKey,
+			PermissionName:         string(types.UserOrganizationTypeMember),
+			PermissionDescription:  "",
+			Permissions:            []string{},
+			UserSettingDescription: "user settings",
+		}
+		if err := core.UserOrganizationManager(service).CreateWithTx(context, tx, userOrg); err != nil {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Failed to create UserOrganization: " + endTx(err).Error()})
 		}
 		if err := endTx(nil); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction commit failed: " + err.Error()})

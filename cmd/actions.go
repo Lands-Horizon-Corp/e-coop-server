@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
@@ -70,7 +71,7 @@ func migrateDatabase() error {
 			OnStopMessageText:  "Database migration completed.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
 
-				if err := service.Database.Client().AutoMigrate(types.Models()...); err != nil {
+				if err := types.Migrate(service); err != nil {
 					return err
 				}
 				return nil
@@ -121,11 +122,10 @@ func resetDatabase() error {
 				if err := service.Storage.RemoveAllFiles(ctx); err != nil {
 					return err
 				}
-				models := types.Models()
-				if err := service.Database.Client().Migrator().DropTable(models...); err != nil {
+				if err := types.Drop(service); err != nil {
 					return err
 				}
-				if err := service.Database.Client().AutoMigrate(models...); err != nil {
+				if err := types.Migrate(service); err != nil {
 					return err
 				}
 				return nil
@@ -158,22 +158,43 @@ func refreshDatabase() error {
 			OnStartMessageText: "Refreshing database...",
 			OnStopMessageText:  "Database refreshed successfully.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
-				models := types.Models()
+
+				fmt.Println("Step 1: Flushing cache...")
 				if err := service.Cache.Flush(ctx); err != nil {
+					fmt.Println("Error flushing cache:", err)
 					return err
 				}
+				fmt.Println("Cache flushed successfully.")
+
+				fmt.Println("Step 2: Removing all files from storage...")
 				if err := service.Storage.RemoveAllFiles(ctx); err != nil {
+					fmt.Println("Error removing files:", err)
 					return err
 				}
-				if err := service.Database.Client().Migrator().DropTable(models...); err != nil {
+				fmt.Println("Storage cleared successfully.")
+
+				fmt.Println("Step 3: Dropping tables...")
+				if err := types.Drop(service); err != nil {
+					fmt.Println("Error dropping tables:", err)
 					return err
 				}
-				if err := service.Database.Client().AutoMigrate(models...); err != nil {
+				fmt.Println("Tables dropped successfully.")
+
+				fmt.Println("Step 4: Auto-migrating models...")
+				if err := types.Migrate(service); err != nil {
+					fmt.Println("Error auto-migrating models:", err)
 					return err
 				}
+				fmt.Println("Models migrated successfully.")
+
+				fmt.Println("Step 5: Seeding database...")
 				if err := core.Seed(ctx, service, 5); err != nil {
+					fmt.Println("Error seeding database:", err)
 					return err
 				}
+				fmt.Println("Database seeded successfully.")
+
+				fmt.Println("Database refresh completed.")
 				return nil
 			},
 		},
