@@ -302,7 +302,6 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch/:branch_id",
 		Method:       "PUT",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
-		Private:      true,
 		RequestType:  types.BranchRequest{},
 		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
