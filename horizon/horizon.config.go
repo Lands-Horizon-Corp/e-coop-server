@@ -160,7 +160,7 @@ func NewConfigImpl() (*ConfigImpl, error) {
 	v.SetDefault("SMTP_PORT", 1025)
 	v.SetDefault("SMTP_FROM", "dev@local.test")
 
-	v.SetDefault("TWILIO_MAX_CHARACTERS", 100)
+	v.SetDefault("TWILIO_MAX_CHARACTERS", 255)
 
 	v.SetDefault("PGADMN_DEFAULT_PORT", 8002)
 	v.SetDefault("PGADMIN_DEFAULT_EMAIL", "admin@127.0.0.1.com")
