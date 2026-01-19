@@ -235,6 +235,7 @@ type (
 		BusinessContactNumber string     `json:"business_contact_number,omitempty" validate:"max=255"`
 		Notes                 string     `json:"notes,omitempty"`
 		Description           string     `json:"description,omitempty"`
+		Sex                   Sex        `json:"sex,omitempty" validate:"omitempty,sex"`
 	}
 
 	MemberProfileMembershipInfoRequest struct {

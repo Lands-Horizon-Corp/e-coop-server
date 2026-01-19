@@ -788,6 +788,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		profile.BirthPlace = req.BirthPlace
 		profile.ContactNumber = req.ContactNumber
 		profile.CivilStatus = req.CivilStatus
+		profile.Sex = req.Sex
 
 		if req.MemberGenderID != nil && !helpers.UUIDPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
 			data := &types.MemberGenderHistory{
