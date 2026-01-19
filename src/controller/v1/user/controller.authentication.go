@@ -17,30 +17,53 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req := service.API
 
 	req.RegisterWebRoute(horizon.Route{
-		Route:        "/api/v1/authentication/current",
-		Method:       "GET",
+		Route:        "/api/v1/authentication/login",
+		Method:       "POST",
+		RequestType:  types.UserLoginRequest{},
 		ResponseType: types.CurrentUserResponse{},
-		Note:         "Returns the current authenticated user and their user organization, if any.",
+		Note:         "Authenticates a user and returns user details.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		user, err := event.CurrentUser(context, service, ctx)
-		if err != nil {
-			event.ClearCurrentToken(context, service, ctx)
-			return ctx.NoContent(http.StatusUnauthorized)
+		var req types.UserLoginRequest
+		if err := ctx.Bind(&req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
-		userOrganization, _ := event.CurrentUserOrganization(context, service, ctx)
+		if err := service.Validator.Struct(req); err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		user, err := core.GetUserByIdentifier(context, service, req.Key)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
+		}
+		valid, err := service.Security.VerifyPassword(user.Password, req.Password)
+		if err != nil || !valid {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials"})
+		}
+		if err := event.SetUser(context, service, ctx, user); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
+		}
 		var memberProfile *types.MemberProfileResponse
 		var userOrg *types.UserOrganizationResponse
-		if userOrganization != nil {
-			userOrg = core.UserOrganizationManager(service).ToModel(userOrganization)
-			if userOrganization.UserType == types.UserOrganizationTypeMember {
-				memberProfile, _ = core.MemberProfileManager(service).FindOneRaw(context, &types.MemberProfile{
-					UserID:         &userOrg.UserID,
-					BranchID:       *userOrg.BranchID,
-					OrganizationID: userOrg.OrganizationID,
-				})
+		org, ok := event.GetOrganization(service, ctx)
+		if ok {
+			userOrganization, err := core.UserOrganizationManager(service).FindOne(context, &types.UserOrganization{
+				UserID:         user.ID,
+				OrganizationID: org.ID,
+				UserType:       types.UserOrganizationTypeMember,
+			})
+			if err == nil && userOrganization.ApplicationStatus == "accepted" {
+				if err := event.SetUserOrganization(context, service, ctx, userOrganization); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
+				}
+				userOrg = core.UserOrganizationManager(service).ToModel(userOrganization)
+				if userOrganization.UserType == types.UserOrganizationTypeMember {
+					memberProfile, _ = core.MemberProfileManager(service).FindOneRaw(context, &types.MemberProfile{
+						UserID:         &userOrg.UserID,
+						BranchID:       *userOrg.BranchID,
+						OrganizationID: userOrg.OrganizationID,
+					})
+				}
 			}
-
 		}
 
 		return ctx.JSON(http.StatusOK, types.CurrentUserResponse{
@@ -50,6 +73,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 			UserOrganization: userOrg,
 		})
 	})
+
 	req.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/current-logged-in-accounts/logout",
 		Method: "POST",
@@ -117,6 +141,27 @@ func AuthenticationController(service *horizon.HorizonService) {
 		}
 		if err := event.SetUser(context, service, ctx, user); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user token: " + err.Error()})
+		}
+		org, ok := event.GetOrganization(service, ctx)
+		if ok {
+			userOrg, err := core.UserOrganizationManager(service).FindOne(context, &types.UserOrganization{
+				UserID:         user.ID,
+				OrganizationID: org.ID,
+				UserType:       types.UserOrganizationTypeMember,
+			})
+			if err != nil {
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+			}
+			userOrganization, err := core.UserOrganizationManager(service).GetByID(context, userOrg.ID)
+			if err != nil {
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "User organization not found: " + err.Error()})
+			}
+			if userOrganization.ApplicationStatus == "accepted" {
+				if err := event.SetUserOrganization(context, service, ctx, userOrganization); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to set user organization: " + err.Error()})
+				}
+				return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrganization))
+			}
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
