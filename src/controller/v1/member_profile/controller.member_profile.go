@@ -221,6 +221,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member_profile_id: " + err.Error()})
 		}
+
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -230,6 +231,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
 		}
+
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "approve-error",
@@ -238,6 +240,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
+
 		memberProfile, err := core.MemberProfileManager(service).GetByID(context, *memberProfileID)
 		if err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -247,16 +250,78 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": fmt.Sprintf("MemberProfile with ID %s not found: %v", memberProfileID, err)})
 		}
-		memberProfile.Status = "verified"
+
+		// Start transaction
+		tx, endTx := service.Database.StartTransaction(context)
+
+		// Approve member profile
+		memberProfile.Status = types.MemberStatusVerified
 		memberProfile.MemberVerifiedByEmployeeUserID = &userOrg.UserID
-		if err := core.MemberProfileManager(service).UpdateByID(context, memberProfile.ID, memberProfile); err != nil {
+		if err := core.MemberProfileManager(service).UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "approve-error",
-				Description: "Approve member profile failed: update error: " + err.Error(),
+				Description: "Approve member profile failed: update error: " + endTx(err).Error(),
 				Module:      "MemberProfile",
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member profile: " + err.Error()})
 		}
+
+		// Create Member Accounting Ledger if user account is connected
+		if memberProfile.UserID != nil && memberProfile.MemberAccountingLedgerWalletID == nil {
+			branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
+				BranchID: memberProfile.BranchID,
+			})
+			if err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "approve-error",
+					Description: "Approve member profile failed: branch setting not found: " + endTx(err).Error(),
+					Module:      "MemberProfile",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Branch settings not found"})
+			}
+
+			memberAccountingLedger, err := core.MemberAccountingLedgerUpdateOrCreate(
+				context,
+				service,
+				tx, 0, types.MemberAccountingLedgerUpdateOrCreateParams{
+					MemberProfileID: memberProfile.ID,
+					AccountID:       *branchSetting.AccountWalletID,
+					OrganizationID:  userOrg.OrganizationID,
+					BranchID:        *userOrg.BranchID,
+					UserID:          *memberProfile.UserID,
+					LastPayTime:     time.Now().UTC(),
+				},
+			)
+			if err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "approve-error",
+					Description: "Approve member profile failed: create member accounting ledger error: " + endTx(err).Error(),
+					Module:      "MemberProfile",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member accounting ledger: " + err.Error()})
+			}
+
+			memberProfile.MemberAccountingLedgerWalletID = &memberAccountingLedger.ID
+			if err := core.MemberProfileManager(service).UpdateByIDWithTx(context, tx, memberProfile.ID, memberProfile); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "approve-error",
+					Description: "Approve member profile failed: update ledger wallet error: " + endTx(err).Error(),
+					Module:      "MemberProfile",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{
+					"error": "Could not update member profile ledger wallet: " + endTx(err).Error(),
+				})
+			}
+		}
+		if err := endTx(nil); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "approve-error",
+				Description: "Approve member profile failed: commit tx error: " + err.Error(),
+				Module:      "MemberProfile",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+		}
+
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "approve-success",
 			Description: "Approved member profile: " + memberProfile.FullName,
@@ -586,7 +651,17 @@ func MemberProfileController(service *horizon.HorizonService) {
 
 		var userProfile *types.User
 		var userProfileID *uuid.UUID
+		if req.AccountInfo == nil && req.Status == types.MemberStatusVerified {
+			if req.AccountInfo != nil && req.Status == types.MemberStatusVerified {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Quick create member profile failed: cannot create verified member without account info",
+					Module:      "MemberProfile",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cannot create a verified member without providing account info"})
+			}
 
+		}
 		if req.AccountInfo != nil {
 			hashedPwd, err := service.Security.HashPassword(req.AccountInfo.Password)
 			if err != nil {
