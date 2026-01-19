@@ -15,7 +15,7 @@ type (
 		MiddleName     string    `json:"middle_name" validate:"omitempty,alpha"`
 		LastName       string    `json:"last_name" validate:"required,alpha"`
 		MemberGenderID uuid.UUID `json:"member_gender_id" validate:"required"`
-		Sex            Sex       `json:"sex,omitempty" validate:"omitempty,sex"`
+		Sex            Sex       `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
 	}
 
 	// POST /api/v1/kyc/security-details
@@ -110,7 +110,7 @@ type (
 		Password           string     `json:"password" validate:"required,min=8,max=50"`
 		OldPassbook        string     `json:"old_passbook" validate:"omitempty"`
 
-		Sex Sex `json:"sex,omitempty" validate:"omitempty,sex"`
+		Sex Sex `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
 
 		PasswordConfirmation string                               `json:"password_confirmation" validate:"required,eqfield=Password"`
 		Addresses            []KYCVerifyAddressesRequest          `json:"addresses" validate:"required,dive,required"`

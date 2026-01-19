@@ -235,7 +235,7 @@ type (
 		BusinessContactNumber string     `json:"business_contact_number,omitempty" validate:"max=255"`
 		Notes                 string     `json:"notes,omitempty"`
 		Description           string     `json:"description,omitempty"`
-		Sex                   Sex        `json:"sex,omitempty" validate:"omitempty,sex"`
+		Sex                   Sex        `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
 	}
 
 	MemberProfileMembershipInfoRequest struct {
@@ -283,7 +283,7 @@ type (
 		MemberTypeID         *uuid.UUID   `json:"member_type_id"`
 		AccountInfo          *AccountInfo `json:"new_user_info,omitempty" validate:"omitempty"`
 		BirthPlace           string       `json:"birth_place,omitempty" validate:"max=255"`
-		Sex                  Sex          `json:"sex,omitempty" validate:"omitempty,sex"`
+		Sex                  Sex          `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
 	}
 
 	MemberProfileUserAccountRequest struct {
