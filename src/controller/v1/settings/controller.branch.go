@@ -815,6 +815,7 @@ func BranchController(service *horizon.HorizonService) {
 
 		branchSetting.CurrencyID = settingsReq.CurrencyID
 		branchSetting.CompassionFundAccountID = settingsReq.CompassionFundAccountID
+		branchSetting.AccountWalletID = &settingsReq.AccountWalletID
 		branchSetting.PaidUpSharedCapitalAccountID = &settingsReq.PaidUpSharedCapitalAccountID
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()

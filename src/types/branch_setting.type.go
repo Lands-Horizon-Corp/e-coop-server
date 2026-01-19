@@ -93,6 +93,9 @@ type (
 
 		AnnualDivisor      int                  `gorm:"not null;default:360" json:"annual_divisor"`
 		UnbalancedAccounts []*UnbalancedAccount `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE;" json:"unbalanced_accounts,omitempty"`
+
+		AccountWalletID *uuid.UUID `gorm:"type:uuid" json:"account_wallet_id,omitempty"`
+		AccountWallet   *Account   `gorm:"foreignKey:AccountWalletID;constraint:OnDelete:SET NULL;" json:"account_wallet,omitempty"`
 	}
 
 	BranchSettingRequest struct {
@@ -164,6 +167,7 @@ type (
 		PaidUpSharedCapitalAccountID uuid.UUID  `json:"paid_up_shared_capital_account_id" validate:"required"`
 		CashOnHandAccountID          uuid.UUID  `json:"cash_on_hand_account_id" validate:"required"`
 		CompassionFundAccountID      *uuid.UUID `json:"compassion_fund_account_id,omitempty"`
+		AccountWalletID              uuid.UUID  `json:"account_wallet_id" validate:"required"`
 
 		UnbalancedAccount          []UnbalancedAccountRequest `json:"unbalanced_accounts"`
 		UnbalancedAccountDeleteIDs uuid.UUIDs                 `json:"unbalanced_account_delete_ids,omitempty"`
@@ -248,5 +252,8 @@ type (
 		UnbalancedAccounts        []*UnbalancedAccountResponse `json:"unbalanced_accounts,omitempty"`
 		TaxInterest               float64                      `json:"tax_interest"`
 		LoanAppliedEqualToBalance bool                         `json:"loan_applied_to_balance"`
+
+		AccountWalletID *uuid.UUID       `json:"account_wallet_id,omitempty"`
+		AccountWallet   *AccountResponse `json:"account_wallet,omitempty"`
 	}
 )

@@ -175,7 +175,40 @@ func accountSeed(context context.Context,
 	if err != nil {
 		return eris.Wrap(err, "failed to find branch for account seeding")
 	}
-
+	branchSetting, err := BranchSettingManager(service).FindOneWithTx(context, tx, &types.BranchSetting{
+		BranchID: branchID,
+	})
+	wallet := &types.Account{
+		CreatedAt:                               now,
+		CreatedByID:                             userID,
+		UpdatedAt:                               now,
+		UpdatedByID:                             userID,
+		OrganizationID:                          organizationID,
+		BranchID:                                branchID,
+		Name:                                    "Wallet",
+		Description:                             "Digital wallet for storing funds and facilitating quick transactions.",
+		Type:                                    types.AccountTypeOther,
+		MinAmount:                               0.00,
+		MaxAmount:                               100000.00,
+		InterestStandard:                        0.0,
+		GeneralLedgerType:                       types.GLTypeAssets,
+		ComputationType:                         types.Straight,
+		Index:                                   18, // Use next available index
+		CurrencyID:                              branch.CurrencyID,
+		Icon:                                    "Wallet",
+		ShowInGeneralLedgerSourceWithdraw:       true,
+		ShowInGeneralLedgerSourceDeposit:        true,
+		ShowInGeneralLedgerSourceJournal:        true,
+		ShowInGeneralLedgerSourcePayment:        true,
+		ShowInGeneralLedgerSourceAdjustment:     true,
+		ShowInGeneralLedgerSourceJournalVoucher: true,
+		ShowInGeneralLedgerSourceCheckVoucher:   true,
+		CashAndCashEquivalence:                  true,
+		OtherInformationOfAnAccount:             types.OIOANone,
+	}
+	if err := AccountManager(service).CreateWithTx(context, tx, wallet); err != nil {
+		return eris.Wrapf(err, "failed to seed account %s", wallet.Name)
+	}
 	accounts := []*types.Account{
 		{
 			CreatedAt:         now,
@@ -3049,10 +3082,11 @@ func accountSeed(context context.Context,
 		return eris.Wrap(err, "history: failed to create compassion fund account")
 	}
 
-	branch.BranchSetting.CompassionFundAccountID = &compassionFund.ID
-	branch.BranchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
-	branch.BranchSetting.CashOnHandAccountID = &cashOnHand.ID
-	if err := BranchSettingManager(service).UpdateByIDWithTx(context, tx, branch.BranchSetting.ID, branch.BranchSetting); err != nil {
+	branchSetting.CompassionFundAccountID = &compassionFund.ID
+	branchSetting.PaidUpSharedCapitalAccountID = &paidUpShareCapital.ID
+	branchSetting.CashOnHandAccountID = &cashOnHand.ID
+	branchSetting.AccountWalletID = &wallet.ID
+	if err := BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 		return eris.Wrap(err, "failed to update branch settings with paid up share capital and cash on hand accounts")
 	}
 
@@ -3061,7 +3095,7 @@ func accountSeed(context context.Context,
 		CreatedByID:          userID,
 		UpdatedAt:            now,
 		UpdatedByID:          userID,
-		BranchSettingsID:     branch.BranchSetting.ID,
+		BranchSettingsID:     branchSetting.ID,
 		CurrencyID:           *branch.CurrencyID,
 		AccountForShortageID: cashOnHand.ID,
 		AccountForOverageID:  cashOnHand.ID,

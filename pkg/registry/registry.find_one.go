@@ -20,6 +20,19 @@ func (r *Registry[TData, TResponse, TRequest]) FindOne(
 		NormalFindOne(db, fields, r.preload(preloads...)...)
 
 }
+func (r *Registry[TData, TResponse, TRequest]) FindOneWithTx(
+	ctx context.Context,
+	tx *gorm.DB,
+	fields *TData,
+	preloads ...string,
+) (*TData, error) {
+	if tx == nil {
+		panic("Registry.FindOneWithTx: tx is nil")
+	}
+
+	return r.pagination.
+		FindOneWithTx(tx, fields, r.preload(preloads...)...)
+}
 
 func (r *Registry[TData, TResponse, TRequest]) FindOneWithLock(
 	context context.Context,

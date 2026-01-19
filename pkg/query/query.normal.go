@@ -109,6 +109,29 @@ func (p *Pagination[T]) NormalFindOne(
 	return &entity, nil
 }
 
+func (p *Pagination[T]) FindOneWithTx(
+	tx *gorm.DB,
+	filter *T,
+	preloads ...string,
+) (*T, error) {
+	if tx == nil {
+		return nil, fmt.Errorf("transaction is nil")
+	}
+
+	query := tx.Where(filter)
+
+	for _, preload := range preloads {
+		query = query.Preload(preload)
+	}
+
+	var entity T
+	if err := query.First(&entity).Error; err != nil {
+		return nil, fmt.Errorf("failed to find entity with tx: %w", err)
+	}
+
+	return &entity, nil
+}
+
 func (p *Pagination[T]) NormalFindOneWithLock(
 	db *gorm.DB,
 	filter *T,

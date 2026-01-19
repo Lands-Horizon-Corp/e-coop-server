@@ -116,6 +116,8 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[
 				DefaultMemberGender:   MemberGenderManager(service).ToModel(data.DefaultMemberGender),
 
 				LoanAppliedEqualToBalance: data.LoanAppliedEqualToBalance,
+				AccountWalletID:           data.AccountWalletID,
+				AccountWallet:             AccountManager(service).ToModel(data.AccountWallet),
 			}
 		},
 		Created: func(data *types.BranchSetting) registry.Topics {
