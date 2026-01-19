@@ -17,20 +17,17 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 	req := service.API
 
 	req.RegisterWebRoute(horizon.Route{
-		Route:        "/api/v1/general-ledger/member-profile/:member_profile_id/account/:account_id/total",
+		Route:        "/api/v1/general-ledger/member-accounting-ledger/:member_accounting_ledger_id/total",
 		Method:       "GET",
 		ResponseType: types.MemberGeneralLedgerTotal{},
 		Note:         "Returns the total amount for a specific member profile's general ledger entries for an account.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		memberProfileID, err := helpers.EngineUUIDParam(ctx, "member_profile_id")
+		memberAccountingLedgerID, err := helpers.EngineUUIDParam(ctx, "member_accounting_ledger_id")
 		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member profile ID"})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid member accounting ledger id"})
 		}
-		accountID, err := helpers.EngineUUIDParam(ctx, "account_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid account ID"})
-		}
+
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
@@ -45,9 +42,13 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if userOrg.Branch.BranchSetting.PaidUpSharedCapitalAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Paid-up shared capital account not set for branch"})
 		}
+		memberAccountingLedger, err := core.MemberAccountingLedgerManager(service).GetByID(context, memberAccountingLedgerID)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "member accounting ledger " + err.Error()})
+		}
 		entries, err := core.GeneralLedgerMemberAccountTotal(context, service,
-			*memberProfileID,
-			*accountID,
+			memberAccountingLedger.MemberProfileID,
+			memberAccountingLedger.AccountID,
 			userOrg.OrganizationID,
 			*userOrg.BranchID,
 			*userOrg.Branch.BranchSetting.CashOnHandAccountID,
