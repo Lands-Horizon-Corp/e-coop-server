@@ -80,7 +80,6 @@ func BranchController(service *horizon.HorizonService) {
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "POST",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
-		Private:      true,
 		RequestType:  types.BranchRequest{},
 		ResponseType: types.BranchResponse{},
 	}, func(ctx echo.Context) error {
@@ -412,10 +411,9 @@ func BranchController(service *horizon.HorizonService) {
 	})
 
 	req.RegisterWebRoute(horizon.Route{
-		Route:   "/api/v1/branch/:branch_id",
-		Method:  "DELETE",
-		Note:    "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
-		Private: true,
+		Route:  "/api/v1/branch/:branch_id",
+		Method: "DELETE",
+		Note:   "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		branchID, err := helpers.EngineUUIDParam(ctx, "branch_id")
