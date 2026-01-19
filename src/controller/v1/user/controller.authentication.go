@@ -17,6 +17,41 @@ func AuthenticationController(service *horizon.HorizonService) {
 	req := service.API
 
 	req.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/authentication/current",
+		Method:       "GET",
+		ResponseType: types.CurrentUserResponse{},
+		Note:         "Returns the current authenticated user and their user organization, if any.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		user, err := event.CurrentUser(context, service, ctx)
+		if err != nil {
+			event.ClearCurrentToken(context, service, ctx)
+			return ctx.NoContent(http.StatusUnauthorized)
+		}
+		userOrganization, _ := event.CurrentUserOrganization(context, service, ctx)
+		var memberProfile *types.MemberProfileResponse
+		var userOrg *types.UserOrganizationResponse
+		if userOrganization != nil {
+			userOrg = core.UserOrganizationManager(service).ToModel(userOrganization)
+			if userOrganization.UserType == types.UserOrganizationTypeMember {
+				memberProfile, _ = core.MemberProfileManager(service).FindOneRaw(context, &types.MemberProfile{
+					UserID:         &userOrg.UserID,
+					BranchID:       *userOrg.BranchID,
+					OrganizationID: userOrg.OrganizationID,
+				})
+			}
+
+		}
+
+		return ctx.JSON(http.StatusOK, types.CurrentUserResponse{
+			UserID:           user.ID,
+			User:             core.UserManager(service).ToModel(user),
+			MemberProfile:    memberProfile,
+			UserOrganization: userOrg,
+		})
+	})
+
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/login",
 		Method:       "POST",
 		RequestType:  types.UserLoginRequest{},
