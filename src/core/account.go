@@ -191,7 +191,7 @@ func accountSeed(context context.Context,
 		MinAmount:                               0.00,
 		MaxAmount:                               100000.00,
 		InterestStandard:                        0.0,
-		GeneralLedgerType:                       types.GLTypeAssets,
+		GeneralLedgerType:                       types.GLTypeLiabilities,
 		ComputationType:                         types.Straight,
 		Index:                                   18, // Use next available index
 		CurrencyID:                              branch.CurrencyID,
