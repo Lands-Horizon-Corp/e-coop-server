@@ -248,7 +248,9 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 						h.Logger.Error("Failed to marshal live-mode payload", zap.Error(err))
 						continue
 					}
-					h.Broker.Dispatch([]string{"live-mode"}, string(data))
+					if err := h.Broker.Dispatch([]string{"live-mode"}, string(data)); err != nil {
+						panic(err)
+					}
 				}
 			}
 		}()
