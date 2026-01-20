@@ -94,6 +94,16 @@ func SeedVALDECO(ctx context.Context, service *horizon.HorizonService) error {
 				Name:        "VALDECO Ownership Seminar 2025",
 				Description: "Calling all cooperative members! Join us for a focused and empowering Ownership Seminar on August 15, 2025, at 1:00 PM. 2F Multipurpose Hall, Valdeco Greenleaf Market, Tangke St., Valenzuela City. Deepen your understanding of ownership, discover strategies for sustainable growth, and connect with a thriving community working toward shared success. Don't miss this chance to invest in your future! Pre-Register now!",
 			},
+			{
+				MediaPath:   "seeder/images/valdeco/financial-literacy-2025.jpg",
+				Name:        "ＢＵＫＡＳ ＮＡ ＇ＴＯ， ＭＧＡ ＫＡＳＡＰＩ！ Financial Literacy Seminar",
+				Description: "💡 Financial Literacy is the first step to financial freedom! Ready to take control of your money and build a brighter future? 💸 Join us on November 21, 2025, at 1:00 PM and learn how smart money management can unlock doors to stability, growth, and lasting success. 🌱💰\n📍 Venue: 2nd Floor Valdeco Bldg, Greenleaf Market, Malinta, Valenzuela City.\nWhether you’re just starting or want to sharpen your skills, this event is for YOU! Don’t miss your chance to build a strong financial foundation.\n📱 For inquiries, contact: 📞 0925-511-5774 & look for Ms. Rochelle C. Planas or Ms. Kimberly T. Lalo.\n📲 Stay connected, Kasapi! Click LIKE & FOLLOW para lagi kang una sa balita at benepisyo! 💡\n#Valdeco #GrowWithUs #FinancialLiteracy",
+			},
+			{
+				MediaPath:   "seeder/images/valdeco/basic-photography-videography-2025.jpg",
+				Name:        "Basic Photography & Videography Seminar",
+				Description: "📸✨ Capture. Create. Inspire. ✨🎬\n\nBilang bahagi ng Cooperative Month at VALDECO 45th Anniversary, inaanyayahan ang lahat — mga kasapi at non-member — sa isang makulay at makabuluhang Basic Photography and Videography Seminar! 🎥📷\n\n🎙 Resource Speakers:\nMr. Carlzon Niño Lumbang\nMr. Jesmil Flores Dela Cruz\n\n📅 Date: October 29, 2025 (Wednesday)\n🕐 Time: 1:00 PM\n📍 Venue: 2nd Floor, Tangke St., VALDECO Greenleaf Market, Malinta, Valenzuela City\n\n⚠️ Limited slots only — maximum of 100 participants\n📲 Register Here Now: https://docs.google.com/.../viewform\n\n🎯 Matutong magkwento gamit ang larawan at video — dahil bawat kuha ay may kwentong dapat ibahagi. 💚✨\n\n📱 For inquiries, contact: 📞 0925-511-5774 & look for Ms. Rochelle C. Planas or Ms. Kimberly T. Lalo.\n📲 Stay connected, Kasapi! Click LIKE & FOLLOW para lagi kang una sa balita at benepisyo! 💡\n#VALDECO #GrowWithUs #CooperativeMonth2025 #VALDECO45thAnniversary #BasicPhotography&Videography",
+			},
 		},
 		Branches: []types.BranchConfig{
 			{
