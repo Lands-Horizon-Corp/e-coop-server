@@ -162,7 +162,6 @@ func MemberAccountingLedgerUpdateOrCreate(
 	balance float64,
 	params types.MemberAccountingLedgerUpdateOrCreateParams,
 ) (*types.MemberAccountingLedger, error) {
-
 	ledger, err := MemberAccountingLedgerFindForUpdate(
 		ctx, service, tx,
 		params.MemberProfileID,
@@ -173,9 +172,7 @@ func MemberAccountingLedgerUpdateOrCreate(
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
 	}
-
 	if ledger == nil || ledger.ID == uuid.Nil {
-
 		ledger = &types.MemberAccountingLedger{
 			CreatedAt:           time.Now().UTC(),
 			CreatedByID:         params.UserID,
@@ -209,7 +206,6 @@ func MemberAccountingLedgerUpdateOrCreate(
 		ledger.UpdatedAt = time.Now().UTC()
 		ledger.UpdatedByID = params.UserID
 		ledger.Count++
-
 		if tx == nil {
 			return nil, eris.New("database tx is nil")
 		}
@@ -218,7 +214,6 @@ func MemberAccountingLedgerUpdateOrCreate(
 			return nil, eris.Wrap(err, "failed to update member accounting ledger")
 		}
 	}
-
 	return ledger, nil
 }
 
