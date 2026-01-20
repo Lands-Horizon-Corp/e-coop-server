@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	crand "crypto/rand"
-	"fmt"
 	"io/fs"
 	"math/big"
 	"path/filepath"
@@ -105,278 +104,93 @@ func Seed(ctx context.Context, service *horizon.HorizonService, multiplier int32
 }
 
 func SeedVALDECO(ctx context.Context, service *horizon.HorizonService) error {
-	orgs, err := OrganizationManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(orgs) > 0 {
-		return nil
-	}
-	var owner *types.User
-	basePassword := "admin@valdeco123"
-	hashedPassword, err := service.Security.HashPassword(basePassword)
-	if err != nil {
-		return eris.Wrap(err, "failed to hash password for admin user")
-	}
-
-	birthdate := time.Date(1985, time.January, 1, 0, 0, 0, 0, time.UTC)
-	logoPath := "seeder/images/valdeco-logo.png"
-	userMedia, err := createImageMedia(ctx, service, []string{logoPath}, "User Profile")
-	if err != nil {
-		return eris.Wrap(err, "failed to create admin user media")
-	}
-	owner = &types.User{
-		MediaID:           &userMedia.ID,
-		Email:             "admin@valdeco.com",
-		Password:          hashedPassword,
-		Birthdate:         &birthdate,
-		Username:          "valdeco_admin",
-		FullName:          "VALDECO System Administrator",
-		FirstName:         helpers.Ptr("VALDECO"),
-		MiddleName:        helpers.Ptr("S"),
-		LastName:          helpers.Ptr("Administrator"),
-		Suffix:            nil,
-		ContactNumber:     "+63 925 511 5772",
-		IsEmailVerified:   true,
-		IsContactVerified: true,
-		CreatedAt:         time.Now().UTC(),
-		UpdatedAt:         time.Now().UTC(),
-	}
-
-	if err := UserManager(service).Create(ctx, owner); err != nil {
-		return eris.Wrap(err, "failed to create admin user")
-	}
-
-	subscriptions, err := SubscriptionPlanManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(subscriptions) == 0 {
-		return eris.New("no subscription plan found")
-	}
-	sub := subscriptions[0]
-
-	categories, err := CategoryManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-	currency, err := CurrencyFindByAlpha2(ctx, service, "PH")
-	if err != nil {
-		return eris.Wrap(err, "failed to find PHP currency")
-	}
-	profilePath := "seeder/images/valdeco-profile.png"
-
-	logoMedia, err := createImageMedia(ctx, service, []string{logoPath}, "Organization Logo")
-	if err != nil {
-		return eris.Wrap(err, "failed to upload logo")
-	}
-	profileMedia, err := createImageMedia(ctx, service, []string{profilePath}, "Organization Profile")
-	if err != nil {
-		return eris.Wrap(err, "failed to upload profile image")
-	}
-	subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
-	organization := &types.Organization{
-		CreatedAt:                           time.Now().UTC(),
-		CreatedByID:                         owner.ID,
-		UpdatedAt:                           time.Now().UTC(),
-		UpdatedByID:                         owner.ID,
-		Name:                                "Valenzuela Development Cooperative (VALDECO)",
-		Address:                             helpers.Ptr("VALDECO Bldg., Greenleaf Market, Tangke St., Malinta, Valenzuela, Philippines"),
-		Email:                               helpers.Ptr("valenzueladevelopmentcoop@gmail.com"),
-		ContactNumber:                       helpers.Ptr("+63 925 511 5772"),
-		Description:                         helpers.Ptr(`I. SPIRITUAL AREA In this PANDEMIC crisis where you can’t see who is your real enemy, we the VALDECO Family believes that GOD is in control… "Be still in the presence of the LORD, and wait patiently for him to act" Psalm 37:7. We continuously doing our 30 minutes daily devotion to meditate the Word of GOD asking for strength and guidance. In this activity we include the Prayer Request of our members who visited in our office and wrote thru our "FREE PRAYER BOARD PROGRAM" their prayer request while observing SOCIAL DISTANCING…`),
-		Color:                               helpers.Ptr("#0066cc"),
-		TermsAndConditions:                  helpers.Ptr("Standard cooperative terms and conditions apply."),
-		PrivacyPolicy:                       helpers.Ptr("VALDECO respects member privacy and complies with Data Privacy Act."),
-		CookiePolicy:                        helpers.Ptr("This site uses cookies for essential functionality."),
-		RefundPolicy:                        helpers.Ptr("Refunds are processed according to cooperative bylaws."),
-		UserAgreement:                       helpers.Ptr("By using VALDECO services you agree to the cooperative's rules."),
-		IsPrivate:                           false,
-		MediaID:                             &logoMedia.ID,
-		CoverMediaID:                        &profileMedia.ID,
-		SubscriptionPlanMaxBranches:         sub.MaxBranches,
-		SubscriptionPlanMaxEmployees:        sub.MaxEmployees,
-		SubscriptionPlanMaxMembersPerBranch: sub.MaxMembersPerBranch,
-		SubscriptionPlanID:                  &sub.ID,
-		SubscriptionStartDate:               time.Now().UTC(),
-		SubscriptionEndDate:                 subscriptionEndDate,
-		InstagramLink:                       helpers.Ptr("https://instagram.com/valdecocoop"),
-		FacebookLink:                        helpers.Ptr("https://facebook.com/valdecocoop"),
-		YoutubeLink:                         helpers.Ptr("https://youtube.com/valdecocoop"),
-		PersonalWebsiteLink:                 helpers.Ptr("https://valdecocoop.com"),
-		XLink:                               helpers.Ptr("https://twitter.com/valdecocoop"),
-	}
-
-	if err := OrganizationManager(service).Create(ctx, organization); err != nil {
-		return eris.Wrap(err, "failed to create VALDECO organization")
-	}
-	for _, category := range categories {
-		if err := OrganizationCategoryManager(service).Create(ctx, &types.OrganizationCategory{
-			CreatedAt:      time.Now().UTC(),
-			UpdatedAt:      time.Now().UTC(),
-			OrganizationID: &organization.ID,
-			CategoryID:     &category.ID,
-		}); err != nil {
-			return eris.Wrap(err, "failed to link organization to category")
-		}
-	}
-	branches := []struct {
-		name       string
-		type_      string
-		email      string
-		address    string
-		city       string
-		region     string
-		barangay   string
-		postalCode string
-		contact    string
-		lat        float64
-		lng        float64
-		taxID      string
-	}{
-		{
-			name:       "VALDECO Main Office",
-			type_:      "main",
-			email:      "valenzueladevelopmentcoop@gmail.com",
-			address:    "VALDECO Bldg., Greenleaf Market, Tangke St., Malinta, Valenzuela, Philippines",
-			city:       "Valenzuela",
-			region:     "Metro Manila",
-			barangay:   "Malinta",
-			postalCode: "1440",
-			contact:    "+63 925 511 5772",
-			lat:        14.6995,
-			lng:        120.9842,
-			taxID:      "123456789",
+	config := types.OrganizationSeedConfig{
+		AdminEmail:         "admin@valdeco.com",
+		AdminPassword:      "admin@valdeco123",
+		AdminBirthdate:     time.Date(1985, time.January, 1, 0, 0, 0, 0, time.UTC),
+		AdminUsername:      "valdeco_admin",
+		AdminFullName:      "VALDECO System Administrator",
+		AdminFirstName:     "VALDECO",
+		AdminMiddleName:    helpers.Ptr("S"),
+		AdminLastName:      "Administrator",
+		AdminSuffix:        nil,
+		AdminContactNumber: "+63 925 511 5772",
+		AdminLogoPath:      "seeder/images/valdeco-logo.png",
+		OrgName:            "Valenzuela Development Cooperative (VALDECO)",
+		OrgAddress:         helpers.Ptr("VALDECO Bldg., Greenleaf Market, Tangke St., Malinta, Valenzuela, Philippines"),
+		OrgEmail:           helpers.Ptr("valenzueladevelopmentcoop@gmail.com"),
+		OrgContactNumber:   helpers.Ptr("+63 925 511 5772"),
+		OrgDescription:     helpers.Ptr(`I. SPIRITUAL AREA In this PANDEMIC crisis where you can’t see who is your real enemy, we the VALDECO Family believes that GOD is in control… "Be still in the presence of the LORD, and wait patiently for him to act" Psalm 37:7. We continuously doing our 30 minutes daily devotion to meditate the Word of GOD asking for strength and guidance. In this activity we include the Prayer Request of our members who visited in our office and wrote thru our "FREE PRAYER BOARD PROGRAM" their prayer request while observing SOCIAL DISTANCING…`),
+		OrgColor:           helpers.Ptr("#0066cc"),
+		OrgTerms:           helpers.Ptr("Standard cooperative terms and conditions apply."),
+		OrgPrivacy:         helpers.Ptr("VALDECO respects member privacy and complies with Data Privacy Act."),
+		OrgCookie:          helpers.Ptr("This site uses cookies for essential functionality."),
+		OrgRefund:          helpers.Ptr("Refunds are processed according to cooperative bylaws."),
+		OrgUserAgreement:   helpers.Ptr("By using VALDECO services you agree to the cooperative's rules."),
+		OrgIsPrivate:       false,
+		OrgLogoPath:        "seeder/images/valdeco-logo.png",
+		OrgProfilePath:     "seeder/images/valdeco-profile.png",
+		OrgInstagram:       helpers.Ptr("https://instagram.com/valdecocoop"),
+		OrgFacebook:        helpers.Ptr("https://facebook.com/valdecocoop"),
+		OrgYoutube:         helpers.Ptr("https://youtube.com/valdecocoop"),
+		OrgPersonalWebsite: helpers.Ptr("https://valdecocoop.com"),
+		OrgXLink:           helpers.Ptr("https://twitter.com/valdecocoop"),
+		SeminarEntries: []types.SeminarEntry{
+			{
+				MediaPath:   "seeder/images/valdeco/ownership-seminar-2025.jpg",
+				Name:        "VALDECO Ownership Seminar 2025",
+				Description: "Calling all cooperative members! Join us for a focused and empowering Ownership Seminar on August 15, 2025, at 1:00 PM. 2F Multipurpose Hall, Valdeco Greenleaf Market, Tangke St., Valenzuela City. Deepen your understanding of ownership, discover strategies for sustainable growth, and connect with a thriving community working toward shared success. Don't miss this chance to invest in your future! Pre-Register now!",
+			},
 		},
-		{
-			name:       "VALDECO Malabon Branch",
-			type_:      "branch",
-			email:      "emmydoy212324@gmail.com",
-			address:    "189 Gen. Luna St, Malabon, Philippines",
-			city:       "Malabon",
-			region:     "Metro Manila",
-			barangay:   "Barangay 1",
-			postalCode: "1470",
-			contact:    "+63 922 234 1493",
-			lat:        14.6565,
-			lng:        120.9482,
-			taxID:      "987654321",
+		Branches: []types.BranchConfig{
+			{
+				Name:                   "VALDECO Main Office",
+				Type:                   "main",
+				Email:                  "valenzueladevelopmentcoop@gmail.com",
+				Address:                "VALDECO Bldg., Greenleaf Market, Tangke St., Malinta, Valenzuela, Philippines",
+				City:                   "Valenzuela",
+				Region:                 "Metro Manila",
+				Barangay:               "Malinta",
+				PostalCode:             "1440",
+				Contact:                "+63 925 511 5772",
+				Latitude:               14.6995,
+				Longitude:              120.9842,
+				TaxID:                  "123456789",
+				LogoPath:               "seeder/images/valdeco-logo.png",
+				WithdrawAllowUserInput: true,
+				WithdrawPrefix:         "VAL",
+				WithdrawORStart:        1,
+				WithdrawORCurrent:      1,
+				WithdrawOREnd:          999999,
+				WithdrawORIteration:    1,
+			},
+			{
+				Name:       "VALDECO Malabon Branch",
+				Type:       "branch",
+				Email:      "emmydoy212324@gmail.com",
+				Address:    "189 Gen. Luna St, Malabon, Philippines",
+				City:       "Malabon",
+				Region:     "Metro Manila",
+				Barangay:   "Barangay 1",
+				PostalCode: "1470",
+				Contact:    "+63 922 234 1493",
+				Latitude:   14.6565,
+				Longitude:  120.9482,
+				TaxID:      "987654321",
+				LogoPath:   "seeder/images/valdeco-logo.png",
+
+				WithdrawAllowUserInput: true,
+				WithdrawPrefix:         "VAL",
+				WithdrawORStart:        1,
+				WithdrawORCurrent:      1,
+				WithdrawOREnd:          999999,
+				WithdrawORIteration:    1,
+			},
 		},
+		CurrencyAlpha2:       "PH",
+		SubscriptionDays:     30,
+		InvitationMaxUse:     100,
+		InvitationExpiration: 60 * 24 * time.Hour,
 	}
-
-	for idx, br := range branches {
-		branchMedia, err := createImageMedia(ctx, service, []string{logoPath}, "Branch Logo")
-		if err != nil {
-			return eris.Wrap(err, "failed to upload branch image")
-		}
-		branch := &types.Branch{
-			CreatedAt:               time.Now().UTC(),
-			CreatedByID:             owner.ID,
-			UpdatedAt:               time.Now().UTC(),
-			UpdatedByID:             owner.ID,
-			OrganizationID:          organization.ID,
-			Type:                    br.type_,
-			Name:                    br.name,
-			Email:                   br.email,
-			Address:                 br.address,
-			Province:                br.region,
-			City:                    br.city,
-			Region:                  br.region,
-			Barangay:                br.barangay,
-			PostalCode:              br.postalCode,
-			CurrencyID:              &currency.ID,
-			ContactNumber:           helpers.Ptr(br.contact),
-			MediaID:                 &branchMedia.ID,
-			Latitude:                &br.lat,
-			Longitude:               &br.lng,
-			TaxIdentificationNumber: helpers.Ptr(br.taxID),
-		}
-
-		if err := BranchManager(service).Create(ctx, branch); err != nil {
-			return eris.Wrapf(err, "failed to create branch %s", br.name)
-		}
-		branchSetting := &types.BranchSetting{
-			CreatedAt: time.Now().UTC(),
-			UpdatedAt: time.Now().UTC(),
-			BranchID:  branch.ID,
-
-			WithdrawAllowUserInput: true,
-			WithdrawPrefix:         "VAL",
-			WithdrawORStart:        1,
-			WithdrawORCurrent:      1,
-			WithdrawOREnd:          999999,
-			WithdrawORIteration:    1,
-
-			DefaultMemberTypeID:   nil,
-			DefaultMemberGenderID: nil,
-			CurrencyID:            currency.ID,
-		}
-
-		if err := BranchSettingManager(service).Create(ctx, branchSetting); err != nil {
-			return eris.Wrap(err, "failed to create branch settings")
-		}
-		if idx == 0 {
-			developerKey, err := service.Security.GenerateUUIDv5(fmt.Sprintf("%s-%s-%s", owner.ID, organization.ID, branch.ID))
-			if err != nil {
-				return eris.Wrap(err, "failed to generate developer key")
-			}
-
-			ownerOrganization := &types.UserOrganization{
-				CreatedAt:              time.Now().UTC(),
-				CreatedByID:            owner.ID,
-				UpdatedAt:              time.Now().UTC(),
-				UpdatedByID:            owner.ID,
-				BranchID:               &branch.ID,
-				OrganizationID:         organization.ID,
-				UserID:                 owner.ID,
-				UserType:               types.UserOrganizationTypeOwner,
-				Description:            "Founder and owner of VALDECO",
-				ApplicationDescription: "Owner of the cooperative",
-				ApplicationStatus:      "accepted",
-				DeveloperSecretKey:     developerKey + "-owner-horizon",
-				PermissionName:         "Owner",
-				PermissionDescription:  "Full administrative permissions over the cooperative",
-				Permissions:            []string{"read", "write", "manage", "delete", "admin"},
-				Status:                 types.UserOrganizationStatusOnline,
-				LastOnlineAt:           time.Now().UTC(),
-			}
-
-			if err := UserOrganizationManager(service).Create(ctx, ownerOrganization); err != nil {
-				return eris.Wrap(err, "failed to create owner association")
-			}
-			tx, endTx := service.Database.StartTransaction(ctx)
-			if err := OrganizationSeeder(ctx, service, tx, owner.ID, organization.ID, branch.ID); err != nil {
-				return endTx(err)
-			}
-			if err := endTx(nil); err != nil {
-				return err
-			}
-		}
-		invitationCodes := []types.UserOrganizationType{
-			types.UserOrganizationTypeMember,
-			types.UserOrganizationTypeEmployee,
-		}
-
-		for _, userType := range invitationCodes {
-			invitationCode := &types.InvitationCode{
-				CreatedAt:      time.Now().UTC(),
-				CreatedByID:    owner.ID,
-				UpdatedAt:      time.Now().UTC(),
-				UpdatedByID:    owner.ID,
-				OrganizationID: organization.ID,
-				BranchID:       branch.ID,
-				UserType:       userType,
-				Code:           fmt.Sprintf("VALDECO-%s-%d", userType, idx+1),
-				ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
-				MaxUse:         100,
-				CurrentUse:     0,
-				Description:    fmt.Sprintf("Invitation for %s of VALDECO %s", userType, br.name),
-			}
-
-			if err := InvitationCodeManager(service).Create(ctx, invitationCode); err != nil {
-				return eris.Wrap(err, "failed to create invitation code")
-			}
-		}
-	}
-	return nil
+	return SeedOrganization(ctx, service, config)
 }

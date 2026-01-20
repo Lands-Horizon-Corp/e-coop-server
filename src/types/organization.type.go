@@ -170,4 +170,77 @@ type (
 		Category      *CategoryResponse       `json:"category"`
 		Organizations []*OrganizationResponse `json:"organizations"`
 	}
+
+	OrganizationSeedConfig struct {
+		AdminEmail         string
+		AdminPassword      string
+		AdminBirthdate     time.Time
+		AdminUsername      string
+		AdminFullName      string
+		AdminFirstName     string
+		AdminMiddleName    *string
+		AdminLastName      string
+		AdminSuffix        *string
+		AdminContactNumber string
+		AdminLogoPath      string // Path to admin user profile image
+
+		OrgName            string
+		OrgAddress         *string
+		OrgEmail           *string
+		OrgContactNumber   *string
+		OrgDescription     *string
+		OrgColor           *string
+		OrgTerms           *string
+		OrgPrivacy         *string
+		OrgCookie          *string
+		OrgRefund          *string
+		OrgUserAgreement   *string
+		OrgIsPrivate       bool
+		OrgLogoPath        string
+		OrgProfilePath     string
+		OrgInstagram       *string
+		OrgFacebook        *string
+		OrgYoutube         *string
+		OrgPersonalWebsite *string
+		OrgXLink           *string
+
+		SeminarEntries []SeminarEntry // Slice of seminar media to add
+
+		Branches []BranchConfig // Slice of branch configurations
+
+		CurrencyAlpha2       string        // e.g., "PH" for PHP
+		SubscriptionDays     int           // Days for subscription end date, e.g., 30
+		InvitationMaxUse     int           // Max uses for invitation codes, e.g., 100
+		InvitationExpiration time.Duration // Expiration duration for invitations, e.g., 60*24*time.Hour
+	}
+
+	SeminarEntry struct {
+		MediaPath   string
+		Name        string
+		Description string
+	}
+
+	BranchConfig struct {
+		Name       string
+		Type       string // e.g., "main" or "branch"
+		Email      string
+		Address    string
+		City       string
+		Region     string
+		Barangay   string
+		PostalCode string
+		Contact    string
+		Latitude   float64
+		Longitude  float64
+		TaxID      string
+		LogoPath   string // Path to branch logo
+
+		// Branch settings
+		WithdrawAllowUserInput bool
+		WithdrawPrefix         string
+		WithdrawORStart        int
+		WithdrawORCurrent      int
+		WithdrawOREnd          int
+		WithdrawORIteration    int
+	}
 )
