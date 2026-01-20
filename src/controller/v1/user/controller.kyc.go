@@ -590,6 +590,8 @@ func KYCController(service *horizon.HorizonService) {
 				OrganizationID:  org.ID,
 				CreatedByID:     &userProfile.ID,
 				UpdatedByID:     &userProfile.ID,
+				FrontMediaID:    benefitReq.FrontMediaID,
+				BackMediaID:     benefitReq.BackMediaID,
 			}
 
 			if err := core.MemberGovernmentBenefitManager(service).CreateWithTx(context, tx, value); err != nil {
