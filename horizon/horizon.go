@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -223,6 +224,34 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 			return err
 		}
 		h.printStatus("Request", "ok")
+	}
+	if h.Broker != nil {
+		go func() {
+			ticker := time.NewTicker(3 * time.Second)
+			defer ticker.Stop()
+
+			for {
+				select {
+				case <-ctx.Done():
+					h.Logger.Info("Live mode stopped")
+					return
+				case <-ticker.C:
+					payload := struct {
+						Status    string    `json:"status"`
+						Timestamp time.Time `json:"timestamp"`
+					}{
+						Status:    "ok",
+						Timestamp: time.Now().UTC(),
+					}
+					data, err := json.Marshal(payload)
+					if err != nil {
+						h.Logger.Error("Failed to marshal live-mode payload", zap.Error(err))
+						continue
+					}
+					h.Broker.Dispatch([]string{"live-mode"}, string(data))
+				}
+			}
+		}()
 	}
 	h.Logger.Info("Horizon App Started")
 	return nil

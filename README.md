@@ -255,5 +255,3 @@ make deploy-fly
 ## License
 
 This project is proprietary software owned by Lands Horizon Corp.
-
-
