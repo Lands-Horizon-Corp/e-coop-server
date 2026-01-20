@@ -32,9 +32,6 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
 		}
-		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger totals"})
-		}
 
 		if userOrg.Branch.BranchSetting.CashOnHandAccountID == nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash on hand account not set for branch"})
@@ -86,9 +83,6 @@ func GeneralLedgerController(service *horizon.HorizonService) {
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "User authentication failed or organization not found"})
-		}
-		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
-			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized to view member general ledger entries"})
 		}
 		entries, err := core.GeneralLedgerManager(service).ArrFind(context, []query.ArrFilterSQL{
 			{Field: "member_profile_id", Op: query.ModeEqual, Value: memberAccountingLedgerm.MemberProfileID},
