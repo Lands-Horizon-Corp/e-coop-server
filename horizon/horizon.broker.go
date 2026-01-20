@@ -66,6 +66,7 @@ func (h *MessageBrokerImpl) Dispatch(topics []string, payload any) error {
 	msg := &nats.Msg{Data: data}
 	for _, topic := range topics {
 		msg.Subject = h.formatTopic(topic)
+		fmt.Println("dispatching: ", msg.Subject)
 		if err := h.nc.PublishMsg(msg); err != nil {
 			return eris.Wrap(err, fmt.Sprintf("failed to publish to topic %s", topic))
 		}

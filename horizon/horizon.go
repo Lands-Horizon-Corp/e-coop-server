@@ -231,6 +231,7 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 			defer ticker.Stop()
 
 			for {
+				fmt.Println("sending broker")
 				select {
 				case <-ctx.Done():
 					h.Logger.Info("Live mode stopped")
@@ -248,6 +249,7 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 						h.Logger.Error("Failed to marshal live-mode payload", zap.Error(err))
 						continue
 					}
+
 					if err := h.Broker.Dispatch([]string{"live-mode"}, string(data)); err != nil {
 						panic(err)
 					}
