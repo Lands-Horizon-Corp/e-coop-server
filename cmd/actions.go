@@ -86,23 +86,7 @@ func seedDatabase() error {
 			OnStartMessageText: "Seeding database...",
 			OnStopMessageText:  "Database seeding completed.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
-				if err := core.Seed(ctx, service, 5); err != nil {
-					return err
-				}
-				return nil
-			},
-		},
-	)
-}
-
-func seedDatabasePerformance(multiplier int32) error {
-	return horizon.WithHorizonService(
-		horizon.DefaultHorizonRunnerParams{
-			TimeoutValue:       2 * time.Hour,
-			OnStartMessageText: "Seeding database... with performance seed",
-			OnStopMessageText:  "Database seeding completed.",
-			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
-				if err := core.Seed(ctx, service, multiplier); err != nil {
+				if err := core.Seed(ctx, service); err != nil {
 					return err
 				}
 				return nil
@@ -170,7 +154,7 @@ func refreshDatabase() error {
 				if err := types.Migrate(service); err != nil {
 					return err
 				}
-				if err := core.Seed(ctx, service, 5); err != nil {
+				if err := core.Seed(ctx, service); err != nil {
 					return err
 				}
 				return nil

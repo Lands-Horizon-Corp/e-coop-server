@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"strconv"
-
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -87,23 +85,6 @@ var commandGroups = map[string]struct {
 				Short: "Seed the database with initial data",
 				RunFunc: func(_ *cobra.Command, _ []string) error {
 					return seedDatabase()
-				},
-			},
-			{
-				Use:   "performance-seed",
-				Short: "Run database performance tests (creates test tables and data)",
-				RunFunc: func(_ *cobra.Command, args []string) error {
-					if len(args) == 0 {
-						return seedDatabasePerformance(1)
-
-					}
-					multiplier, err := strconv.ParseInt(args[0], 10, 32)
-					if err != nil {
-						color.Red("Invalid multiplier, using default 1")
-						return seedDatabasePerformance(1)
-
-					}
-					return seedDatabasePerformance(int32(multiplier))
 				},
 			},
 			{

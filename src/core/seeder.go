@@ -3,10 +3,7 @@ package core
 import (
 	"context"
 	crand "crypto/rand"
-	"io/fs"
 	"math/big"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
@@ -14,21 +11,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 )
-
-const country_code = "PH"
-
-type City struct {
-	Lat float64
-	Lng float64
-}
-
-var cities = []City{
-	{14.5995, 120.9842},
-	{10.3157, 123.8854},
-	{7.1907, 125.4553},
-	{13.4125, 122.5621},
-	{11.2400, 125.0055},
-}
 
 func createImageMedia(ctx context.Context, service *horizon.HorizonService, imagePaths []string, imageType string) (*types.Media, error) {
 	if len(imagePaths) == 0 {
@@ -64,36 +46,7 @@ func createImageMedia(ctx context.Context, service *horizon.HorizonService, imag
 	return media, nil
 }
 
-func Seed(ctx context.Context, service *horizon.HorizonService, multiplier int32) error {
-	if multiplier <= 0 {
-		return nil
-	}
-	imagePaths := []string{}
-	imagesDir := "seeder/images"
-	supportedExtensions := map[string]bool{
-		".jpg":  true,
-		".jpeg": true,
-		".png":  true,
-		".webp": true,
-	}
-	err := filepath.WalkDir(imagesDir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.IsDir() {
-			ext := strings.ToLower(filepath.Ext(path))
-			if supportedExtensions[ext] {
-				imagePaths = append(imagePaths, path)
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return eris.Wrap(err, "failed to scan images directory")
-	}
-	if len(imagePaths) == 0 {
-		return eris.New("no image files found in seeder/images directory")
-	}
+func Seed(ctx context.Context, service *horizon.HorizonService) error {
 	if err := GlobalSeeder(ctx, service); err != nil {
 		return err
 	}
