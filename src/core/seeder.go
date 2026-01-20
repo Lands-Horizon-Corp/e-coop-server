@@ -344,6 +344,13 @@ func SeedVALDECO(ctx context.Context, service *horizon.HorizonService) error {
 			if err := UserOrganizationManager(service).Create(ctx, ownerOrganization); err != nil {
 				return eris.Wrap(err, "failed to create owner association")
 			}
+			tx, endTx := service.Database.StartTransaction(ctx)
+			if err := OrganizationSeeder(ctx, service, tx, owner.ID, organization.ID, branch.ID); err != nil {
+				return endTx(err)
+			}
+			if err := endTx(nil); err != nil {
+				return err
+			}
 		}
 		invitationCodes := []types.UserOrganizationType{
 			types.UserOrganizationTypeMember,
