@@ -13,7 +13,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
-	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
 )
 
@@ -99,22 +98,13 @@ func Seed(ctx context.Context, service *horizon.HorizonService, multiplier int32
 	if err := GlobalSeeder(ctx, service); err != nil {
 		return err
 	}
-	if err := SeedUsers(ctx, service, imagePaths, multiplier); err != nil {
-		return err
-	}
-	if err := SeedOrganization(ctx, service, imagePaths, multiplier); err != nil {
-		return err
-	}
-	if err := SeedEmployees(ctx, service, multiplier); err != nil {
-		return err
-	}
-	if err := SeedMemberProfiles(ctx, service, multiplier); err != nil {
+	if err := SeedVALDECO(ctx, service); err != nil {
 		return err
 	}
 	return nil
 }
 
-func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imagePaths []string, multiplier int32) error {
+func SeedVALDECO(ctx context.Context, service *horizon.HorizonService) error {
 	orgs, err := OrganizationManager(service).List(ctx)
 	if err != nil {
 		return err
@@ -122,468 +112,262 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, imag
 	if len(orgs) > 0 {
 		return nil
 	}
-	numOrgsPerUser := int(multiplier) * 1
-	users, err := UserManager(service).List(ctx)
+	var owner *types.User
+	basePassword := "admin@valdeco123"
+	hashedPassword, err := service.Security.HashPassword(basePassword)
 	if err != nil {
-		return err
+		return eris.Wrap(err, "failed to hash password for admin user")
 	}
+
+	birthdate := time.Date(1985, time.January, 1, 0, 0, 0, 0, time.UTC)
+	logoPath := "seeder/images/valdeco-logo.png"
+	userMedia, err := createImageMedia(ctx, service, []string{logoPath}, "User Profile")
+	if err != nil {
+		return eris.Wrap(err, "failed to create admin user media")
+	}
+	owner = &types.User{
+		MediaID:           &userMedia.ID,
+		Email:             "admin@valdeco.com",
+		Password:          hashedPassword,
+		Birthdate:         &birthdate,
+		Username:          "valdeco_admin",
+		FullName:          "VALDECO System Administrator",
+		FirstName:         helpers.Ptr("VALDECO"),
+		MiddleName:        helpers.Ptr("S"),
+		LastName:          helpers.Ptr("Administrator"),
+		Suffix:            nil,
+		ContactNumber:     "+63 925 511 5772",
+		IsEmailVerified:   true,
+		IsContactVerified: true,
+		CreatedAt:         time.Now().UTC(),
+		UpdatedAt:         time.Now().UTC(),
+	}
+
+	if err := UserManager(service).Create(ctx, owner); err != nil {
+		return eris.Wrap(err, "failed to create admin user")
+	}
+
 	subscriptions, err := SubscriptionPlanManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
+	if len(subscriptions) == 0 {
+		return eris.New("no subscription plan found")
+	}
+	sub := subscriptions[0]
+
 	categories, err := CategoryManager(service).List(ctx)
 	if err != nil {
 		return err
 	}
-	for _, user := range users {
-		for j := range numOrgsPerUser {
+	currency, err := CurrencyFindByAlpha2(ctx, service, "PH")
+	if err != nil {
+		return eris.Wrap(err, "failed to find PHP currency")
+	}
+	profilePath := "seeder/images/valdeco-profile.png"
 
-			sub := subscriptions[j%len(subscriptions)]
-			subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
-			orgMedia, err := createImageMedia(ctx, service, imagePaths, "Organization")
+	logoMedia, err := createImageMedia(ctx, service, []string{logoPath}, "Organization Logo")
+	if err != nil {
+		return eris.Wrap(err, "failed to upload logo")
+	}
+	profileMedia, err := createImageMedia(ctx, service, []string{profilePath}, "Organization Profile")
+	if err != nil {
+		return eris.Wrap(err, "failed to upload profile image")
+	}
+	subscriptionEndDate := time.Now().Add(30 * 24 * time.Hour)
+	organization := &types.Organization{
+		CreatedAt:                           time.Now().UTC(),
+		CreatedByID:                         owner.ID,
+		UpdatedAt:                           time.Now().UTC(),
+		UpdatedByID:                         owner.ID,
+		Name:                                "Valenzuela Development Cooperative (VALDECO)",
+		Address:                             helpers.Ptr("VALDECO Bldg., Greenleaf Market, Tangke St., Malinta, Valenzuela, Philippines"),
+		Email:                               helpers.Ptr("valenzueladevelopmentcoop@gmail.com"),
+		ContactNumber:                       helpers.Ptr("+63 925 511 5772"),
+		Description:                         helpers.Ptr(`I. SPIRITUAL AREA In this PANDEMIC crisis where you can’t see who is your real enemy, we the VALDECO Family believes that GOD is in control… "Be still in the presence of the LORD, and wait patiently for him to act" Psalm 37:7. We continuously doing our 30 minutes daily devotion to meditate the Word of GOD asking for strength and guidance. In this activity we include the Prayer Request of our members who visited in our office and wrote thru our "FREE PRAYER BOARD PROGRAM" their prayer request while observing SOCIAL DISTANCING…`),
+		Color:                               helpers.Ptr("#0066cc"),
+		TermsAndConditions:                  helpers.Ptr("Standard cooperative terms and conditions apply."),
+		PrivacyPolicy:                       helpers.Ptr("VALDECO respects member privacy and complies with Data Privacy Act."),
+		CookiePolicy:                        helpers.Ptr("This site uses cookies for essential functionality."),
+		RefundPolicy:                        helpers.Ptr("Refunds are processed according to cooperative bylaws."),
+		UserAgreement:                       helpers.Ptr("By using VALDECO services you agree to the cooperative's rules."),
+		IsPrivate:                           false,
+		MediaID:                             &logoMedia.ID,
+		CoverMediaID:                        &profileMedia.ID,
+		SubscriptionPlanMaxBranches:         sub.MaxBranches,
+		SubscriptionPlanMaxEmployees:        sub.MaxEmployees,
+		SubscriptionPlanMaxMembersPerBranch: sub.MaxMembersPerBranch,
+		SubscriptionPlanID:                  &sub.ID,
+		SubscriptionStartDate:               time.Now().UTC(),
+		SubscriptionEndDate:                 subscriptionEndDate,
+		InstagramLink:                       helpers.Ptr("https://instagram.com/valdecocoop"),
+		FacebookLink:                        helpers.Ptr("https://facebook.com/valdecocoop"),
+		YoutubeLink:                         helpers.Ptr("https://youtube.com/valdecocoop"),
+		PersonalWebsiteLink:                 helpers.Ptr("https://valdecocoop.com"),
+		XLink:                               helpers.Ptr("https://twitter.com/valdecocoop"),
+	}
+
+	if err := OrganizationManager(service).Create(ctx, organization); err != nil {
+		return eris.Wrap(err, "failed to create VALDECO organization")
+	}
+	for _, category := range categories {
+		if err := OrganizationCategoryManager(service).Create(ctx, &types.OrganizationCategory{
+			CreatedAt:      time.Now().UTC(),
+			UpdatedAt:      time.Now().UTC(),
+			OrganizationID: &organization.ID,
+			CategoryID:     &category.ID,
+		}); err != nil {
+			return eris.Wrap(err, "failed to link organization to category")
+		}
+	}
+	branches := []struct {
+		name       string
+		type_      string
+		email      string
+		address    string
+		city       string
+		region     string
+		barangay   string
+		postalCode string
+		contact    string
+		lat        float64
+		lng        float64
+		taxID      string
+	}{
+		{
+			name:       "VALDECO Main Office",
+			type_:      "main",
+			email:      "valenzueladevelopmentcoop@gmail.com",
+			address:    "VALDECO Bldg., Greenleaf Market, Tangke St., Malinta, Valenzuela, Philippines",
+			city:       "Valenzuela",
+			region:     "Metro Manila",
+			barangay:   "Malinta",
+			postalCode: "1440",
+			contact:    "+63 925 511 5772",
+			lat:        14.6995,
+			lng:        120.9842,
+			taxID:      "123456789",
+		},
+		{
+			name:       "VALDECO Malabon Branch",
+			type_:      "branch",
+			email:      "emmydoy212324@gmail.com",
+			address:    "189 Gen. Luna St, Malabon, Philippines",
+			city:       "Malabon",
+			region:     "Metro Manila",
+			barangay:   "Barangay 1",
+			postalCode: "1470",
+			contact:    "+63 922 234 1493",
+			lat:        14.6565,
+			lng:        120.9482,
+			taxID:      "987654321",
+		},
+	}
+
+	for idx, br := range branches {
+		branchMedia, err := createImageMedia(ctx, service, []string{logoPath}, "Branch Logo")
+		if err != nil {
+			return eris.Wrap(err, "failed to upload branch image")
+		}
+		branch := &types.Branch{
+			CreatedAt:               time.Now().UTC(),
+			CreatedByID:             owner.ID,
+			UpdatedAt:               time.Now().UTC(),
+			UpdatedByID:             owner.ID,
+			OrganizationID:          organization.ID,
+			Type:                    br.type_,
+			Name:                    br.name,
+			Email:                   br.email,
+			Address:                 br.address,
+			Province:                br.region,
+			City:                    br.city,
+			Region:                  br.region,
+			Barangay:                br.barangay,
+			PostalCode:              br.postalCode,
+			CurrencyID:              &currency.ID,
+			ContactNumber:           helpers.Ptr(br.contact),
+			MediaID:                 &branchMedia.ID,
+			Latitude:                &br.lat,
+			Longitude:               &br.lng,
+			TaxIdentificationNumber: helpers.Ptr(br.taxID),
+		}
+
+		if err := BranchManager(service).Create(ctx, branch); err != nil {
+			return eris.Wrapf(err, "failed to create branch %s", br.name)
+		}
+		branchSetting := &types.BranchSetting{
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			BranchID:  branch.ID,
+
+			WithdrawAllowUserInput: true,
+			WithdrawPrefix:         "VAL",
+			WithdrawORStart:        1,
+			WithdrawORCurrent:      1,
+			WithdrawOREnd:          999999,
+			WithdrawORIteration:    1,
+
+			DefaultMemberTypeID:   nil,
+			DefaultMemberGenderID: nil,
+			CurrencyID:            currency.ID,
+		}
+
+		if err := BranchSettingManager(service).Create(ctx, branchSetting); err != nil {
+			return eris.Wrap(err, "failed to create branch settings")
+		}
+		if idx == 0 {
+			developerKey, err := service.Security.GenerateUUIDv5(fmt.Sprintf("%s-%s-%s", owner.ID, organization.ID, branch.ID))
 			if err != nil {
-				return eris.Wrap(err, "failed to create organization media")
-			}
-			organization := &types.Organization{
-				CreatedAt:                           time.Now().UTC(),
-				CreatedByID:                         user.ID,
-				UpdatedAt:                           time.Now().UTC(),
-				UpdatedByID:                         user.ID,
-				Name:                                service.Faker.Company().Name(),
-				Address:                             helpers.Ptr(service.Faker.Address().Address()),
-				Email:                               helpers.Ptr(service.Faker.Internet().Email()),
-				ContactNumber:                       helpers.Ptr(fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999))),
-				Description:                         helpers.Ptr(service.Faker.Lorem().Paragraph(3)),
-				Color:                               helpers.Ptr(service.Faker.Color().Hex()),
-				TermsAndConditions:                  helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
-				PrivacyPolicy:                       helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
-				CookiePolicy:                        helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
-				RefundPolicy:                        helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
-				UserAgreement:                       helpers.Ptr(service.Faker.Lorem().Paragraph(5)),
-				IsPrivate:                           service.Faker.Bool(),
-				MediaID:                             &orgMedia.ID,
-				CoverMediaID:                        &orgMedia.ID,
-				SubscriptionPlanMaxBranches:         sub.MaxBranches,
-				SubscriptionPlanMaxEmployees:        sub.MaxEmployees,
-				SubscriptionPlanMaxMembersPerBranch: sub.MaxMembersPerBranch,
-				SubscriptionPlanID:                  &sub.ID,
-				SubscriptionStartDate:               time.Now().UTC(),
-				SubscriptionEndDate:                 subscriptionEndDate,
-				InstagramLink:                       helpers.Ptr(service.Faker.Internet().URL()),
-				FacebookLink:                        helpers.Ptr(service.Faker.Internet().URL()),
-				YoutubeLink:                         helpers.Ptr(service.Faker.Internet().URL()),
-				PersonalWebsiteLink:                 helpers.Ptr(service.Faker.Internet().URL()),
-				XLink:                               helpers.Ptr(service.Faker.Internet().URL()),
+				return eris.Wrap(err, "failed to generate developer key")
 			}
 
-			if err := OrganizationManager(service).Create(ctx, organization); err != nil {
-				return err
-			}
-			for _, category := range categories {
-				if err := OrganizationCategoryManager(service).Create(ctx, &types.OrganizationCategory{
-					CreatedAt:      time.Now().UTC(),
-					UpdatedAt:      time.Now().UTC(),
-					OrganizationID: &organization.ID,
-					CategoryID:     &category.ID,
-				}); err != nil {
-					return err
-				}
-			}
-
-			numBranches := int(multiplier) * 1
-
-			for k := range numBranches {
-				branchMedia, err := createImageMedia(ctx, service, imagePaths, "Organization")
-				if err != nil {
-					return eris.Wrap(err, "failed to create organization media")
-				}
-
-				currency, err := CurrencyFindByAlpha2(ctx, service, country_code)
-				if err != nil {
-					return eris.Wrap(err, "failed to find currency for account seeding")
-				}
-				c := cities[service.Faker.IntBetween(0, len(cities)-1)]
-				Latitude := c.Lat + (float64(service.Faker.IntBetween(-50, 50)) / 1000.0)
-				Longitude := c.Lng + (float64(service.Faker.IntBetween(-50, 50)) / 1000.0)
-				branch := &types.Branch{
-					CreatedAt:               time.Now().UTC(),
-					CreatedByID:             user.ID,
-					UpdatedAt:               time.Now().UTC(),
-					UpdatedByID:             user.ID,
-					OrganizationID:          organization.ID,
-					Type:                    []string{"main", "satellite", "branch"}[k%3],
-					Name:                    service.Faker.Company().Name(),
-					Email:                   service.Faker.Internet().Email(),
-					Address:                 service.Faker.Address().Address(),
-					Province:                service.Faker.Address().State(),
-					City:                    service.Faker.Address().City(),
-					Region:                  service.Faker.Address().State(),
-					Barangay:                service.Faker.Address().StreetName(),
-					PostalCode:              service.Faker.Address().PostCode(),
-					CurrencyID:              &currency.ID,
-					ContactNumber:           helpers.Ptr(fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999))),
-					MediaID:                 &branchMedia.ID,
-					Latitude:                &Latitude,
-					Longitude:               &Longitude,
-					TaxIdentificationNumber: helpers.Ptr(fmt.Sprintf("%09d", service.Faker.IntBetween(100000000, 999999999))),
-				}
-				if err := BranchManager(service).Create(ctx, branch); err != nil {
-					return err
-				}
-				branchSetting := &types.BranchSetting{
-					CreatedAt: time.Now().UTC(),
-					UpdatedAt: time.Now().UTC(),
-					BranchID:  branch.ID,
-
-					WithdrawAllowUserInput: true,
-					WithdrawPrefix:         service.Faker.Lorem().Word(),
-					WithdrawORStart:        1,
-					WithdrawORCurrent:      1,
-					WithdrawOREnd:          999999,
-					WithdrawORIteration:    1,
-
-					DefaultMemberTypeID:   nil,
-					DefaultMemberGenderID: nil,
-					CurrencyID:            currency.ID,
-				}
-
-				if err := BranchSettingManager(service).Create(ctx, branchSetting); err != nil {
-					return err
-				}
-
-				developerKey, err := service.Security.GenerateUUIDv5(fmt.Sprintf("%s-%s-%s", user.ID, organization.ID, branch.ID))
-				if err != nil {
-					return err
-				}
-
-				ownerOrganization := &types.UserOrganization{
-					CreatedAt:              time.Now().UTC(),
-					CreatedByID:            user.ID,
-					UpdatedAt:              time.Now().UTC(),
-					UpdatedByID:            user.ID,
-					BranchID:               &branch.ID,
-					OrganizationID:         organization.ID,
-					UserID:                 user.ID,
-					UserType:               types.UserOrganizationTypeOwner,
-					Description:            service.Faker.Lorem().Sentence(5),
-					ApplicationDescription: service.Faker.Lorem().Sentence(3),
-					ApplicationStatus:      "accepted",
-					DeveloperSecretKey:     developerKey + uuid.NewString() + "-owner-horizon",
-					PermissionName:         "Employee",
-					PermissionDescription:  "Organization owner with full permissions",
-					Permissions:            []string{"read", "write", "manage", "delete", "admin"},
-					Status:                 types.UserOrganizationStatusOffline,
-					LastOnlineAt:           time.Now().UTC(),
-				}
-
-				if err := UserOrganizationManager(service).Create(ctx, ownerOrganization); err != nil {
-					return err
-				}
-
-				tx, endTx := service.Database.StartTransaction(ctx)
-				if err := OrganizationSeeder(ctx, service, tx, user.ID, organization.ID, branch.ID); err != nil {
-					return endTx(err)
-				}
-				if err := endTx(nil); err != nil {
-					return err
-				}
-				numInvites := int(multiplier) * 1
-				for m := range numInvites {
-					userType := types.UserOrganizationTypeMember
-					if m%2 == 0 {
-						userType = types.UserOrganizationTypeEmployee
-					}
-					invitationCode := &types.InvitationCode{
-						CreatedAt:      time.Now().UTC(),
-						CreatedByID:    user.ID,
-						UpdatedAt:      time.Now().UTC(),
-						UpdatedByID:    user.ID,
-						OrganizationID: organization.ID,
-						BranchID:       branch.ID,
-						UserType:       userType,
-						Code:           uuid.New().String(),
-						ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
-						MaxUse:         50,
-						CurrentUse:     m % 25,
-						Description:    service.Faker.Lorem().Sentence(3),
-					}
-					if err := InvitationCodeManager(service).Create(ctx, invitationCode); err != nil {
-						return err
-					}
-				}
-
-			}
-		}
-	}
-	return nil
-}
-
-func SeedEmployees(ctx context.Context, service *horizon.HorizonService, multiplier int32) error {
-
-	organizations, err := OrganizationManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-	users, err := UserManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(users) == 0 || len(organizations) == 0 {
-		return nil
-	}
-
-	for _, org := range organizations {
-		branches, err := BranchManager(service).Find(ctx, &types.Branch{
-			OrganizationID: org.ID,
-		})
-		if err != nil {
-			continue
-		}
-
-		potentialEmployees := make([]*types.User, 0)
-		for _, user := range users {
-			if user.ID != org.CreatedByID {
-				potentialEmployees = append(potentialEmployees, user)
-			}
-		}
-		if len(potentialEmployees) == 0 {
-			continue
-		}
-
-		employeeIndex := 0
-		for _, branch := range branches {
-			existingEmployees, err := Employees(ctx, service, org.ID, branch.ID)
-			if err != nil {
-				continue
+			ownerOrganization := &types.UserOrganization{
+				CreatedAt:              time.Now().UTC(),
+				CreatedByID:            owner.ID,
+				UpdatedAt:              time.Now().UTC(),
+				UpdatedByID:            owner.ID,
+				BranchID:               &branch.ID,
+				OrganizationID:         organization.ID,
+				UserID:                 owner.ID,
+				UserType:               types.UserOrganizationTypeOwner,
+				Description:            "Founder and owner of VALDECO",
+				ApplicationDescription: "Owner of the cooperative",
+				ApplicationStatus:      "accepted",
+				DeveloperSecretKey:     developerKey + "-owner-horizon",
+				PermissionName:         "Owner",
+				PermissionDescription:  "Full administrative permissions over the cooperative",
+				Permissions:            []string{"read", "write", "manage", "delete", "admin"},
+				Status:                 types.UserOrganizationStatusOnline,
+				LastOnlineAt:           time.Now().UTC(),
 			}
 
-			numEmployeesToCreate := int(multiplier) * 1
-
-			numEmployeesToCreate = min(numEmployeesToCreate, len(potentialEmployees))
-
-			maxPerBranch := 3 * int(multiplier)
-			if len(existingEmployees)+numEmployeesToCreate > maxPerBranch {
-				numEmployeesToCreate = maxPerBranch - len(existingEmployees)
-			}
-
-			if numEmployeesToCreate <= 0 {
-				continue
-			}
-
-			for i := 0; i < numEmployeesToCreate; i++ {
-				selectedUser := potentialEmployees[employeeIndex%len(potentialEmployees)]
-				employeeIndex++
-
-				existingAssociation, err := UserOrganizationManager(service).Count(ctx, &types.UserOrganization{
-					UserID:         selectedUser.ID,
-					OrganizationID: org.ID,
-					BranchID:       &branch.ID,
-				})
-				if err != nil || existingAssociation > 0 {
-					continue
-				}
-
-				if !UserOrganizationEmployeeCanJoin(ctx, service, selectedUser.ID, org.ID, branch.ID) {
-					continue
-				}
-
-				developerKey, err := service.Security.GenerateUUIDv5(fmt.Sprintf("emp-%s-%s-%s", selectedUser.ID, org.ID, branch.ID))
-				if err != nil {
-					return err
-				}
-
-				employeeOrg := &types.UserOrganization{
-					CreatedAt:              time.Now().UTC(),
-					CreatedByID:            org.CreatedByID, // Created by the organization owner
-					UpdatedAt:              time.Now().UTC(),
-					UpdatedByID:            org.CreatedByID,
-					BranchID:               &branch.ID,
-					OrganizationID:         org.ID,
-					UserID:                 selectedUser.ID,
-					UserType:               types.UserOrganizationTypeEmployee,
-					Description:            service.Faker.Lorem().Sentence(5),
-					ApplicationDescription: service.Faker.Lorem().Sentence(3),
-					ApplicationStatus:      "accepted",
-					DeveloperSecretKey:     developerKey + uuid.NewString() + "-employee-horizon",
-					PermissionName:         "Employee",
-					PermissionDescription:  "Branch employee with standard operational permissions",
-					Permissions:            []string{"read", "create", "update"},
-					Status:                 types.UserOrganizationStatusOffline,
-					LastOnlineAt:           time.Now().UTC(),
-				}
-
-				if err := UserOrganizationManager(service).Create(ctx, employeeOrg); err != nil {
-					continue
-				}
+			if err := UserOrganizationManager(service).Create(ctx, ownerOrganization); err != nil {
+				return eris.Wrap(err, "failed to create owner association")
 			}
 		}
-	}
-
-	return nil
-}
-
-func SeedUsers(ctx context.Context, service *horizon.HorizonService, imagePaths []string, multiplier int32) error {
-	users, err := UserManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(users) > 0 {
-		return nil
-	}
-
-	basePassword := "sample-hello-world-12345"
-	hashedPassword, err := service.Security.HashPassword(basePassword)
-	if err != nil {
-		return err
-	}
-
-	baseNumUsers := 1
-	numUsers := int(multiplier) * baseNumUsers
-
-	for i := range numUsers {
-		firstName := service.Faker.Person().FirstName()
-		middleName := service.Faker.Person().LastName()[:1] // Simulate middle initial
-		lastName := service.Faker.Person().LastName()
-		suffix := service.Faker.Person().Suffix()
-		fullName := fmt.Sprintf("%s %s %s %s", firstName, middleName, lastName, suffix)
-		birthdate := time.Now().AddDate(-25-service.Faker.IntBetween(0, 40), -service.Faker.IntBetween(0, 11), -service.Faker.IntBetween(0, 30))
-		userSharedMedia, err := createImageMedia(ctx, service, imagePaths, "User")
-		if err != nil {
-			return eris.Wrap(err, "failed to create user media")
-		}
-		var email string
-		if i == 0 {
-			email = "sample@example.com"
-		} else {
-			email = service.Faker.Internet().Email()
+		invitationCodes := []types.UserOrganizationType{
+			types.UserOrganizationTypeMember,
+			types.UserOrganizationTypeEmployee,
 		}
 
-		user := &types.User{
-			MediaID:           &userSharedMedia.ID,
-			Email:             email,
-			Password:          hashedPassword,
-			Birthdate:         &birthdate,
-			Username:          service.Faker.Internet().User(),
-			FullName:          fullName,
-			FirstName:         helpers.Ptr(firstName),
-			MiddleName:        helpers.Ptr(middleName),
-			LastName:          helpers.Ptr(lastName),
-			Suffix:            helpers.Ptr(suffix),
-			ContactNumber:     fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999)),
-			IsEmailVerified:   true,
-			IsContactVerified: true,
-			CreatedAt:         time.Now().UTC(),
-			UpdatedAt:         time.Now().UTC(),
-		}
-		if err := UserManager(service).Create(ctx, user); err != nil {
-			return err
-		}
+		for _, userType := range invitationCodes {
+			invitationCode := &types.InvitationCode{
+				CreatedAt:      time.Now().UTC(),
+				CreatedByID:    owner.ID,
+				UpdatedAt:      time.Now().UTC(),
+				UpdatedByID:    owner.ID,
+				OrganizationID: organization.ID,
+				BranchID:       branch.ID,
+				UserType:       userType,
+				Code:           fmt.Sprintf("VALDECO-%s-%d", userType, idx+1),
+				ExpirationDate: time.Now().UTC().Add(60 * 24 * time.Hour),
+				MaxUse:         100,
+				CurrentUse:     0,
+				Description:    fmt.Sprintf("Invitation for %s of VALDECO %s", userType, br.name),
+			}
 
-	}
-	return nil
-}
-
-func SeedMemberProfiles(ctx context.Context, service *horizon.HorizonService, multiplier int32) error {
-	profiles, err := MemberProfileManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-	if len(profiles) > 0 {
-		return nil
-	}
-
-	organizations, err := OrganizationManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-
-	users, err := UserManager(service).List(ctx)
-	if err != nil {
-		return err
-	}
-
-	if len(organizations) == 0 || len(users) == 0 {
-		return nil
-	}
-
-	for _, org := range organizations {
-
-		branches, err := BranchManager(service).Find(ctx, &types.Branch{
-			OrganizationID: org.ID,
-		})
-		if err != nil {
-			continue
-		}
-
-		for _, branch := range branches {
-			numMembers := int(multiplier) * 1
-			numMembers = min(numMembers, len(users))
-
-			for i := 0; i < numMembers; i++ {
-				firstName := service.Faker.Person().FirstName()
-				middleName := service.Faker.Person().LastName()[:1]
-				lastName := service.Faker.Person().LastName()
-				fullName := fmt.Sprintf("%s %s %s", firstName, middleName, lastName)
-
-				age := 25 + (i % 40)
-				birthDate := time.Now().AddDate(-age, 0, 0)
-
-				passbook := fmt.Sprintf("PB-%s-%04d", branch.Name[:min(3, len(branch.Name))], i+1)
-
-				memberProfile := &types.MemberProfile{
-					CreatedAt:             time.Now().UTC(),
-					CreatedByID:           &org.CreatedByID,
-					UpdatedAt:             time.Now().UTC(),
-					UpdatedByID:           &org.CreatedByID,
-					OrganizationID:        org.ID,
-					BranchID:              branch.ID,
-					UserID:                &users[i%len(users)].ID, // Rotate through available users
-					FirstName:             firstName,
-					MiddleName:            middleName,
-					LastName:              lastName,
-					FullName:              fullName,
-					BirthDate:             &birthDate,
-					Status:                types.MemberStatusPending,
-					Description:           service.Faker.Lorem().Paragraph(2),
-					Notes:                 service.Faker.Lorem().Paragraph(1),
-					ContactNumber:         fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999)),
-					OldReferenceID:        fmt.Sprintf("REF-%04d", i+1),
-					Passbook:              passbook,
-					Occupation:            []string{"Farmer", "Teacher", "Driver", "Vendor", "Employee", "Business Owner"}[i%6],
-					BusinessAddress:       service.Faker.Address().Address(),
-					BusinessContactNumber: fmt.Sprintf("+6391%08d", service.Faker.IntBetween(10000000, 99999999)),
-					CivilStatus:           []string{"married", "single", "widowed", "divorced"}[i%4],
-					IsClosed:              false,
-					IsMutualFundMember:    i%2 == 0,
-					IsMicroFinanceMember:  i%3 == 0,
-				}
-
-				if err := MemberProfileManager(service).Create(ctx, memberProfile); err != nil {
-					continue
-				}
-
-				memberAddress := &types.MemberAddress{
-					CreatedAt:       time.Now().UTC(),
-					UpdatedAt:       time.Now().UTC(),
-					CreatedByID:     &org.CreatedByID,
-					UpdatedByID:     &org.CreatedByID,
-					OrganizationID:  org.ID,
-					BranchID:        branch.ID,
-					MemberProfileID: &memberProfile.ID,
-					Label:           []string{"home", "work", "other"}[i%3],
-					Address:         service.Faker.Address().Address(),
-					ProvinceState:   service.Faker.Address().State(),
-					City:            service.Faker.Address().City(),
-					Barangay:        service.Faker.Address().StreetName(),
-					PostalCode:      service.Faker.Address().PostCode(),
-					CountryCode:     "PH",
-					Landmark:        service.Faker.Lorem().Sentence(2),
-				}
-
-				if err := MemberAddressManager(service).Create(ctx, memberAddress); err != nil {
-					return err
-				}
-
+			if err := InvitationCodeManager(service).Create(ctx, invitationCode); err != nil {
+				return eris.Wrap(err, "failed to create invitation code")
 			}
 		}
 	}
