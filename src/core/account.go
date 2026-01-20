@@ -209,6 +209,9 @@ func accountSeed(context context.Context,
 	if err := AccountManager(service).CreateWithTx(context, tx, wallet); err != nil {
 		return eris.Wrapf(err, "failed to seed account %s", wallet.Name)
 	}
+	if err := CreateAccountHistory(context, service, tx, wallet); err != nil {
+		return eris.Wrapf(err, "history: failed to create history for seeded account %s (ID: %s, tx: %v)", wallet.Name, wallet.ID, tx != nil)
+	}
 	accounts := []*types.Account{
 		{
 			CreatedAt:         now,
