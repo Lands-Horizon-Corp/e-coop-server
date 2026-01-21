@@ -136,7 +136,7 @@ func LoanGuide(
 	// 	}
 	// 	accountSummary := &LoanAccountSummary{
 	// 		LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
-	// 		PaymentSchedules: []*LoanPaymentSchedule{},
+	// 		PaymentSchedules: []*LoanPaymentSchedule{},ss
 	// 		TotalAmountDue:   0,
 	// 		TotalAmountPaid:  0,
 	// 		CurrentBalance:   0,
