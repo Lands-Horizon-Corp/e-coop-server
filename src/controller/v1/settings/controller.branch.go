@@ -589,152 +589,75 @@ func BranchController(service *horizon.HorizonService) {
 
 		tx, endTx := service.Database.StartTransaction(context)
 
-		if err == nil {
-			branchSetting = &types.BranchSetting{
-				CreatedAt: time.Now().UTC(),
-				UpdatedAt: time.Now().UTC(),
-				BranchID:  *userOrg.BranchID,
+		branchSetting.UpdatedAt = time.Now().UTC()
 
-				WithdrawAllowUserInput: settingsReq.WithdrawAllowUserInput,
-				WithdrawPrefix:         settingsReq.WithdrawPrefix,
-				WithdrawORStart:        settingsReq.WithdrawORStart,
-				WithdrawORCurrent:      settingsReq.WithdrawORCurrent,
-				WithdrawOREnd:          settingsReq.WithdrawOREnd,
-				WithdrawORIteration:    settingsReq.WithdrawORIteration,
-				WithdrawUseDateOR:      settingsReq.WithdrawUseDateOR,
-				WithdrawPadding:        settingsReq.WithdrawPadding,
-				WithdrawCommonOR:       settingsReq.WithdrawCommonOR,
+		branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
+		branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
+		branchSetting.WithdrawORStart = settingsReq.WithdrawORStart
+		branchSetting.WithdrawORCurrent = settingsReq.WithdrawORCurrent
+		branchSetting.WithdrawOREnd = settingsReq.WithdrawOREnd
+		branchSetting.WithdrawORIteration = settingsReq.WithdrawORIteration
+		branchSetting.WithdrawUseDateOR = settingsReq.WithdrawUseDateOR
+		branchSetting.WithdrawPadding = settingsReq.WithdrawPadding
+		branchSetting.WithdrawCommonOR = settingsReq.WithdrawCommonOR
 
-				DepositORStart:     settingsReq.DepositORStart,
-				DepositORCurrent:   settingsReq.DepositORCurrent,
-				DepositOREnd:       settingsReq.DepositOREnd,
-				DepositORIteration: settingsReq.DepositORIteration,
-				DepositUseDateOR:   settingsReq.DepositUseDateOR,
-				DepositPadding:     settingsReq.DepositPadding,
-				DepositCommonOR:    settingsReq.DepositCommonOR,
+		branchSetting.DepositORStart = settingsReq.DepositORStart
+		branchSetting.DepositORCurrent = settingsReq.DepositORCurrent
+		branchSetting.DepositOREnd = settingsReq.DepositOREnd
+		branchSetting.DepositORIteration = settingsReq.DepositORIteration
+		branchSetting.DepositUseDateOR = settingsReq.DepositUseDateOR
+		branchSetting.DepositPadding = settingsReq.DepositPadding
+		branchSetting.DepositCommonOR = settingsReq.DepositCommonOR
 
-				CashCheckVoucherAllowUserInput: settingsReq.CashCheckVoucherAllowUserInput,
-				CashCheckVoucherORUnique:       settingsReq.CashCheckVoucherORUnique,
-				CashCheckVoucherPrefix:         settingsReq.CashCheckVoucherPrefix,
-				CashCheckVoucherORStart:        settingsReq.CashCheckVoucherORStart,
-				CashCheckVoucherORCurrent:      settingsReq.CashCheckVoucherORCurrent,
-				CashCheckVoucherPadding:        settingsReq.CashCheckVoucherPadding,
+		branchSetting.CashCheckVoucherAllowUserInput = settingsReq.CashCheckVoucherAllowUserInput
+		branchSetting.CashCheckVoucherORUnique = settingsReq.CashCheckVoucherORUnique
+		branchSetting.CashCheckVoucherPrefix = settingsReq.CashCheckVoucherPrefix
+		branchSetting.CashCheckVoucherORStart = settingsReq.CashCheckVoucherORStart
+		branchSetting.CashCheckVoucherORCurrent = settingsReq.CashCheckVoucherORCurrent
+		branchSetting.CashCheckVoucherPadding = settingsReq.CashCheckVoucherPadding
 
-				JournalVoucherAllowUserInput: settingsReq.JournalVoucherAllowUserInput,
-				JournalVoucherORUnique:       settingsReq.JournalVoucherORUnique,
-				JournalVoucherPrefix:         settingsReq.JournalVoucherPrefix,
-				JournalVoucherORStart:        settingsReq.JournalVoucherORStart,
-				JournalVoucherORCurrent:      settingsReq.JournalVoucherORCurrent,
-				JournalVoucherPadding:        settingsReq.JournalVoucherPadding,
+		branchSetting.JournalVoucherAllowUserInput = settingsReq.JournalVoucherAllowUserInput
+		branchSetting.JournalVoucherORUnique = settingsReq.JournalVoucherORUnique
+		branchSetting.JournalVoucherPrefix = settingsReq.JournalVoucherPrefix
+		branchSetting.JournalVoucherORStart = settingsReq.JournalVoucherORStart
+		branchSetting.JournalVoucherORCurrent = settingsReq.JournalVoucherORCurrent
+		branchSetting.JournalVoucherPadding = settingsReq.JournalVoucherPadding
 
-				AdjustmentVoucherAllowUserInput: settingsReq.AdjustmentVoucherAllowUserInput,
-				AdjustmentVoucherORUnique:       settingsReq.AdjustmentVoucherORUnique,
-				AdjustmentVoucherPrefix:         settingsReq.AdjustmentVoucherPrefix,
-				AdjustmentVoucherORStart:        settingsReq.AdjustmentVoucherORStart,
-				AdjustmentVoucherORCurrent:      settingsReq.AdjustmentVoucherORCurrent,
-				AdjustmentVoucherPadding:        settingsReq.AdjustmentVoucherPadding,
+		branchSetting.AdjustmentVoucherAllowUserInput = settingsReq.AdjustmentVoucherAllowUserInput
+		branchSetting.AdjustmentVoucherORUnique = settingsReq.AdjustmentVoucherORUnique
+		branchSetting.AdjustmentVoucherPrefix = settingsReq.AdjustmentVoucherPrefix
+		branchSetting.AdjustmentVoucherORStart = settingsReq.AdjustmentVoucherORStart
+		branchSetting.AdjustmentVoucherORCurrent = settingsReq.AdjustmentVoucherORCurrent
+		branchSetting.AdjustmentVoucherPadding = settingsReq.AdjustmentVoucherPadding
 
-				LoanVoucherAllowUserInput: settingsReq.LoanVoucherAllowUserInput,
-				LoanVoucherORUnique:       settingsReq.LoanVoucherORUnique,
-				LoanVoucherPrefix:         settingsReq.LoanVoucherPrefix,
-				LoanVoucherORStart:        settingsReq.LoanVoucherORStart,
-				LoanVoucherORCurrent:      settingsReq.LoanVoucherORCurrent,
-				LoanVoucherPadding:        settingsReq.LoanVoucherPadding,
+		branchSetting.LoanVoucherAllowUserInput = settingsReq.LoanVoucherAllowUserInput
+		branchSetting.LoanVoucherORUnique = settingsReq.LoanVoucherORUnique
+		branchSetting.LoanVoucherPrefix = settingsReq.LoanVoucherPrefix
+		branchSetting.LoanVoucherORStart = settingsReq.LoanVoucherORStart
+		branchSetting.LoanVoucherORCurrent = settingsReq.LoanVoucherORCurrent
+		branchSetting.LoanVoucherPadding = settingsReq.LoanVoucherPadding
 
-				CheckVoucherGeneral:               settingsReq.CheckVoucherGeneral,
-				CheckVoucherGeneralAllowUserInput: settingsReq.CheckVoucherGeneralAllowUserInput,
-				CheckVoucherGeneralORUnique:       settingsReq.CheckVoucherGeneralORUnique,
-				CheckVoucherGeneralPrefix:         settingsReq.CheckVoucherGeneralPrefix,
-				CheckVoucherGeneralORStart:        settingsReq.CheckVoucherGeneralORStart,
-				CheckVoucherGeneralORCurrent:      settingsReq.CheckVoucherGeneralORCurrent,
-				CheckVoucherGeneralPadding:        settingsReq.CheckVoucherGeneralPadding,
+		branchSetting.CheckVoucherGeneral = settingsReq.CheckVoucherGeneral
+		branchSetting.CheckVoucherGeneralAllowUserInput = settingsReq.CheckVoucherGeneralAllowUserInput
+		branchSetting.CheckVoucherGeneralORUnique = settingsReq.CheckVoucherGeneralORUnique
+		branchSetting.CheckVoucherGeneralPrefix = settingsReq.CheckVoucherGeneralPrefix
+		branchSetting.CheckVoucherGeneralORStart = settingsReq.CheckVoucherGeneralORStart
+		branchSetting.CheckVoucherGeneralORCurrent = settingsReq.CheckVoucherGeneralORCurrent
+		branchSetting.CheckVoucherGeneralPadding = settingsReq.CheckVoucherGeneralPadding
 
-				AnnualDivisor:             settingsReq.AnnualDivisor,
-				DefaultMemberTypeID:       settingsReq.DefaultMemberTypeID,
-				DefaultMemberGenderID:     settingsReq.DefaultMemberGenderID,
-				LoanAppliedEqualToBalance: settingsReq.LoanAppliedEqualToBalance,
-				TaxInterest:               settingsReq.TaxInterest,
-			}
+		branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
+		branchSetting.DefaultMemberGenderID = settingsReq.DefaultMemberGenderID
+		branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
+		branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
+		branchSetting.TaxInterest = settingsReq.TaxInterest
 
-			if err := core.BranchSettingManager(service).CreateWithTx(context, tx, branchSetting); err != nil {
-				event.Footstep(ctx, service, event.FootstepEvent{
-					Activity:    "update error",
-					Description: fmt.Sprintf("Failed to create branch settings for PUT /branch-settings: %v", err),
-					Module:      "branch",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create branch settings: " + endTx(err).Error()})
-			}
-		} else {
-			branchSetting.UpdatedAt = time.Now().UTC()
-
-			branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
-			branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
-			branchSetting.WithdrawORStart = settingsReq.WithdrawORStart
-			branchSetting.WithdrawORCurrent = settingsReq.WithdrawORCurrent
-			branchSetting.WithdrawOREnd = settingsReq.WithdrawOREnd
-			branchSetting.WithdrawORIteration = settingsReq.WithdrawORIteration
-			branchSetting.WithdrawUseDateOR = settingsReq.WithdrawUseDateOR
-			branchSetting.WithdrawPadding = settingsReq.WithdrawPadding
-			branchSetting.WithdrawCommonOR = settingsReq.WithdrawCommonOR
-
-			branchSetting.DepositORStart = settingsReq.DepositORStart
-			branchSetting.DepositORCurrent = settingsReq.DepositORCurrent
-			branchSetting.DepositOREnd = settingsReq.DepositOREnd
-			branchSetting.DepositORIteration = settingsReq.DepositORIteration
-			branchSetting.DepositUseDateOR = settingsReq.DepositUseDateOR
-			branchSetting.DepositPadding = settingsReq.DepositPadding
-			branchSetting.DepositCommonOR = settingsReq.DepositCommonOR
-
-			branchSetting.CashCheckVoucherAllowUserInput = settingsReq.CashCheckVoucherAllowUserInput
-			branchSetting.CashCheckVoucherORUnique = settingsReq.CashCheckVoucherORUnique
-			branchSetting.CashCheckVoucherPrefix = settingsReq.CashCheckVoucherPrefix
-			branchSetting.CashCheckVoucherORStart = settingsReq.CashCheckVoucherORStart
-			branchSetting.CashCheckVoucherORCurrent = settingsReq.CashCheckVoucherORCurrent
-			branchSetting.CashCheckVoucherPadding = settingsReq.CashCheckVoucherPadding
-
-			branchSetting.JournalVoucherAllowUserInput = settingsReq.JournalVoucherAllowUserInput
-			branchSetting.JournalVoucherORUnique = settingsReq.JournalVoucherORUnique
-			branchSetting.JournalVoucherPrefix = settingsReq.JournalVoucherPrefix
-			branchSetting.JournalVoucherORStart = settingsReq.JournalVoucherORStart
-			branchSetting.JournalVoucherORCurrent = settingsReq.JournalVoucherORCurrent
-			branchSetting.JournalVoucherPadding = settingsReq.JournalVoucherPadding
-
-			branchSetting.AdjustmentVoucherAllowUserInput = settingsReq.AdjustmentVoucherAllowUserInput
-			branchSetting.AdjustmentVoucherORUnique = settingsReq.AdjustmentVoucherORUnique
-			branchSetting.AdjustmentVoucherPrefix = settingsReq.AdjustmentVoucherPrefix
-			branchSetting.AdjustmentVoucherORStart = settingsReq.AdjustmentVoucherORStart
-			branchSetting.AdjustmentVoucherORCurrent = settingsReq.AdjustmentVoucherORCurrent
-			branchSetting.AdjustmentVoucherPadding = settingsReq.AdjustmentVoucherPadding
-
-			branchSetting.LoanVoucherAllowUserInput = settingsReq.LoanVoucherAllowUserInput
-			branchSetting.LoanVoucherORUnique = settingsReq.LoanVoucherORUnique
-			branchSetting.LoanVoucherPrefix = settingsReq.LoanVoucherPrefix
-			branchSetting.LoanVoucherORStart = settingsReq.LoanVoucherORStart
-			branchSetting.LoanVoucherORCurrent = settingsReq.LoanVoucherORCurrent
-			branchSetting.LoanVoucherPadding = settingsReq.LoanVoucherPadding
-
-			branchSetting.CheckVoucherGeneral = settingsReq.CheckVoucherGeneral
-			branchSetting.CheckVoucherGeneralAllowUserInput = settingsReq.CheckVoucherGeneralAllowUserInput
-			branchSetting.CheckVoucherGeneralORUnique = settingsReq.CheckVoucherGeneralORUnique
-			branchSetting.CheckVoucherGeneralPrefix = settingsReq.CheckVoucherGeneralPrefix
-			branchSetting.CheckVoucherGeneralORStart = settingsReq.CheckVoucherGeneralORStart
-			branchSetting.CheckVoucherGeneralORCurrent = settingsReq.CheckVoucherGeneralORCurrent
-			branchSetting.CheckVoucherGeneralPadding = settingsReq.CheckVoucherGeneralPadding
-
-			branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
-			branchSetting.DefaultMemberGenderID = settingsReq.DefaultMemberGenderID
-			branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
-			branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
-			branchSetting.TaxInterest = settingsReq.TaxInterest
-
-			if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
-				event.Footstep(ctx, service, event.FootstepEvent{
-					Activity:    "update error",
-					Description: fmt.Sprintf("Failed to update branch settings for PUT /branch-settings: %v", err),
-					Module:      "branch",
-				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + endTx(err).Error()})
-			}
+		if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "update error",
+				Description: fmt.Sprintf("Failed to update branch settings for PUT /branch-settings: %v", err),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + endTx(err).Error()})
 		}
 
 		if err := endTx(nil); err != nil {
