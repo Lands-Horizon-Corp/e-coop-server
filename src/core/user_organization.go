@@ -32,22 +32,22 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 			"SettingsAccountingWithdrawDefaultValue",
 			"SettingsPaymentTypeDefaultValue",
 
-			"Branch.BranchSetting",
 			"Branch.BranchSetting.Currency",
-
+			"Branch.BranchSetting.DefaultMemberType",
+			"Branch.BranchSetting.DefaultMemberGender",
 			"Branch.BranchSetting.CashOnHandAccount",
-			"Branch.BranchSetting.CashOnHandAccount.Currency",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
-			"Branch.BranchSetting.PaidUpSharedCapitalAccount.Currency",
-
 			"Branch.BranchSetting.CompassionFundAccount",
 			"Branch.BranchSetting.CompassionFundAccount.Currency",
-
+			"Branch.BranchSetting.AccountWallet",
+			"Branch.BranchSetting.AccountWallet.Currency",
+			"Branch.BranchSetting.UnbalancedAccounts",
 			"Branch.BranchSetting.UnbalancedAccounts.Currency",
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForOverage",
-			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage",
+			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
+			"Branch.BranchSetting.UnbalancedAccounts.CashOnHandAccount",
 		},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {

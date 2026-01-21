@@ -16,18 +16,22 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[
 			"Branch",
 			"Currency",
 			"DefaultMemberType",
+			"DefaultMemberGender",
 			"CashOnHandAccount",
 			"PaidUpSharedCapitalAccount",
 			"CompassionFundAccount",
 			"CompassionFundAccount.Currency",
+			"AccountWallet",
+			"AccountWallet.Currency",
 			"UnbalancedAccounts",
 			"UnbalancedAccounts.Currency",
 			"UnbalancedAccounts.AccountForShortage",
 			"UnbalancedAccounts.AccountForOverage",
 			"UnbalancedAccounts.MemberProfileForOverage",
 			"UnbalancedAccounts.MemberProfileForShortage",
-			"UnbalancedAccounts.MemberProfileForOverage",
+			"UnbalancedAccounts.CashOnHandAccount",
 		},
+
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
