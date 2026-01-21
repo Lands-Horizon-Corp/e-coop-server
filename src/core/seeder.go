@@ -48,10 +48,10 @@ func createImageMedia(ctx context.Context, service *horizon.HorizonService, imag
 
 func Seed(ctx context.Context, service *horizon.HorizonService) error {
 	if err := GlobalSeeder(ctx, service); err != nil {
-		return err
+		panic(err)
 	}
 	if err := SeedVALDECO(ctx, service); err != nil {
-		return err
+		panic(err)
 	}
 	return nil
 }
