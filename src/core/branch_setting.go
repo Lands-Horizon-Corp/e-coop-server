@@ -24,7 +24,7 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[
 			"UnbalancedAccounts.Currency",
 			"UnbalancedAccounts.AccountForShortage",
 			"UnbalancedAccounts.AccountForOverage",
-			"UnbalancedAccounts.MemberProfileIDForOverage",
+			"UnbalancedAccounts.MemberProfileForOverage",
 			"UnbalancedAccounts.MemberProfileForShortage",
 			"UnbalancedAccounts.MemberProfileForOverage",
 		},
