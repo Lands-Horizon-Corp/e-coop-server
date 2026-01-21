@@ -586,6 +586,15 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting, err = core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
+		if err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "update error",
+				Description: "The uer doesn't have branch settings please call the admi PUT /branch-settings: " + err.Error(),
+				Module:      "branch",
+			})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "The uer doesn't have branch settings please call the admin: " + err.Error()})
+
+		}
 		branchSetting.UpdatedAt = time.Now().UTC()
 		branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
 		branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
