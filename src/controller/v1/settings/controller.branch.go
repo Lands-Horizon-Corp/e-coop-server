@@ -737,7 +737,6 @@ func BranchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found: " + err.Error()})
 		}
-		tx, endTx := service.Database.StartTransaction(context)
 
 		branchSetting.CurrencyID = settingsReq.CurrencyID
 		branchSetting.CompassionFundAccountID = settingsReq.CompassionFundAccountID
@@ -746,23 +745,23 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()
 
-		if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+		if err := core.BranchSettingManager(service).UpdateByID(context, branchSetting.ID, branchSetting); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + endTx(err).Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + err.Error()})
 		}
 
 		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
-			if err := core.UnbalancedAccountManager(service).DeleteWithTx(context, tx, id); err != nil {
+			if err := core.UnbalancedAccountManager(service).Delete(context, id); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete unbalanced account: " + err.Error(),
 					Module:      "UnbalancedAccount",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete unbalanced account: " + endTx(err).Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete unbalanced account: " + err.Error()})
 			}
 		}
 
@@ -770,7 +769,7 @@ func BranchController(service *horizon.HorizonService) {
 			if accountReq.ID != nil {
 				existingAccount, err := core.UnbalancedAccountManager(service).GetByID(context, *accountReq.ID)
 				if err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + endTx(err).Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + err.Error()})
 				}
 
 				existingAccount.Name = accountReq.Name
@@ -784,8 +783,8 @@ func BranchController(service *horizon.HorizonService) {
 
 				existingAccount.UpdatedAt = time.Now().UTC()
 				existingAccount.UpdatedByID = userOrg.UserID
-				if err := core.UnbalancedAccountManager(service).UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
+				if err := core.UnbalancedAccountManager(service).UpdateByID(context, existingAccount.ID, existingAccount); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
 				}
 			} else {
 				newUnbalancedAccount := &types.UnbalancedAccount{
@@ -804,18 +803,10 @@ func BranchController(service *horizon.HorizonService) {
 					MemberProfileIDForShortage: accountReq.MemberProfileIDForShortage,
 					MemberProfileIDForOverage:  accountReq.MemberProfileIDForOverage,
 				}
-				if err := core.UnbalancedAccountManager(service).CreateWithTx(context, tx, newUnbalancedAccount); err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + endTx(err).Error()})
+				if err := core.UnbalancedAccountManager(service).Create(context, newUnbalancedAccount); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + err.Error()})
 				}
 			}
-		}
-		if err := endTx(nil); err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "update-error",
-				Description: "Failed to commit unbalanced account update transaction: " + err.Error(),
-				Module:      "UnbalancedAccount",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit unbalanced account update: " + err.Error()})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update success",
