@@ -41,11 +41,7 @@ func (r *Registry[TData, TResponse, TRequest]) UpdateByIDWithTx(
 	if preloads == nil {
 		preloads = r.preloads
 	}
-	tx = tx.Session(&gorm.Session{
-		FullSaveAssociations: false,
-	})
-
-	if err := tx.Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).Updates(fields).Error; err != nil {
+	if err := tx.Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).Save(fields).Error; err != nil {
 		return fmt.Errorf("failed to update fields for entity %v in transaction: %w", id, err)
 	}
 	reloadDb := tx.Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id)
