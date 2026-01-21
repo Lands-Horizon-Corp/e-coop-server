@@ -107,7 +107,9 @@ func GetCashOnCashEquivalence(ctx context.Context, service *horizon.HorizonServi
 	}
 
 	return LoanTransactionEntryManager(service).ArrFindOne(
-		ctx, filters, nil, "Account", "Account.DefaultPaymentType",
+		ctx, filters, []query.ArrFilterSortSQL{
+			{Field: "created_at", Order: query.SortOrderAsc},
+		}, "Account", "Account.DefaultPaymentType",
 	)
 }
 
