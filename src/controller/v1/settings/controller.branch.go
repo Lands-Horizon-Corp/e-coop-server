@@ -586,7 +586,6 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting, err = core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
-		tx, endTx := service.Database.StartTransaction(context)
 		branchSetting.UpdatedAt = time.Now().UTC()
 		branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
 		branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
@@ -641,34 +640,19 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting.CheckVoucherGeneralORStart = settingsReq.CheckVoucherGeneralORStart
 		branchSetting.CheckVoucherGeneralORCurrent = settingsReq.CheckVoucherGeneralORCurrent
 		branchSetting.CheckVoucherGeneralPadding = settingsReq.CheckVoucherGeneralPadding
-		fmt.Println("-------------")
-
-		fmt.Println("default: ", branchSetting.DefaultMemberTypeID)
-		fmt.Println("changing to: ", settingsReq.DefaultMemberTypeID)
 		branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
-		fmt.Println("currently changes to: ", branchSetting.DefaultMemberTypeID)
-
 		branchSetting.DefaultMemberGenderID = settingsReq.DefaultMemberGenderID
 		branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 		branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
 		branchSetting.TaxInterest = settingsReq.TaxInterest
 
-		if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+		if err := core.BranchSettingManager(service).UpdateByID(context, branchSetting.ID, branchSetting); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings for PUT /branch-settings: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + endTx(err).Error()})
-		}
-
-		if err := endTx(nil); err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "update error",
-				Description: fmt.Sprintf("Failed to commit transaction for PUT /branch-settings: %v", err),
-				Module:      "branch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + err.Error()})
 		}
 
 		event.Footstep(ctx, service, event.FootstepEvent{
@@ -686,8 +670,6 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get latest branch settings: " + err.Error()})
 
 		}
-		fmt.Println("new: ", newBranchSettings.DefaultMemberTypeID)
-		fmt.Println("-------------")
 		return ctx.JSON(http.StatusOK, newBranchSettings)
 	})
 
