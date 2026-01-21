@@ -120,12 +120,19 @@ func LoanGuide(
 		}
 		fmt.Println(generalLedgers)
 		filterSchedule(amortization.Schedule, acc.AccountID, func(entry *LoanAmortizationSchedule, schedAcc *AccountValue) {
+			payments := []*LoanPayments{}
+			// for each general ledger (payments)
+			// 		if payment date <= entry.ScheduledDate add it to payments and make sure if its payed then remove it from stacks the general ledger
+			// if  entry.ScheduledDate is behind current date   just put due
+			// if  entry.ScheduledDate is behind 1 month   then overdue
+			// i
 			schedule = append(schedule, &LoanPaymentSchedule{
-				PaymentDate: entry.ScheduledDate,
-				ActualDate:  entry.ActualDate,
-				DaysSkipped: entry.DaysSkipped,
-				Balance:     schedAcc.Value,
-				Type:        LoanScheduleStatusDefault,
+				LoanPayments: payments,
+				PaymentDate:  entry.ScheduledDate,
+				ActualDate:   entry.ActualDate,
+				DaysSkipped:  entry.DaysSkipped,
+				Balance:      schedAcc.Value,
+				Type:         LoanScheduleStatusDefault,
 			})
 		})
 
@@ -142,45 +149,6 @@ func LoanGuide(
 		}
 		response.LoanAccounts = append(response.LoanAccounts, accountSummary)
 	}
-	// accountSummary := &LoanAccountSummary{
-	// 		LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
-	// 		PaymentSchedules: []*LoanPaymentSchedule{},
-	// 		TotalAmountDue:   0,
-	// 		TotalAmountPaid:  0,
-	// 		CurrentBalance:   0,
-	// 		NextDueDate:      nil,
-	// 		DaysOverdue:      0,
-	// 		OverdueAmount:    0,
-	// 		CompletionStatus: "active",
-	// 	}
-	// for _, acc := range loanAccounts {
-	// 	// generalLedgers, err := core.GeneralLedgerManager(service).ArrFind(ctx, []query.ArrFilterSQL{
-	// 	// 	{Field: "account_id", Op: query.ModeEqual, Value: acc.AccountID},
-	// 	// 	{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
-	// 	// 	{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
-	// 	// }, []query.ArrFilterSortSQL{
-	// 	// 	{Field: "entry_date", Order: query.SortOrderAsc},
-	// 	// })
-	// 	// for _, ledger := range generalLedgers {
-	// 	// 	//
-	// 	// }
-	// 	if err != nil {
-	// 		return nil, eris.Wrap(err, "LoanGuide: failed to fetch general ledgers")
-	// 	}
-	// 	accountSummary := &LoanAccountSummary{
-	// 		LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
-	// 		PaymentSchedules: []*LoanPaymentSchedule{},
-	// 		TotalAmountDue:   0,
-	// 		TotalAmountPaid:  0,
-	// 		CurrentBalance:   0,
-	// 		NextDueDate:      nil,
-	// 		DaysOverdue:      0,
-	// 		OverdueAmount:    0,
-	// 		CompletionStatus: "active",
-	// 	}
-	// 	response.LoanAccounts = append(response.LoanAccounts, accountSummary)
-	// 	response.TotalLoans++
-	// }
 
 	return response, nil
 }
