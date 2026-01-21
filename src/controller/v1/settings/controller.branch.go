@@ -645,8 +645,9 @@ func BranchController(service *horizon.HorizonService) {
 
 		fmt.Println("default: ", branchSetting.DefaultMemberTypeID)
 		fmt.Println("changing to: ", settingsReq.DefaultMemberTypeID)
-
 		branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
+		fmt.Println("currently changes to: ", branchSetting.DefaultMemberTypeID)
+
 		branchSetting.DefaultMemberGenderID = settingsReq.DefaultMemberGenderID
 		branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
 		branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
