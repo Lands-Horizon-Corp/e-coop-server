@@ -589,7 +589,7 @@ func BranchController(service *horizon.HorizonService) {
 
 		tx, endTx := service.Database.StartTransaction(context)
 
-		if err != nil {
+		if err == nil {
 			branchSetting = &types.BranchSetting{
 				CreatedAt: time.Now().UTC(),
 				UpdatedAt: time.Now().UTC(),
