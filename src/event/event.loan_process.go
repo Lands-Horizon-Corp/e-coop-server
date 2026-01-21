@@ -92,7 +92,7 @@ func LoanProcessing(
 		return nil, endTx(eris.New("loan processing: printed date is nil"))
 	}
 
-	currentDate := userOrg.UserOrgTime()
+	currentDate := userOrg.TimeMachine()
 	paymentDate := *loanTransaction.PrintedDate
 	balance := loanTransaction.TotalPrincipal
 	principal := loanTransaction.TotalPrincipal

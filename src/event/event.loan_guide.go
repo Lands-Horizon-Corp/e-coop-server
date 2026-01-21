@@ -33,12 +33,14 @@ type LoanPaymentSchedule struct {
 	ActualDate    time.Time `json:"actual_date"`
 	DaysSkipped   int       `json:"days_skipped"`
 
-	AmountDue       float64 `json:"amount_due" validate:"required,gte=0"`
-	AmountPaid      float64 `json:"amount_paid" validate:"required,gte=0"`
-	Balance         float64 `json:"balance" validate:"required,gte=0"`
-	PrincipalAmount float64 `json:"principal_amount" validate:"required,gte=0"`
-	InterestAmount  float64 `json:"interest_amount" validate:"required,gte=0"`
-	FinesAmount     float64 `json:"fines_amount" validate:"required,gte=0"`
+	AmountDue  float64 `json:"amount_due" validate:"required,gte=0"`  // due or overdue
+	AmountPaid float64 `json:"amount_paid" validate:"required,gte=0"` // paid or advance
+
+	Balance         float64 `json:"balance" validate:"required,gte=0"`          // Principal amount + interest amount + Fines
+	PrincipalAmount float64 `json:"principal_amount" validate:"required,gte=0"` // the amount the user will pay
+
+	InterestAmount float64 `json:"interest_amount" validate:"required,gte=0"`
+	FinesAmount    float64 `json:"fines_amount" validate:"required,gte=0"`
 
 	Type LoanScheduleStatus `json:"type" validate:"required,oneof=paid due overdue skipped advance"`
 }
@@ -79,10 +81,16 @@ func LoanGuide(
 		TotalOutstanding: 0,
 		TotalOverdue:     0,
 	}
-	// loanTransaction, err := core.LoanTransactionManager(service).GetByID(ctx, loanTransactionID)
+	// loanTransaction, err := core.LoanTransactionManager(service).GetByID(ctx, loanTransactionID, "Account")
 	// if err != nil {
 	// 	return nil, eris.Wrap(err, "LoanGuide: failed to get loan transaction")
 	// }
+	// numberOfPayments, err := usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
+	// if err != nil {
+	// 	return nil, eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
+	// 		loanTransaction.ModeOfPayment, loanTransaction.Terms)
+	// }
+
 	// loanAccounts, err := core.LoanAccountManager(service).Find(ctx, &types.LoanAccount{
 	// 	LoanTransactionID: loanTransaction.ID,
 	// 	OrganizationID:    userOrg.OrganizationID,
@@ -91,17 +99,37 @@ func LoanGuide(
 	// if err != nil {
 	// 	return nil, eris.Wrap(err, "LoanGuide: failed to find loan accounts")
 	// }
-	// for _, acc := range loanAccounts {
-	// 	generalLedgers, err := core.GeneralLedgerManager(service).ArrFind(ctx, []query.ArrFilterSQL{
-	// 		{Field: "account_id", Op: query.ModeEqual, Value: acc.AccountID},
-	// 		{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
-	// 		{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
-	// 	}, []query.ArrFilterSortSQL{
-	// 		{Field: "entry_date", Order: query.SortOrderAsc},
-	// 	})
-	// 	for _, ledger := range generalLedgers {
-	// 		//
+	// amortization, err := LoanAmortization(ctx, service, loanTransactionID, userOrg)
+	// if err != nil {
+	// 	return nil, eris.Wrap(err, "GenerateLoanSchedule: failed to generate amortization")
+	// }
+
+	// currentDate := userOrg.TimeMachine()
+	// for _, entry := range amortization.Schedule {
+	// 	accountSummary := &LoanAccountSummary{
+	// 		LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
+	// 		PaymentSchedules: []*LoanPaymentSchedule{},
+	// 		TotalAmountDue:   0,
+	// 		TotalAmountPaid:  0,
+	// 		CurrentBalance:   0,
+	// 		NextDueDate:      nil,
+	// 		DaysOverdue:      0,
+	// 		OverdueAmount:    0,
+	// 		CompletionStatus: "active",
 	// 	}
+	// }
+
+	// for _, acc := range loanAccounts {
+	// 	// generalLedgers, err := core.GeneralLedgerManager(service).ArrFind(ctx, []query.ArrFilterSQL{
+	// 	// 	{Field: "account_id", Op: query.ModeEqual, Value: acc.AccountID},
+	// 	// 	{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
+	// 	// 	{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
+	// 	// }, []query.ArrFilterSortSQL{
+	// 	// 	{Field: "entry_date", Order: query.SortOrderAsc},
+	// 	// })
+	// 	// for _, ledger := range generalLedgers {
+	// 	// 	//
+	// 	// }
 
 	// 	if err != nil {
 	// 		return nil, eris.Wrap(err, "LoanGuide: failed to fetch general ledgers")

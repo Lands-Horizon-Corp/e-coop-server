@@ -17,7 +17,7 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 	tx, endTx := service.Database.StartTransaction(context)
 
 	now := time.Now().UTC()
-	timeMachine := userOrg.UserOrgTime()
+	timeMachine := userOrg.TimeMachine()
 	if userOrg.BranchID == nil {
 		return nil, endTx(eris.New("invalid user organization data"))
 	}

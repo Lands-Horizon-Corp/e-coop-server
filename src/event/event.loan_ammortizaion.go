@@ -39,20 +39,16 @@ type LoanTransactionAmortizationResponse struct {
 }
 
 func LoanAmortization(context context.Context, service *horizon.HorizonService, loanTransactionID uuid.UUID, userOrg *types.UserOrganization) (*LoanTransactionAmortizationResponse, error) {
-
 	if userOrg == nil {
 		return nil, eris.New("user organization context is required for loan amortization schedule generation")
 	}
-
 	if userOrg.BranchID == nil {
 		return nil, eris.New("branch assignment is required for loan amortization schedule generation")
 	}
-
 	loanTransaction, err := core.LoanTransactionManager(service).GetByID(context, loanTransactionID, "Branch", "Account.Currency")
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction with ID: %s", loanTransactionID.String())
 	}
-
 	loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(context, &types.LoanTransactionEntry{
 		OrganizationID:    loanTransaction.OrganizationID,
 		BranchID:          loanTransaction.BranchID,
@@ -61,15 +57,12 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to retrieve loan transaction entries for transaction ID: %s", loanTransactionID.String())
 	}
-
 	totalDebitDec := decimal.Zero
 	totalCreditDec := decimal.Zero
-
 	for _, entry := range loanTransactionEntries {
 		totalDebitDec = totalDebitDec.Add(decimal.NewFromFloat(entry.Debit))
 		totalCreditDec = totalCreditDec.Add(decimal.NewFromFloat(entry.Credit))
 	}
-
 	currency := loanTransaction.Account.Currency
 	accounts, err := core.AccountManager(service).Find(context, &types.Account{
 		OrganizationID: loanTransaction.OrganizationID,
@@ -80,7 +73,6 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransactionID.String())
 	}
-
 	holidays, err := core.HolidayManager(service).Find(context, &types.Holiday{
 		OrganizationID: loanTransaction.OrganizationID,
 		BranchID:       loanTransaction.BranchID,
@@ -89,7 +81,6 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to retrieve holidays for loan amortization schedule")
 	}
-
 	numberOfPayments, err := usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
 	if err != nil {
 		return nil, eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
@@ -122,9 +113,12 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 		Total:   0,
 	})
 
-	paymentDate := userOrg.UserOrgTime()
+	startDate := userOrg.TimeMachine()
 	if loanTransaction.PrintedDate != nil {
-		paymentDate = loanTransaction.PrintedDate.UTC()
+		startDate = loanTransaction.PrintedDate.UTC()
+	}
+	if loanTransaction.PrintedDate == nil {
+		loanTransaction.PrintedDate = &startDate
 	}
 	totalDebit := totalDebitDec.InexactFloat64()
 	totalCredit := totalCreditDec.InexactFloat64()
@@ -137,16 +131,16 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 	totalDec := decimal.NewFromFloat(total)
 
 	for i := range numberOfPayments + 1 {
-		actualDate := paymentDate
+		actualDate := startDate
 		daysSkipped := 0
 		rowTotalDec := decimal.Zero
 
-		daysSkipped, err := skippedDaysCount(paymentDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
+		daysSkipped, err := skippedDaysCount(startDate, currency, excludeSaturday, excludeSunday, excludeHolidays, holidays)
 		if err != nil {
-			return nil, eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", paymentDate.Format("2006-01-02"))
+			return nil, eris.Wrapf(err, "failed to calculate skipped days for payment date: %s", startDate.Format("2006-01-02"))
 		}
 
-		scheduledDate := paymentDate.AddDate(0, 0, daysSkipped)
+		scheduledDate := startDate.AddDate(0, 0, daysSkipped)
 		periodAccounts := make([]*AccountValue, len(accountsSchedule))
 
 		if i > 0 {
@@ -245,7 +239,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
-			paymentDate = paymentDate.AddDate(0, 0, 1)
+			startDate = startDate.AddDate(0, 0, 1)
 
 		case types.LoanModeOfPaymentWeekly:
 			amortization = append(amortization, &LoanAmortizationSchedule{
@@ -257,7 +251,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 				Accounts:      periodAccounts,
 			})
 			weekDay := types.LoanWeeklyIota(weeklyExactDay)
-			paymentDate = nextWeekday(paymentDate, time.Weekday(weekDay))
+			startDate = nextWeekday(startDate, time.Weekday(weekDay))
 
 		case types.LoanModeOfPaymentSemiMonthly:
 			amortization = append(amortization, &LoanAmortizationSchedule{
@@ -268,19 +262,19 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
-			thisDay := paymentDate.Day()
-			thisMonth := paymentDate.Month()
-			thisYear := paymentDate.Year()
-			loc := paymentDate.Location()
+			thisDay := startDate.Day()
+			thisMonth := startDate.Month()
+			thisYear := startDate.Year()
+			loc := startDate.Location()
 
 			switch {
 			case thisDay < semiMonthlyExactDay1:
-				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+				startDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay1, startDate.Hour(), startDate.Minute(), startDate.Second(), startDate.Nanosecond(), loc)
 			case thisDay < semiMonthlyExactDay2:
-				paymentDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+				startDate = time.Date(thisYear, thisMonth, semiMonthlyExactDay2, startDate.Hour(), startDate.Minute(), startDate.Second(), startDate.Nanosecond(), loc)
 			default:
-				nextMonth := paymentDate.AddDate(0, 1, 0)
-				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+				nextMonth := startDate.AddDate(0, 1, 0)
+				startDate = time.Date(nextMonth.Year(), nextMonth.Month(), semiMonthlyExactDay1, startDate.Hour(), startDate.Minute(), startDate.Second(), startDate.Nanosecond(), loc)
 			}
 
 		case types.LoanModeOfPaymentMonthly:
@@ -292,14 +286,14 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
-			loc := paymentDate.Location()
-			day := paymentDate.Day()
+			loc := startDate.Location()
+			day := startDate.Day()
 
 			if isMonthlyExactDay {
-				nextMonth := paymentDate.AddDate(0, 1, 0)
-				paymentDate = time.Date(nextMonth.Year(), nextMonth.Month(), day, paymentDate.Hour(), paymentDate.Minute(), paymentDate.Second(), paymentDate.Nanosecond(), loc)
+				nextMonth := startDate.AddDate(0, 1, 0)
+				startDate = time.Date(nextMonth.Year(), nextMonth.Month(), day, startDate.Hour(), startDate.Minute(), startDate.Second(), startDate.Nanosecond(), loc)
 			} else {
-				paymentDate = paymentDate.AddDate(0, 0, 30)
+				startDate = startDate.AddDate(0, 0, 30)
 			}
 
 		case types.LoanModeOfPaymentQuarterly:
@@ -311,7 +305,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
-			paymentDate = paymentDate.AddDate(0, 3, 0)
+			startDate = startDate.AddDate(0, 3, 0)
 
 		case types.LoanModeOfPaymentSemiAnnual:
 			amortization = append(amortization, &LoanAmortizationSchedule{
@@ -322,7 +316,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
-			paymentDate = paymentDate.AddDate(0, 6, 0)
+			startDate = startDate.AddDate(0, 6, 0)
 
 		case types.LoanModeOfPaymentLumpsum:
 			amortization = append(amortization, &LoanAmortizationSchedule{
@@ -343,7 +337,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 				Total:         rowTotalDec.InexactFloat64(),
 				Accounts:      periodAccounts,
 			})
-			paymentDate = paymentDate.AddDate(0, 0, 1)
+			startDate = startDate.AddDate(0, 0, 1)
 		}
 	}
 

@@ -112,7 +112,7 @@ type (
 	}
 )
 
-func (uo *UserOrganization) UserOrgTime() time.Time {
+func (uo *UserOrganization) TimeMachine() time.Time {
 	if uo.TimeMachineTime != nil && !uo.TimeMachineTime.IsZero() {
 		if uo.Branch != nil && uo.Branch.Currency != nil && uo.Branch.Currency.Timezone != "" {
 			loc, err := time.LoadLocation(uo.Branch.Currency.Timezone)

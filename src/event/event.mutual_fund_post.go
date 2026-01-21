@@ -35,7 +35,7 @@ func GenerateMutualFundEntriesPost(
 	}
 
 	now := time.Now().UTC()
-	userOrgTime := userOrg.UserOrgTime()
+	userOrgTime := userOrg.TimeMachine()
 	if request.EntryDate != nil {
 		userOrgTime = *request.EntryDate
 	}

@@ -110,7 +110,7 @@ func TransactionPayment(
 	fmt.Println("DEBUG: Initializing transaction variables")
 	var transaction *types.Transaction
 	now := time.Now().UTC()
-	timeMachine := userOrg.UserOrgTime()
+	timeMachine := userOrg.TimeMachine()
 
 	fmt.Println("DEBUG: TransactionID nil:", data.TransactionID == nil)
 	if data.TransactionID != nil {

@@ -46,9 +46,7 @@ type Registry[TData any, TResponse any, TRequest any] struct {
 // --------------------
 var registryCache sync.Map
 
-// GetRegistry returns a singleton instance for the given generic type
 func GetRegistry[TData any, TResponse any, TRequest any](params RegistryParams[TData, TResponse, TRequest]) *Registry[TData, TResponse, TRequest] {
-	// key is based on the type names of generics
 	key := fmt.Sprintf("%s-%s-%s",
 		reflect.TypeFor[TData]().Name(),
 		reflect.TypeFor[TResponse]().Name(),

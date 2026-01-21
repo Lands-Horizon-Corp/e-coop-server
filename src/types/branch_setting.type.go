@@ -251,7 +251,7 @@ type (
 
 		UnbalancedAccounts        []*UnbalancedAccountResponse `json:"unbalanced_accounts,omitempty"`
 		TaxInterest               float64                      `json:"tax_interest"`
-		LoanAppliedEqualToBalance bool                         `json:"loan_applied_to_balance"`
+		LoanAppliedEqualToBalance bool                         `json:"loan_applied_equal_to_balance"`
 
 		AccountWalletID *uuid.UUID       `json:"account_wallet_id,omitempty"`
 		AccountWallet   *AccountResponse `json:"account_wallet,omitempty"`

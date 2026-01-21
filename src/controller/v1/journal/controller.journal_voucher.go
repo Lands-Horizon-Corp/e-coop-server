@@ -666,7 +666,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Journal voucher has already been approved"})
 		}
 
-		timeNow := userOrg.UserOrgTime()
+		timeNow := userOrg.TimeMachine()
 		journalVoucher.ApprovedDate = helpers.Ptr(timeNow)
 		journalVoucher.ApprovedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
@@ -734,7 +734,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
 		}
 
-		timeNow := userOrg.UserOrgTime()
+		timeNow := userOrg.TimeMachine()
 		journalVoucher.PrintNumber++
 		journalVoucher.PrintedDate = &timeNow
 		journalVoucher.PrintedByID = &userOrg.UserID
@@ -895,7 +895,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
-		timeNow := userOrg.UserOrgTime()
+		timeNow := userOrg.TimeMachine()
 		journalVoucher.ReleasedDate = &timeNow
 		journalVoucher.ReleasedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()

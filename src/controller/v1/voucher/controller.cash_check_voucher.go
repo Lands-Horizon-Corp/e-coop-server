@@ -668,7 +668,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this cash check voucher"})
 		}
 
-		timeNow := userOrg.UserOrgTime()
+		timeNow := userOrg.TimeMachine()
 
 		cashCheckVoucher.CashVoucherNumber = req.CashVoucherNumber
 		cashCheckVoucher.EntryDate = &timeNow
@@ -725,7 +725,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Cash check voucher is already approved"})
 		}
 
-		timeNow := userOrg.UserOrgTime()
+		timeNow := userOrg.TimeMachine()
 		cashCheckVoucher.ApprovedDate = &timeNow
 		cashCheckVoucher.Status = types.CashCheckVoucherStatusApproved
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
@@ -797,7 +797,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch: " + err.Error()})
 		}
-		timeNow := userOrg.UserOrgTime()
+		timeNow := userOrg.TimeMachine()
 		cashCheckVoucher.ReleasedDate = &timeNow
 		cashCheckVoucher.Status = types.CashCheckVoucherStatusReleased
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()

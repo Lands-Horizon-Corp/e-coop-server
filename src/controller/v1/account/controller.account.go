@@ -739,7 +739,7 @@ func AccountController(service *horizon.HorizonService) {
 		}
 
 		account.UpdatedByID = userOrg.UserID
-		account.UpdatedAt = userOrg.UserOrgTime()
+		account.UpdatedAt = userOrg.TimeMachine()
 		account.BranchID = *userOrg.BranchID
 		account.OrganizationID = userOrg.OrganizationID
 

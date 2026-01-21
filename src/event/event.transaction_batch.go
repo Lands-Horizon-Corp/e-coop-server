@@ -32,7 +32,7 @@ func TransactionBatchEnd(
 		return nil, eris.Wrap(err, "failed to retrieve current transaction batch")
 	}
 	now := time.Now().UTC()
-	timeMachine := userOrg.UserOrgTime()
+	timeMachine := userOrg.TimeMachine()
 	transactionBatch.IsClosed = true
 	transactionBatch.EmployeeUserID = &userOrg.UserID
 	transactionBatch.EmployeeBySignatureMediaID = req.EmployeeBySignatureMediaID
