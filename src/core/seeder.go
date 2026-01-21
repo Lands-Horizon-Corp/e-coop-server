@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	crand "crypto/rand"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -48,17 +47,12 @@ func createImageMedia(ctx context.Context, service *horizon.HorizonService, imag
 }
 
 func Seed(ctx context.Context, service *horizon.HorizonService) error {
-	fmt.Println("1")
 	if err := GlobalSeeder(ctx, service); err != nil {
-		fmt.Println("2")
-		panic(err)
+		return err
 	}
-	fmt.Println("3")
 	if err := SeedVALDECO(ctx, service); err != nil {
-		fmt.Println("4")
-		panic(err)
+		return err
 	}
-	fmt.Println("5")
 	return nil
 }
 
