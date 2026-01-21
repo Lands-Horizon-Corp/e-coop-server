@@ -644,6 +644,7 @@ func BranchController(service *horizon.HorizonService) {
 		fmt.Println("-------------")
 
 		fmt.Println("default: ", branchSetting.DefaultMemberTypeID)
+		fmt.Println("changing to: ", settingsReq.DefaultMemberTypeID)
 
 		branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 		branchSetting.DefaultMemberGenderID = settingsReq.DefaultMemberGenderID
