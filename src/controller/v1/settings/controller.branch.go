@@ -788,10 +788,11 @@ func BranchController(service *horizon.HorizonService) {
 				}
 			} else {
 				newUnbalancedAccount := &types.UnbalancedAccount{
-					CreatedAt:   time.Now().UTC(),
-					CreatedByID: userOrg.UserID,
-					UpdatedAt:   time.Now().UTC(),
-					UpdatedByID: userOrg.UserID,
+					BranchSettingsID: branchSetting.ID,
+					CreatedAt:        time.Now().UTC(),
+					CreatedByID:      userOrg.UserID,
+					UpdatedAt:        time.Now().UTC(),
+					UpdatedByID:      userOrg.UserID,
 
 					Name:                 accountReq.Name,
 					Description:          accountReq.Description,
