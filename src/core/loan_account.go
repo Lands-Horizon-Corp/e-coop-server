@@ -18,9 +18,7 @@ func LoanAccountManager(service *horizon.HorizonService) *registry.Registry[
 	return registry.NewRegistry(registry.RegistryParams[
 		types.LoanAccount, types.LoanAccountResponse, types.LoanAccountRequest,
 	]{
-		Preloads: []string{
-			"CreatedBy", "UpdatedBy", "LoanTransaction", "Account", "AccountHistory",
-		},
+		Preloads: []string{"LoanTransaction", "Account", "Account.Currency", "AccountHistory"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
