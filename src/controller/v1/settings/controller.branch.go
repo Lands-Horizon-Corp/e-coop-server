@@ -820,6 +820,11 @@ func BranchController(service *horizon.HorizonService) {
 			Description:      "Branch settings have been successfully updated",
 			NotificationType: types.NotificationAlert,
 		})
-		return ctx.JSON(http.StatusOK, core.BranchSettingManager(service).ToModel(branchSetting))
+		newBranchSettings, err := core.BranchSettingManager(service).GetByIDRaw(context, branchSetting.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get latest branch settings: " + err.Error()})
+
+		}
+		return ctx.JSON(http.StatusOK, newBranchSettings)
 	})
 }
