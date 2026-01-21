@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
@@ -107,32 +108,27 @@ func LoanGuide(
 
 	for _, acc := range loanAccounts {
 		schedule := []*LoanPaymentSchedule{}
-		for _, entry := range amortization.Schedule {
-			for _, schedAcc := range entry.Accounts {
-				if helpers.UUIDPtrEqual(&schedAcc.Account.ID, acc.AccountID) {
-					// type LoanPaymentSchedule struct {
-					// 	LoanPayments []LoanPayments `json:"loan_payments"`
-
-					// 	AmountDue  float64 `json:"amount_due" validate:"required,gte=0"`  // due or overdue
-					// 	AmountPaid float64 `json:"amount_paid" validate:"required,gte=0"` // paid or advance
-
-					// 	Balance         float64 `json:"balance" validate:"required,gte=0"`          // (Principal amount + interest amount + Fines)-amount paid
-					// 	PrincipalAmount float64 `json:"principal_amount" validate:"required,gte=0"` // the amount the user will pay
-
-					// 	InterestAmount float64 `json:"interest_amount" validate:"required,gte=0"`
-					// 	FinesAmount    float64 `json:"fines_amount" validate:"required,gte=0"`
-
-					// 	Type LoanScheduleStatus `json:"type" validate:"required,oneof=paid due overdue skipped advance"`
-					schedule = append(schedule, &LoanPaymentSchedule{
-						PaymentDate: entry.ScheduledDate,
-						ActualDate:  entry.ActualDate,
-						DaysSkipped: entry.DaysSkipped,
-						Balance:     schedAcc.Value,
-						Type:        LoanScheduleStatusDefault,
-					})
-				}
-			}
+		generalLedgers, err := core.GeneralLedgerManager(service).ArrFind(ctx, []query.ArrFilterSQL{
+			{Field: "account_id", Op: query.ModeEqual, Value: acc.AccountID},
+			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
+			{Field: "branch_id", Op: query.ModeEqual, Value: userOrg.BranchID},
+		}, []query.ArrFilterSortSQL{
+			{Field: "entry_date", Order: query.SortOrderAsc},
+		})
+		if err != nil {
+			return nil, eris.Wrap(err, "error getting general ledger")
 		}
+		fmt.Println(generalLedgers)
+		filterSchedule(amortization.Schedule, acc.AccountID, func(entry *LoanAmortizationSchedule, schedAcc *AccountValue) {
+			schedule = append(schedule, &LoanPaymentSchedule{
+				PaymentDate: entry.ScheduledDate,
+				ActualDate:  entry.ActualDate,
+				DaysSkipped: entry.DaysSkipped,
+				Balance:     schedAcc.Value,
+				Type:        LoanScheduleStatusDefault,
+			})
+		})
+
 		accountSummary := &LoanAccountSummary{
 			LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
 			PaymentSchedules: schedule,
@@ -187,4 +183,19 @@ func LoanGuide(
 	// }
 
 	return response, nil
+}
+
+func filterSchedule(
+	schedule []*LoanAmortizationSchedule,
+	accID *uuid.UUID,
+	callback func(*LoanAmortizationSchedule, *AccountValue),
+) {
+	for _, entry := range schedule {
+		for _, schedAcc := range entry.Accounts {
+			if helpers.UUIDPtrEqual(&schedAcc.Account.ID, accID) {
+				callback(entry, schedAcc)
+				break
+			}
+		}
+	}
 }
