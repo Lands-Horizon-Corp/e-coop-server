@@ -21,7 +21,7 @@ clense:
 ########################################
 
 run:
-	go run . server
+	air
 
 wake: run
 
