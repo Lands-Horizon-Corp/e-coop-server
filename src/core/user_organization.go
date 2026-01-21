@@ -47,6 +47,8 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForOverage",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
+			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage.Media",
+			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage.Media",
 			"Branch.BranchSetting.UnbalancedAccounts.CashOnHandAccount",
 		},
 		Database: service.Database.Client(),
