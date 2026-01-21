@@ -2,11 +2,15 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
+	"github.com/rotisserie/eris"
 )
 
 type LoanScheduleStatus string
@@ -17,6 +21,7 @@ const (
 	LoanScheduleStatusOverdue LoanScheduleStatus = "overdue"
 	LoanScheduleStatusSkipped LoanScheduleStatus = "skipped"
 	LoanScheduleStatusAdvance LoanScheduleStatus = "advance"
+	LoanScheduleStatusDefault LoanScheduleStatus = "default"
 )
 
 type LoanPayments struct {
@@ -26,7 +31,7 @@ type LoanPayments struct {
 	GeneralLedger *types.GeneralLedger `json:"general_ledger"`
 }
 type LoanPaymentSchedule struct {
-	LoanPayments LoanPayments `json:"loan_payments"`
+	LoanPayments []*LoanPayments `json:"loan_payments"`
 
 	PaymentDate   time.Time `json:"payment_date"`
 	ScheduledDate time.Time `json:"scheduled_date"`
@@ -81,46 +86,77 @@ func LoanGuide(
 		TotalOutstanding: 0,
 		TotalOverdue:     0,
 	}
-	// loanTransaction, err := core.LoanTransactionManager(service).GetByID(ctx, loanTransactionID, "Account")
-	// if err != nil {
-	// 	return nil, eris.Wrap(err, "LoanGuide: failed to get loan transaction")
-	// }
-	// numberOfPayments, err := usecase.LoanNumberOfPayments(loanTransaction.ModeOfPayment, loanTransaction.Terms)
-	// if err != nil {
-	// 	return nil, eris.Wrapf(err, "failed to calculate number of payments for loan with mode: %s and terms: %d",
-	// 		loanTransaction.ModeOfPayment, loanTransaction.Terms)
-	// }
-
-	// loanAccounts, err := core.LoanAccountManager(service).Find(ctx, &types.LoanAccount{
-	// 	LoanTransactionID: loanTransaction.ID,
-	// 	OrganizationID:    userOrg.OrganizationID,
-	// 	BranchID:          *userOrg.BranchID,
-	// })
-	// if err != nil {
-	// 	return nil, eris.Wrap(err, "LoanGuide: failed to find loan accounts")
-	// }
-	// amortization, err := LoanAmortization(ctx, service, loanTransactionID, userOrg)
-	// if err != nil {
-	// 	return nil, eris.Wrap(err, "GenerateLoanSchedule: failed to generate amortization")
-	// }
-
-	// // Accumilate principal on each scheduled date
+	loanTransaction, err := core.LoanTransactionManager(service).GetByID(ctx, loanTransactionID, "Account")
+	if err != nil {
+		return nil, eris.Wrap(err, "LoanGuide: failed to get loan transaction")
+	}
+	loanAccounts, err := core.LoanAccountManager(service).Find(ctx, &types.LoanAccount{
+		LoanTransactionID: loanTransaction.ID,
+		OrganizationID:    userOrg.OrganizationID,
+		BranchID:          *userOrg.BranchID,
+	})
+	if err != nil {
+		return nil, eris.Wrap(err, "LoanGuide: failed to find loan accounts")
+	}
+	amortization, err := LoanAmortization(ctx, service, loanTransactionID, userOrg)
+	if err != nil {
+		return nil, eris.Wrap(err, "GenerateLoanSchedule: failed to generate amortization")
+	}
+	fmt.Println(loanAccounts)
 	// currentDate := userOrg.TimeMachine()
-	// for _, entry := range amortization.Schedule {
 
-	// 	// accountSummary := &LoanAccountSummary{
-	// 	// 	LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
-	// 	// 	PaymentSchedules: []*LoanPaymentSchedule{},
-	// 	// 	TotalAmountDue:   0,
-	// 	// 	TotalAmountPaid:  0,
-	// 	// 	CurrentBalance:   0,
-	// 	// 	NextDueDate:      nil,
-	// 	// 	DaysOverdue:      0,
-	// 	// 	OverdueAmount:    0,
-	// 	// 	CompletionStatus: "active",
-	// 	// }
-	// }
+	for _, acc := range loanAccounts {
+		schedule := []*LoanPaymentSchedule{}
+		for _, entry := range amortization.Schedule {
+			for _, schedAcc := range entry.Accounts {
+				if helpers.UUIDPtrEqual(&schedAcc.Account.ID, acc.AccountID) {
+					// type LoanPaymentSchedule struct {
+					// 	LoanPayments []LoanPayments `json:"loan_payments"`
 
+					// 	AmountDue  float64 `json:"amount_due" validate:"required,gte=0"`  // due or overdue
+					// 	AmountPaid float64 `json:"amount_paid" validate:"required,gte=0"` // paid or advance
+
+					// 	Balance         float64 `json:"balance" validate:"required,gte=0"`          // (Principal amount + interest amount + Fines)-amount paid
+					// 	PrincipalAmount float64 `json:"principal_amount" validate:"required,gte=0"` // the amount the user will pay
+
+					// 	InterestAmount float64 `json:"interest_amount" validate:"required,gte=0"`
+					// 	FinesAmount    float64 `json:"fines_amount" validate:"required,gte=0"`
+
+					// 	Type LoanScheduleStatus `json:"type" validate:"required,oneof=paid due overdue skipped advance"`
+					schedule = append(schedule, &LoanPaymentSchedule{
+						PaymentDate: entry.ScheduledDate,
+						ActualDate:  entry.ActualDate,
+						DaysSkipped: entry.DaysSkipped,
+						Balance:     schedAcc.Value,
+						Type:        LoanScheduleStatusDefault,
+					})
+				}
+			}
+		}
+		accountSummary := &LoanAccountSummary{
+			LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
+			PaymentSchedules: schedule,
+			TotalAmountDue:   0,
+			TotalAmountPaid:  0,
+			CurrentBalance:   0,
+			NextDueDate:      nil,
+			DaysOverdue:      0,
+			OverdueAmount:    0,
+			CompletionStatus: "active",
+		}
+		response.LoanAccounts = append(response.LoanAccounts, accountSummary)
+	}
+	// accountSummary := &LoanAccountSummary{
+	// 		LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
+	// 		PaymentSchedules: []*LoanPaymentSchedule{},
+	// 		TotalAmountDue:   0,
+	// 		TotalAmountPaid:  0,
+	// 		CurrentBalance:   0,
+	// 		NextDueDate:      nil,
+	// 		DaysOverdue:      0,
+	// 		OverdueAmount:    0,
+	// 		CompletionStatus: "active",
+	// 	}
 	// for _, acc := range loanAccounts {
 	// 	// generalLedgers, err := core.GeneralLedgerManager(service).ArrFind(ctx, []query.ArrFilterSQL{
 	// 	// 	{Field: "account_id", Op: query.ModeEqual, Value: acc.AccountID},

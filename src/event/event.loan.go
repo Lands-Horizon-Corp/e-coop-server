@@ -277,6 +277,7 @@ func LoanBalancing(
 	if loanTransaction.IsAddOn && totalAddOns.GreaterThan(decimal.Zero) {
 		result[1].Name += fmt.Sprintf(" + Add On Interest (+%s)", totalAddOns.String())
 		result[1].Debit = decimal.NewFromFloat(result[1].Debit).Add(totalAddOns).InexactFloat64()
+		loanTransaction.TotalAddOn = result[1].Debit
 	}
 
 	// =========================
