@@ -22,9 +22,9 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[
 			"CompassionFundAccount.Currency",
 			"UnbalancedAccounts",
 			"UnbalancedAccounts.Currency",
-
 			"UnbalancedAccounts.AccountForShortage",
 			"UnbalancedAccounts.AccountForOverage",
+			"UnbalancedAccounts.MemberProfileIDForOverage",
 			"UnbalancedAccounts.MemberProfileForShortage",
 			"UnbalancedAccounts.MemberProfileForOverage",
 		},

@@ -39,6 +39,8 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 			"Branch.BranchSetting.CashOnHandAccount.Currency",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount.Currency",
+			"Branch.BranchSetting.DefaultMemberGender",
+			"Branch.BranchSetting.DefaultMemberTypeID",
 
 			"Branch.BranchSetting.CompassionFundAccount",
 			"Branch.BranchSetting.CompassionFundAccount.Currency",
@@ -46,6 +48,7 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 			"Branch.BranchSetting.UnbalancedAccounts.Currency",
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.AccountForOverage",
+			"Branch.BranchSetting.UnbalancedAccounts.CashOnHandAccount",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForShortage",
 			"Branch.BranchSetting.UnbalancedAccounts.MemberProfileForOverage",
 		},
