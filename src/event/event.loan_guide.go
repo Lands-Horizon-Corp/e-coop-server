@@ -104,19 +104,21 @@ func LoanGuide(
 	// 	return nil, eris.Wrap(err, "GenerateLoanSchedule: failed to generate amortization")
 	// }
 
+	// // Accumilate principal on each scheduled date
 	// currentDate := userOrg.TimeMachine()
 	// for _, entry := range amortization.Schedule {
-	// 	accountSummary := &LoanAccountSummary{
-	// 		LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
-	// 		PaymentSchedules: []*LoanPaymentSchedule{},
-	// 		TotalAmountDue:   0,
-	// 		TotalAmountPaid:  0,
-	// 		CurrentBalance:   0,
-	// 		NextDueDate:      nil,
-	// 		DaysOverdue:      0,
-	// 		OverdueAmount:    0,
-	// 		CompletionStatus: "active",
-	// 	}
+
+	// 	// accountSummary := &LoanAccountSummary{
+	// 	// 	LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
+	// 	// 	PaymentSchedules: []*LoanPaymentSchedule{},
+	// 	// 	TotalAmountDue:   0,
+	// 	// 	TotalAmountPaid:  0,
+	// 	// 	CurrentBalance:   0,
+	// 	// 	NextDueDate:      nil,
+	// 	// 	DaysOverdue:      0,
+	// 	// 	OverdueAmount:    0,
+	// 	// 	CompletionStatus: "active",
+	// 	// }
 	// }
 
 	// for _, acc := range loanAccounts {
@@ -130,13 +132,12 @@ func LoanGuide(
 	// 	// for _, ledger := range generalLedgers {
 	// 	// 	//
 	// 	// }
-
 	// 	if err != nil {
 	// 		return nil, eris.Wrap(err, "LoanGuide: failed to fetch general ledgers")
 	// 	}
 	// 	accountSummary := &LoanAccountSummary{
 	// 		LoanAccount:      core.LoanAccountManager(service).ToModel(acc),
-	// 		PaymentSchedules: []*LoanPaymentSchedule{},ss
+	// 		PaymentSchedules: []*LoanPaymentSchedule{},
 	// 		TotalAmountDue:   0,
 	// 		TotalAmountPaid:  0,
 	// 		CurrentBalance:   0,
