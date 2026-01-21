@@ -12,6 +12,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 	"gorm.io/gorm"
 )
 
@@ -527,6 +528,8 @@ func AccountController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
+
+		tx, endTx := service.Database.StartTransaction(context)
 		account := &types.Account{
 			CreatedAt:                             time.Now().UTC(),
 			CreatedByID:                           userOrg.UserID,
@@ -613,7 +616,9 @@ func AccountController(service *horizon.HorizonService) {
 			InterestAmortization:        req.InterestAmortization,
 			IsTaxable:                   req.IsTaxable,
 		}
-		tx, endTx := service.Database.StartTransaction(context)
+		if err := core.AccountManager(service).CreateWithTx(context, tx, account); err != nil {
+			return eris.Wrapf(err, "failed to seed account %s", account.Name)
+		}
 		if err := core.CreateAccountHistory(context, service, tx, account); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "create-error",
@@ -622,7 +627,6 @@ func AccountController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create account: " + err.Error()})
 		}
-
 		if len(req.AccountTags) > 0 {
 			var tags []types.AccountTag
 			for _, tagReq := range req.AccountTags {
