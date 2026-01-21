@@ -87,9 +87,10 @@ type (
 		DefaultMemberGenderID *uuid.UUID    `gorm:"type:uuid" json:"default_member_gender_id,omitempty"`
 		DefaultMemberGender   *MemberGender `gorm:"foreignKey:DefaultMemberGenderID;constraint:OnDelete:SET NULL;" json:"default_member_gender,omitempty"`
 
-		DefaultMemberTypeID       *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
-		DefaultMemberType         *MemberType `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
-		LoanAppliedEqualToBalance bool        `gorm:"not null;default:false" json:"loan_applied_equal_to_balance"`
+		DefaultMemberTypeID *uuid.UUID  `gorm:"type:uuid" json:"default_member_type_id,omitempty"`
+		DefaultMemberType   *MemberType `gorm:"foreignKey:DefaultMemberTypeID;constraint:OnDelete:SET NULL;" json:"default_member_type,omitempty"`
+
+		LoanAppliedEqualToBalance bool `gorm:"not null;default:false" json:"loan_applied_equal_to_balance"`
 
 		AnnualDivisor      int                  `gorm:"not null;default:360" json:"annual_divisor"`
 		UnbalancedAccounts []*UnbalancedAccount `gorm:"foreignKey:BranchSettingsID;constraint:OnDelete:CASCADE;" json:"unbalanced_accounts,omitempty"`
