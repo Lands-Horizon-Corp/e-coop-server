@@ -218,13 +218,19 @@ func GetOrganizationPerCategory(context context.Context, service *horizon.Horizo
 }
 
 func SeedOrganization(ctx context.Context, service *horizon.HorizonService, config types.OrganizationSeedConfig) error {
+	fmt.Println(" - 1")
 	orgs, err := OrganizationManager(service).List(ctx)
 	if err != nil {
+		fmt.Println(" - 2")
 		return eris.Wrap(err, "")
 	}
+	fmt.Println(" - 3")
+
 	if len(orgs) > 0 {
-		return nil // Skip if any organizations exist
+		fmt.Println(" - 4")
+		return nil
 	}
+	fmt.Println(" - 5")
 	hashedPassword, err := service.Security.HashPassword(config.AdminPassword)
 	if err != nil {
 		return eris.Wrap(err, "failed to hash password for admin user")
@@ -443,5 +449,7 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, conf
 			}
 		}
 	}
+	fmt.Println(" - last")
+
 	return nil
 }
