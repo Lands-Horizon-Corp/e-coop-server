@@ -586,11 +586,8 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting, err = core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
-
 		tx, endTx := service.Database.StartTransaction(context)
-
 		branchSetting.UpdatedAt = time.Now().UTC()
-
 		branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
 		branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
 		branchSetting.WithdrawORStart = settingsReq.WithdrawORStart
@@ -644,6 +641,9 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting.CheckVoucherGeneralORStart = settingsReq.CheckVoucherGeneralORStart
 		branchSetting.CheckVoucherGeneralORCurrent = settingsReq.CheckVoucherGeneralORCurrent
 		branchSetting.CheckVoucherGeneralPadding = settingsReq.CheckVoucherGeneralPadding
+		fmt.Println("-------------")
+
+		fmt.Println("default: ", branchSetting.DefaultMemberTypeID)
 
 		branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 		branchSetting.DefaultMemberGenderID = settingsReq.DefaultMemberGenderID
@@ -684,6 +684,8 @@ func BranchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get latest branch settings: " + err.Error()})
 
 		}
+		fmt.Println("new: ", newBranchSettings.DefaultMemberTypeID)
+		fmt.Println("-------------")
 		return ctx.JSON(http.StatusOK, newBranchSettings)
 	})
 
