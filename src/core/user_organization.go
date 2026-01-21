@@ -40,7 +40,7 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount",
 			"Branch.BranchSetting.PaidUpSharedCapitalAccount.Currency",
 			"Branch.BranchSetting.DefaultMemberGender",
-			"Branch.BranchSetting.DefaultMemberTypeID",
+			"Branch.BranchSetting.DefaultMemberType",
 
 			"Branch.BranchSetting.CompassionFundAccount",
 			"Branch.BranchSetting.CompassionFundAccount.Currency",
