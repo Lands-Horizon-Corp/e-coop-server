@@ -202,12 +202,10 @@ func BranchController(service *horizon.HorizonService) {
 		}
 
 		branchSetting := &types.BranchSetting{
-			CreatedAt:             time.Now().UTC(),
-			UpdatedAt:             time.Now().UTC(),
-			BranchID:              branch.ID,
-			DefaultMemberTypeID:   nil,
-			DefaultMemberGenderID: nil,
-			CurrencyID:            *req.CurrencyID,
+			CreatedAt:  time.Now().UTC(),
+			UpdatedAt:  time.Now().UTC(),
+			BranchID:   branch.ID,
+			CurrencyID: *req.CurrencyID,
 		}
 
 		if err := core.BranchSettingManager(service).CreateWithTx(context, tx, branchSetting); err != nil {
@@ -758,8 +756,12 @@ func BranchController(service *horizon.HorizonService) {
 			Title:       "Branch Settings Updated",
 			Description: "Branch settings have been successfully updated",
 		})
+		newBranchSettings, err := core.BranchSettingManager(service).GetByIDRaw(context, branchSetting.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get latest branch settings: " + err.Error()})
 
-		return ctx.JSON(http.StatusOK, core.BranchSettingManager(service).ToModel(branchSetting))
+		}
+		return ctx.JSON(http.StatusOK, newBranchSettings)
 	})
 
 	req.RegisterWebRoute(horizon.Route{

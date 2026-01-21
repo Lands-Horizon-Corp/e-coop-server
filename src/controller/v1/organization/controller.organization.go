@@ -170,14 +170,10 @@ func OrganizationController(service *horizon.HorizonService) {
 		}
 
 		branchSetting := &types.BranchSetting{
-			CreatedAt: time.Now().UTC(),
-			UpdatedAt: time.Now().UTC(),
-			BranchID:  branch.ID,
-
+			CreatedAt:  time.Now().UTC(),
+			UpdatedAt:  time.Now().UTC(),
+			BranchID:   branch.ID,
 			CurrencyID: *req.CurrencyID,
-
-			DefaultMemberTypeID:   nil,
-			DefaultMemberGenderID: nil,
 		}
 
 		if err := core.BranchSettingManager(service).CreateWithTx(context, tx, branchSetting); err != nil {
