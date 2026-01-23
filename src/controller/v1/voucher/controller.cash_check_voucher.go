@@ -685,10 +685,13 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		cashCheckVoucher.UpdatedByID = userOrg.UserID
 		cashCheckVoucher.PrintedByID = &userOrg.UserID
 
-		if err := core.CashCheckVoucherManager(service).UpdateByID(context, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
+		if err := core.CashCheckVoucherManager(service).UpdateByIDWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher print status: " + endTx(err).Error()})
 		}
+		if endTx(nil) != nil {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Transaction error" + err.Error()})
 
+		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "print-success",
 			Description: "Successfully printed cash check voucher: " + cashCheckVoucher.CashVoucherNumber,
