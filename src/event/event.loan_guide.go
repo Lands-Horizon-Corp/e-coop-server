@@ -103,7 +103,6 @@ func LoanGuide(
 	if err != nil {
 		return nil, eris.Wrap(err, "GenerateLoanSchedule: failed to generate amortization")
 	}
-	fmt.Println(loanAccounts)
 	// currentDate := userOrg.TimeMachine()
 
 	for _, acc := range loanAccounts {
