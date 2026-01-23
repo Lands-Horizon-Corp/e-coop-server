@@ -688,7 +688,7 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		if err := core.CashCheckVoucherManager(service).UpdateByIDWithTx(context, tx, cashCheckVoucher.ID, cashCheckVoucher); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update cash check voucher print status: " + endTx(err).Error()})
 		}
-		if endTx(nil) != nil {
+		if err := endTx(nil); err != nil {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Transaction error" + err.Error()})
 
 		}
