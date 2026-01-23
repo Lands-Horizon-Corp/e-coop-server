@@ -21,7 +21,9 @@ func IncrementOfficialReceipt(
 	userOrg *types.UserOrganization,
 ) error {
 	fmt.Println("Entering IncrementOfficialReceipt function")
-	branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{})
+	branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
+		BranchID: *userOrg.BranchID,
+	})
 	fmt.Println("Fetched branchSetting")
 	if err != nil {
 		fmt.Println("Error fetching branchSetting")
