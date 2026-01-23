@@ -197,7 +197,9 @@ func IncrementOfficialReceipt(
 	}
 
 	fmt.Println("Checking CheckVoucherGeneral")
-	if branchSetting.CheckVoucherGeneral {
+	fmt.Printf("Source: %v\n", source)
+	fmt.Printf("CheckVoucherGeneral: %t\n", branchSetting.CheckVoucherGeneral)
+	if branchSetting.CheckVoucherGeneral && (source == types.GeneralLedgerSourceLoan || source == types.GeneralLedgerSourceCheckVoucher) {
 		fmt.Println("CheckVoucherGeneral is true")
 		if branchSetting.CheckVoucherGeneralORUnique {
 			fmt.Println("CheckVoucherGeneralORUnique is true")
