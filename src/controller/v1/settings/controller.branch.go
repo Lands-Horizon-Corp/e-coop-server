@@ -683,6 +683,27 @@ func BranchController(service *horizon.HorizonService) {
 	})
 
 	req.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/branch-settings/current",
+		Method:       "GET",
+		Note:         "Get the current branch settings",
+		ResponseType: types.BranchSettingResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil || userOrg.BranchID == nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "User not assigned to a branch"})
+		}
+		branchSettings, err := core.BranchSettingManager(service).FindOneRaw(context, &types.BranchSetting{
+			BranchID: *userOrg.BranchID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusAccepted, map[string]string{"error": "failed to get current branch settings: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, branchSettings)
+	})
+
+	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch-settings/currency",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",

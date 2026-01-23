@@ -76,11 +76,10 @@ func IncrementOfficialReceipt(
 		}
 	case types.GeneralLedgerSourceJournalVoucher:
 		if branchSetting.JournalVoucherORUnique {
-			journalVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
-				OrganizationID:  userOrg.OrganizationID,
-				BranchID:        *userOrg.BranchID,
-				Source:          types.GeneralLedgerSourceJournalVoucher,
-				ReferenceNumber: referenceNumber,
+			journalVouchers, err := core.JournalVoucherManager(service).Find(context, &types.JournalVoucher{
+				OrganizationID:    userOrg.OrganizationID,
+				BranchID:          *userOrg.BranchID,
+				CashVoucherNumber: referenceNumber,
 			})
 			if err != nil {
 				return eris.Wrap(err, "IncrementOfficialReceipt: failed to find journal vouchers")
@@ -92,10 +91,9 @@ func IncrementOfficialReceipt(
 		branchSetting.JournalVoucherORCurrent++
 	case types.GeneralLedgerSourceAdjustment:
 		if branchSetting.AdjustmentVoucherORUnique {
-			adjustments, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
+			adjustments, err := core.AdjustmentEntryManager(service).Find(context, &types.AdjustmentEntry{
 				OrganizationID:  userOrg.OrganizationID,
 				BranchID:        *userOrg.BranchID,
-				Source:          types.GeneralLedgerSourceAdjustment,
 				ReferenceNumber: referenceNumber,
 			})
 			if err != nil {
@@ -111,11 +109,10 @@ func IncrementOfficialReceipt(
 			break
 		}
 		if branchSetting.CashCheckVoucherORUnique {
-			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
-				OrganizationID:  userOrg.OrganizationID,
-				BranchID:        *userOrg.BranchID,
-				Source:          types.GeneralLedgerSourceCheckVoucher,
-				ReferenceNumber: referenceNumber,
+			checkVouchers, err := core.CashCheckVoucherManager(service).Find(context, &types.CashCheckVoucher{
+				OrganizationID:    userOrg.OrganizationID,
+				BranchID:          *userOrg.BranchID,
+				CashVoucherNumber: referenceNumber,
 			})
 			if err != nil {
 				return eris.Wrap(err, "IncrementOfficialReceipt: failed to find check vouchers")
@@ -130,11 +127,10 @@ func IncrementOfficialReceipt(
 			break
 		}
 		if branchSetting.LoanVoucherORUnique {
-			loans, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
-				OrganizationID:  userOrg.OrganizationID,
-				BranchID:        *userOrg.BranchID,
-				Source:          types.GeneralLedgerSourceLoan,
-				ReferenceNumber: referenceNumber,
+			loans, err := core.LoanTransactionManager(service).Find(context, &types.LoanTransaction{
+				OrganizationID: userOrg.OrganizationID,
+				BranchID:       *userOrg.BranchID,
+				CheckNumber:    referenceNumber,
 			})
 			if err != nil {
 				return eris.Wrap(err, "IncrementOfficialReceipt: failed to find loan vouchers")
@@ -148,11 +144,10 @@ func IncrementOfficialReceipt(
 
 	if branchSetting.CheckVoucherGeneral {
 		if branchSetting.CheckVoucherGeneralORUnique {
-			loans, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
-				OrganizationID:  userOrg.OrganizationID,
-				BranchID:        *userOrg.BranchID,
-				Source:          types.GeneralLedgerSourceLoan,
-				ReferenceNumber: referenceNumber,
+			loans, err := core.LoanTransactionManager(service).Find(context, &types.LoanTransaction{
+				OrganizationID: userOrg.OrganizationID,
+				BranchID:       *userOrg.BranchID,
+				CheckNumber:    referenceNumber,
 			})
 			if err != nil {
 				return eris.Wrap(err, "IncrementOfficialReceipt: (general) failed to find loans")
@@ -160,11 +155,10 @@ func IncrementOfficialReceipt(
 			if len(loans) > 0 {
 				return eris.New("IncrementOfficialReceipt: (general) loan with the same reference number already exists")
 			}
-			checkVouchers, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
-				OrganizationID:  userOrg.OrganizationID,
-				BranchID:        *userOrg.BranchID,
-				Source:          types.GeneralLedgerSourceCheckVoucher,
-				ReferenceNumber: referenceNumber,
+			checkVouchers, err := core.CashCheckVoucherManager(service).Find(context, &types.CashCheckVoucher{
+				OrganizationID:    userOrg.OrganizationID,
+				BranchID:          *userOrg.BranchID,
+				CashVoucherNumber: referenceNumber,
 			})
 			if err != nil {
 				return eris.Wrap(err, "IncrementOfficialReceipt: (general) failed to find check vouchers")
