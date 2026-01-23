@@ -182,7 +182,7 @@ func IncrementOfficialReceipt(
 			loans, err := core.LoanTransactionManager(service).Find(context, &types.LoanTransaction{
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
-				CheckNumber:    referenceNumber,
+				Voucher:        referenceNumber,
 			})
 			fmt.Println("Fetched loans")
 			if err != nil {
@@ -208,7 +208,7 @@ func IncrementOfficialReceipt(
 			loans, err := core.LoanTransactionManager(service).Find(context, &types.LoanTransaction{
 				OrganizationID: userOrg.OrganizationID,
 				BranchID:       *userOrg.BranchID,
-				CheckNumber:    referenceNumber,
+				Voucher:        referenceNumber,
 			})
 			fmt.Println("Fetched loans (general)")
 			if err != nil {
