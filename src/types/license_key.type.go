@@ -65,3 +65,22 @@ type LicenseResponse struct {
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 }
+
+type LicenseActivateRequest struct {
+	LicenseKey  string `json:"license_key" validate:"required,len=127"`
+	Fingerprint string `json:"fingerprint" validate:"required,min=10"`
+}
+
+type LicenseActivateResponse struct {
+	SecretKey string `json:"secret_key"`
+}
+
+type LicenseVerifyRequest struct {
+	SecretKey   string `json:"secret_key" validate:"required"`
+	Fingerprint string `json:"fingerprint" validate:"required,min=10"`
+}
+
+type LicenseDeactivateRequest struct {
+	SecretKey   string `json:"secret_key" validate:"required"`
+	Fingerprint string `json:"fingerprint" validate:"required,min=10"`
+}
