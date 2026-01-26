@@ -310,6 +310,11 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 			return err
 		}
 	}
+	if h.AdminDatabase != nil {
+		if err := h.AdminDatabase.Stop(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
