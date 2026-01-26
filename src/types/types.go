@@ -201,6 +201,7 @@ func Models() ([]any, []any) {
 func AdminModels() ([]any, []any) {
 	first := []any{
 		License{},
+		Admin{},
 	}
 	second := []any{}
 	return first, second

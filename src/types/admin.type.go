@@ -60,14 +60,16 @@ type (
 	// Admin Auth
 	// =========================
 	AdminLoginRequest struct {
-		Key      string `json:"key" validate:"required"` // username or email
-		Password string `json:"password" validate:"required,min=8"`
+		Key                string `json:"key" validate:"required"`
+		Password           string `json:"password" validate:"required,min=8"`
+		AdminSuperPassword string `json:"admin_super_password" validate:"required,min=3,max=100"`
 	}
 
 	AdminRegisterRequest struct {
-		Username string `json:"user_name" validate:"required,min=3,max=100"`
-		Email    string `json:"email" validate:"required,email"`
-		Password string `json:"password" validate:"required,min=8"`
+		Username           string `json:"user_name" validate:"required,min=3,max=100"`
+		AdminSuperPassword string `json:"admin_super_password" validate:"required,min=3,max=100"`
+		Email              string `json:"email" validate:"required,email"`
+		Password           string `json:"password" validate:"required,min=8"`
 
 		FirstName  *string `json:"first_name,omitempty"`
 		MiddleName *string `json:"middle_name,omitempty"`

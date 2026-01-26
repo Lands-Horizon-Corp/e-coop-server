@@ -45,6 +45,9 @@ func AdminController(service *horizon.HorizonService) {
 		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
+		if req.AdminSuperPassword != service.Config.AppToken {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cannot create admin. You are now blocked"})
+		}
 		admin, err := core_admin.GetAdminByIdentifier(context, service, req.Key)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid credentials: " + err.Error()})
@@ -69,12 +72,10 @@ func AdminController(service *horizon.HorizonService) {
 		context := ctx.Request().Context()
 		reqData, err := core_admin.AdminManager(service).Validate(ctx)
 		if err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "create-error",
-				Description: "Admin register failed: validation error: " + err.Error(),
-				Module:      "Admin",
-			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
+		}
+		if reqData.AdminSuperPassword != service.Config.AppToken {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Cannot create admin. You are now blocked"})
 		}
 		hashedPwd, err := service.Security.HashPassword(reqData.Password)
 		if err != nil {
