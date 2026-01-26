@@ -1,4 +1,4 @@
-package admin
+package core_admin
 
 import (
 	"fmt"

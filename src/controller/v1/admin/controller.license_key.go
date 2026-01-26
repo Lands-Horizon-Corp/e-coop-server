@@ -6,7 +6,7 @@ import (
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/db/admin"
+	core_admin "github.com/Lands-Horizon-Corp/e-coop-server/src/db/admin"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
@@ -23,7 +23,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		ResponseType: types.LicenseResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		licenses, err := admin.LicenseManager(service).List(context)
+		licenses, err := core_admin.LicenseManager(service).List(context)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No licenses found for the current branch"})
 		}
@@ -41,7 +41,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid license ID"})
 		}
-		license, err := admin.LicenseManager(service).GetByIDRaw(context, licenseID)
+		license, err := core_admin.LicenseManager(service).GetByIDRaw(context, licenseID)
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "License not found"})
 		}
@@ -73,7 +73,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 			UpdatedAt:   time.Now().UTC(),
 			UsedAt:      nil,
 		}
-		if err := admin.LicenseManager(service).Create(context, license); err != nil {
+		if err := core_admin.LicenseManager(service).Create(context, license); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create license: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusCreated, license)
@@ -91,11 +91,11 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid license ID"})
 		}
-		req, err := admin.LicenseManager(service).Validate(ctx)
+		req, err := core_admin.LicenseManager(service).Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank data: " + err.Error()})
 		}
-		license, err := admin.LicenseManager(service).GetByID(context, licenseID)
+		license, err := core_admin.LicenseManager(service).GetByID(context, licenseID)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "error getting license: " + err.Error()})
 		}
@@ -104,7 +104,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		license.ExpiresAt = req.ExpiresAt
 		license.ExpiresAt = req.ExpiresAt
 		license.UpdatedAt = time.Now().UTC()
-		if err := admin.LicenseManager(service).UpdateByID(context, licenseID, license); err != nil {
+		if err := core_admin.LicenseManager(service).UpdateByID(context, licenseID, license); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update license: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, license)
@@ -121,7 +121,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid license ID"})
 		}
-		license, err := admin.LicenseManager(service).GetByID(context, licenseID)
+		license, err := core_admin.LicenseManager(service).GetByID(context, licenseID)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Error getting license: " + err.Error()})
 		}
@@ -131,7 +131,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		}
 		license.LicenseKey = newLicenseKey
 		license.UpdatedAt = time.Now().UTC()
-		if err := admin.LicenseManager(service).UpdateByID(context, licenseID, license); err != nil {
+		if err := core_admin.LicenseManager(service).UpdateByID(context, licenseID, license); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update license key: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, license)

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/db/admin"
+	core_admin "github.com/Lands-Horizon-Corp/e-coop-server/src/db/admin"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
@@ -20,7 +20,7 @@ func ActivateLicense(
 	licenseKey string,
 	fingerprint string,
 ) (string, error) {
-	license, err := admin.LicenseManager(service).FindOne(ctx, &types.License{
+	license, err := core_admin.LicenseManager(service).FindOne(ctx, &types.License{
 		LicenseKey: licenseKey,
 	})
 	if err != nil {
@@ -38,7 +38,7 @@ func ActivateLicense(
 	now := time.Now().UTC()
 	license.IsUsed = true
 	license.UsedAt = &now
-	if err := admin.LicenseManager(service).UpdateByID(ctx, license.ID, license); err != nil {
+	if err := core_admin.LicenseManager(service).UpdateByID(ctx, license.ID, license); err != nil {
 		return "", eris.Wrap(err, "failed to update license")
 	}
 	secretKey := uuid.New().String()
@@ -138,7 +138,7 @@ func DeactivateLicense(
 	license.IsUsed = false
 	license.UsedAt = nil
 	license.IsRevoked = true
-	if err := admin.LicenseManager(service).UpdateByID(ctx, license.ID, license); err != nil {
+	if err := core_admin.LicenseManager(service).UpdateByID(ctx, license.ID, license); err != nil {
 		return eris.Wrap(err, "failed to update license in database")
 	}
 	if err := service.Cache.Delete(ctx, redisKey); err != nil {
