@@ -4,11 +4,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/admin/types"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/db/admin"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/labstack/echo/v4"
 )
@@ -17,22 +16,20 @@ import (
 func LicenseKeyController(service *horizon.HorizonService) {
 	req := service.API
 
-	// Get all licenses
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license",
 		Method:       "GET",
-		Note:         "Returns all licenses.",
+		Note:         "Returns all licenses for the current user's organization and branch. Returns empty if not authenticated.",
 		ResponseType: types.LicenseResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-		licenses, err := service.AdminDatabase.Client().Find(&[]types.License{})
+		licenses, err := admin.LicenseManager(service).List(context)
 		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch licenses: " + err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "No licenses found for the current branch"})
 		}
 		return ctx.JSON(http.StatusOK, licenses)
 	})
 
-	// Get license by ID
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license/:license_id",
 		Method:       "GET",
@@ -44,14 +41,13 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid license ID"})
 		}
-		var license types.License
-		if err := service.AdminDatabase.Client().First(&license, "id = ?", *licenseID).Error; err != nil {
+		license, err := admin.LicenseManager(service).GetByIDRaw(context, licenseID)
+		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "License not found"})
 		}
 		return ctx.JSON(http.StatusOK, license)
 	})
 
-	// Create license
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license",
 		Method:       "POST",
@@ -64,26 +60,25 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		if err := ctx.Bind(reqBody); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-
-		license := &types.License{
-			ID:             helpers.NewUUID(),
-			Name:           reqBody.Name,
-			Description:    reqBody.Description,
-			LicenseKey:     helpers.GenerateRandomKey(), // you can implement your own generator
-			ExpirationDate: reqBody.ExpirationDate,
-			CreatedAt:      time.Now().UTC(),
-			UpdatedAt:      time.Now().UTC(),
-			Used:           false,
+		licenseKey, err := helpers.GenerateLicenseKey()
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate license key: " + err.Error()})
 		}
-
-		if err := service.AdminDatabase.Client().Create(license).Error; err != nil {
+		license := &types.License{
+			Name:        reqBody.Name,
+			Description: reqBody.Description,
+			LicenseKey:  licenseKey,
+			ExpiresAt:   reqBody.ExpiresAt,
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
+			UsedAt:      nil,
+		}
+		if err := admin.LicenseManager(service).Create(context, license); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create license: " + err.Error()})
 		}
-
 		return ctx.JSON(http.StatusCreated, license)
 	})
 
-	// Update license
 	req.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license/:license_id",
 		Method:       "PUT",
@@ -96,19 +91,18 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid license ID"})
 		}
-
-		reqBody := &types.LicenseRequest{}
-		if err := ctx.Bind(reqBody); err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
+		req, err := admin.LicenseManager(service).Validate(ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid bank data: " + err.Error()})
 		}
-
 		license, err := admin.LicenseManager(service).GetByID(context, licenseID)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "error getting license: " + err.Error()})
 		}
-		license.Name = reqBody.Name
-		license.Description = reqBody.Description
-		license.ExpirationDate = reqBody.ExpirationDate
+		license.Name = req.Name
+		license.Description = req.Description
+		license.ExpiresAt = req.ExpiresAt
+		license.ExpiresAt = req.ExpiresAt
 		license.UpdatedAt = time.Now().UTC()
 		if err := admin.LicenseManager(service).UpdateByID(context, licenseID, license); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update license: " + err.Error()})
@@ -116,7 +110,33 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, license)
 	})
 
-	// Delete license
+	req.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/license/:license_id/refresh",
+		Method:       "POST",
+		Note:         "Regenerates the license key for a license by ID.",
+		ResponseType: types.LicenseResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		licenseID, err := helpers.EngineUUIDParam(ctx, "license_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid license ID"})
+		}
+		license, err := admin.LicenseManager(service).GetByID(context, licenseID)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Error getting license: " + err.Error()})
+		}
+		newLicenseKey, err := helpers.GenerateLicenseKey()
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to generate license key: " + err.Error()})
+		}
+		license.LicenseKey = newLicenseKey
+		license.UpdatedAt = time.Now().UTC()
+		if err := admin.LicenseManager(service).UpdateByID(context, licenseID, license); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update license key: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, license)
+	})
+
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/license/activate",
 		Method:      "POST",
@@ -137,6 +157,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		}
 		return ctx.JSON(http.StatusOK, secretKey)
 	})
+
 	req.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/license/verify",
 		Method:      "POST",
@@ -175,14 +196,10 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		if err := service.Validator.Struct(reqBody); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
 		err := event.DeactivateLicense(context, service, reqBody.SecretKey, reqBody.Fingerprint)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
-
-		return ctx.JSON(http.StatusOK, map[string]string{
-			"message": "License deactivated successfully",
-		})
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "License deactivated successfully"})
 	})
 }

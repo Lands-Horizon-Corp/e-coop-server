@@ -38,7 +38,6 @@ func ActivateLicense(
 	now := time.Now().UTC()
 	license.IsUsed = true
 	license.UsedAt = &now
-	license.UseCount += 1
 	if err := admin.LicenseManager(service).UpdateByID(ctx, license.ID, license); err != nil {
 		return "", eris.Wrap(err, "failed to update license")
 	}

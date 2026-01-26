@@ -140,12 +140,12 @@ func NewConfigImpl() (*ConfigImpl, error) {
 	v.SetDefault("DATABASE_MAX_OPEN_CONN", 100)
 	v.SetDefault("DATABASE_MAX_LIFETIME", 0)
 
-	v.SetDefault("ADMIN_POSTGRES_USER", "admin")
-	v.SetDefault("ADMIN_POSTGRES_PASSWORD", "adminpass")
-	v.SetDefault("ADMIN_POSTGRES_DB", "admindb")
-	v.SetDefault("ADMIN_POSTGRES_PORT", 5432)
-	v.SetDefault("ADMIN_POSTGRES_HOST", "127.0.0.1")
-	v.SetDefault("ADMIN_DATABASE_URL", "")
+	v.SetDefault("ADMIN_POSTGRES_USER", v.GetString("POSTGRES_USER"))
+	v.SetDefault("ADMIN_POSTGRES_PASSWORD", v.GetString("POSTGRES_PASSWORD"))
+	v.SetDefault("ADMIN_POSTGRES_DB", v.GetString("POSTGRES_DB"))
+	v.SetDefault("ADMIN_POSTGRES_PORT", v.GetInt("POSTGRES_PORT"))
+	v.SetDefault("ADMIN_POSTGRES_HOST", v.GetString("POSTGRES_HOST"))
+	v.SetDefault("ADMIN_DATABASE_URL", v.GetString("DATABASE_URL"))
 
 	v.SetDefault("REDIS_HOST", "127.0.0.1")
 	v.SetDefault("REDIS_PORT", 6379)
@@ -297,8 +297,6 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		MailpitUIHost:      v.GetString("MAILPIT_UI_HOST"),
 		MailpitUIPort:      v.GetInt("MAILPIT_UI_PORT"),
 	}
-
-	// Build DatabaseURL if not set
 	if cfg.DatabaseURL == "" {
 		cfg.DatabaseURL = fmt.Sprintf(
 			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
@@ -309,7 +307,6 @@ func NewConfigImpl() (*ConfigImpl, error) {
 			cfg.PostgresDB,
 		)
 	}
-
 	if cfg.AdminDatabaseURL == "" {
 		cfg.AdminDatabaseURL = fmt.Sprintf(
 			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
@@ -320,6 +317,8 @@ func NewConfigImpl() (*ConfigImpl, error) {
 			cfg.AdminPostgresDB,
 		)
 	}
-
+	if cfg.AdminDatabaseURL == "" {
+		cfg.AdminDatabaseURL = cfg.DatabaseURL
+	}
 	return cfg, nil
 }

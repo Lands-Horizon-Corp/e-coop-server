@@ -3,6 +3,8 @@ package helpers
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -480,4 +482,38 @@ func Int64ToUint8(v int64, name string) (uint8, error) {
 		return 0, fmt.Errorf("%s out of range: %d", name, v)
 	}
 	return uint8(v), nil
+}
+
+func GenerateLicenseKey() (string, error) {
+	uuid := make([]byte, 16)
+	if _, err := rand.Read(uuid); err != nil {
+		return "", err
+	}
+	uuid[6] = (uuid[6] & 0x0f) | 0x40
+	uuid[8] = (uuid[8] & 0x3f) | 0x80
+	uuidStr := fmt.Sprintf("%x-%x-%x-%x-%x",
+		uuid[0:4],
+		uuid[4:6],
+		uuid[6:8],
+		uuid[8:10],
+		uuid[10:16],
+	)
+	timestamp := time.Now().UTC().UnixNano()
+	entropy := make([]byte, 32)
+	if _, err := rand.Read(entropy); err != nil {
+		return "", err
+	}
+	payload := fmt.Sprintf("%s:%d:%x", uuidStr, timestamp, entropy)
+	hash := sha256.Sum256([]byte(payload))
+	hashStr := hex.EncodeToString(hash[:])
+	license := strings.ToUpper(fmt.Sprintf(
+		"%s-%s-%s-%s-%s",
+		hashStr[0:5],
+		hashStr[5:10],
+		hashStr[10:15],
+		hashStr[15:20],
+		hashStr[20:25],
+	))
+
+	return license, nil
 }

@@ -42,8 +42,6 @@ func LicenseManager(service *horizon.HorizonService) *registry.Registry[
 				IsUsed:      data.IsUsed,
 				UsedAt:      usedAt,
 				IsRevoked:   data.IsRevoked,
-				MaxUses:     data.MaxUses,
-				UseCount:    data.UseCount,
 				CreatedAt:   data.CreatedAt.Format(time.RFC3339),
 				UpdatedAt:   data.UpdatedAt.Format(time.RFC3339),
 			}

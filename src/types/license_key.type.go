@@ -26,26 +26,18 @@ type License struct {
 	ExpiresAt   *time.Time `gorm:"index" json:"expires_at,omitempty"`
 
 	// Usage
-	IsUsed   bool       `gorm:"default:false" json:"is_used"`
-	UsedAt   *time.Time `json:"used_at,omitempty"`
-	UsedByID *uuid.UUID `gorm:"type:uuid" json:"used_by_id,omitempty"`
-	UsedBy   *User      `gorm:"foreignKey:UsedByID;constraint:OnDelete:SET NULL;" json:"used_by,omitempty"`
+	IsUsed bool       `gorm:"default:false" json:"is_used"`
+	UsedAt *time.Time `json:"used_at,omitempty"`
 
 	// Status
 	IsRevoked bool       `gorm:"default:false" json:"is_revoked"`
 	RevokedAt *time.Time `json:"revoked_at,omitempty"`
-
-	// Extra (future-proof)
-	MaxUses  int            `gorm:"default:1" json:"max_uses"`
-	UseCount int            `gorm:"default:0" json:"use_count"`
-	Metadata map[string]any `gorm:"type:jsonb" json:"metadata,omitempty"`
 }
 
 type LicenseRequest struct {
 	Name        string     `json:"name" validate:"required,min=1,max=255"`
 	Description string     `json:"description,omitempty"`
 	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
-	MaxUses     int        `json:"max_uses" validate:"gte=1"`
 }
 
 type LicenseResponse struct {
@@ -58,9 +50,6 @@ type LicenseResponse struct {
 	IsUsed    bool    `json:"is_used"`
 	UsedAt    *string `json:"used_at,omitempty"`
 	IsRevoked bool    `json:"is_revoked"`
-
-	MaxUses  int `json:"max_uses"`
-	UseCount int `json:"use_count"`
 
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`

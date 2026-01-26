@@ -21,7 +21,7 @@ import (
 func Controllers(service *horizon.HorizonService) error {
 
 	// Admin
-	admin.LicenseKey(service)
+	admin.LicenseKeyController(service)
 
 	// Settings Module
 	settings.Heartbeat(service)
