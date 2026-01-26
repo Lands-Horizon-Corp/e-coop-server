@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/account"
+	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/admin"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/charges"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/funds"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/journal"
@@ -18,6 +19,10 @@ import (
 )
 
 func Controllers(service *horizon.HorizonService) error {
+
+	// Admin
+	admin.LicenseKey(service)
+
 	// Settings Module
 	settings.Heartbeat(service)
 	settings.BranchController(service)

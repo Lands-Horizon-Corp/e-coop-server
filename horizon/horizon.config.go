@@ -38,6 +38,13 @@ type ConfigImpl struct {
 	DBMaxOpenConn        int
 	DBMaxLifetimeSeconds int64
 
+	AdminPostgresUser     string
+	AdminPostgresPassword string
+	AdminPostgresDB       string
+	AdminPostgresPort     int
+	AdminPostgresHost     string
+	AdminDatabaseURL      string
+
 	// Redis
 	RedisHost     string
 	RedisPort     int
@@ -133,6 +140,13 @@ func NewConfigImpl() (*ConfigImpl, error) {
 	v.SetDefault("DATABASE_MAX_OPEN_CONN", 100)
 	v.SetDefault("DATABASE_MAX_LIFETIME", 0)
 
+	v.SetDefault("ADMIN_POSTGRES_USER", "admin")
+	v.SetDefault("ADMIN_POSTGRES_PASSWORD", "adminpass")
+	v.SetDefault("ADMIN_POSTGRES_DB", "admindb")
+	v.SetDefault("ADMIN_POSTGRES_PORT", 5432)
+	v.SetDefault("ADMIN_POSTGRES_HOST", "127.0.0.1")
+	v.SetDefault("ADMIN_DATABASE_URL", "")
+
 	v.SetDefault("REDIS_HOST", "127.0.0.1")
 	v.SetDefault("REDIS_PORT", 6379)
 	v.SetDefault("REDIS_PASSWORD", "password")
@@ -224,6 +238,13 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		DBMaxOpenConn:        v.GetInt("DATABASE_MAX_OPEN_CONN"),
 		DBMaxLifetimeSeconds: v.GetInt64("DATABASE_MAX_LIFETIME"),
 
+		AdminPostgresUser:     v.GetString("ADMIN_POSTGRES_USER"),
+		AdminPostgresPassword: v.GetString("ADMIN_POSTGRES_PASSWORD"),
+		AdminPostgresDB:       v.GetString("ADMIN_POSTGRES_DB"),
+		AdminPostgresPort:     v.GetInt("ADMIN_POSTGRES_PORT"),
+		AdminPostgresHost:     v.GetString("ADMIN_POSTGRES_HOST"),
+		AdminDatabaseURL:      v.GetString("ADMIN_DATABASE_URL"),
+
 		RedisHost:     v.GetString("REDIS_HOST"),
 		RedisPort:     v.GetInt("REDIS_PORT"),
 		RedisPassword: v.GetString("REDIS_PASSWORD"),
@@ -286,6 +307,17 @@ func NewConfigImpl() (*ConfigImpl, error) {
 			cfg.PostgresHost,
 			cfg.PostgresPort,
 			cfg.PostgresDB,
+		)
+	}
+
+	if cfg.AdminDatabaseURL == "" {
+		cfg.AdminDatabaseURL = fmt.Sprintf(
+			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+			cfg.AdminPostgresUser,
+			cfg.AdminPostgresPassword,
+			cfg.AdminPostgresHost,
+			cfg.AdminPostgresPort,
+			cfg.AdminPostgresDB,
 		)
 	}
 

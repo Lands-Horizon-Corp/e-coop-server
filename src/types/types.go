@@ -4,6 +4,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/google/uuid"
 	"github.com/rotisserie/eris"
+	"gorm.io/gorm"
 )
 
 type (
@@ -197,24 +198,52 @@ func Models() ([]any, []any) {
 	return first, second
 }
 
-func Migrate(service *horizon.HorizonService) error {
-	parents, dependents := Models()
-	if err := service.Database.Client().AutoMigrate(parents...); err != nil {
-		return eris.Wrapf(err, "failed to migrate parent tables")
+func AdminModels() ([]any, []any) {
+	first := []any{
+		License{},
 	}
-	if err := service.Database.Client().AutoMigrate(dependents...); err != nil {
-		return eris.Wrapf(err, "failed to migrate dependent tables")
+	second := []any{}
+	return first, second
+}
+
+func MigrateDB(db *gorm.DB, modelsFunc func() ([]any, []any), dbName string) error {
+	parents, dependents := modelsFunc()
+	if err := db.AutoMigrate(parents...); err != nil {
+		return eris.Wrapf(err, "failed to migrate parent tables in %s", dbName)
+	}
+	if err := db.AutoMigrate(dependents...); err != nil {
+		return eris.Wrapf(err, "failed to migrate dependent tables in %s", dbName)
+	}
+	return nil
+}
+
+func DropDB(db *gorm.DB, modelsFunc func() ([]any, []any), dbName string) error {
+	parents, dependents := modelsFunc()
+	if err := db.Migrator().DropTable(dependents...); err != nil {
+		return eris.Wrapf(err, "failed to drop dependent tables in %s", dbName)
+	}
+	if err := db.Migrator().DropTable(parents...); err != nil {
+		return eris.Wrapf(err, "failed to drop parent tables in %s", dbName)
+	}
+	return nil
+}
+
+func Migrate(service *horizon.HorizonService) error {
+	if err := MigrateDB(service.Database.Client(), Models, "CoreDatabase"); err != nil {
+		return err
+	}
+	if err := MigrateDB(service.AdminDatabase.Client(), AdminModels, "AdminDatabase"); err != nil {
+		return err
 	}
 	return nil
 }
 
 func Drop(service *horizon.HorizonService) error {
-	parents, dependents := Models()
-	if err := service.Database.Client().Migrator().DropTable(dependents...); err != nil {
-		return eris.Wrapf(err, "failed to drop dependent tables")
+	if err := DropDB(service.Database.Client(), Models, "CoreDatabase"); err != nil {
+		return err
 	}
-	if err := service.Database.Client().Migrator().DropTable(parents...); err != nil {
-		return eris.Wrapf(err, "failed to drop parent tables")
+	if err := DropDB(service.AdminDatabase.Client(), AdminModels, "AdminDatabase"); err != nil {
+		return err
 	}
 	return nil
 }

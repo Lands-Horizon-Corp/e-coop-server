@@ -21,18 +21,19 @@ const delay = 3 * time.Second
 const retry = 5
 
 type HorizonService struct {
-	API      *APIImpl
-	Broker   *MessageBrokerImpl
-	Cache    *CacheImpl
-	Config   *ConfigImpl
-	Database *DatabaseImpl
-	OTP      *OTPImpl
-	QR       *QRImpl
-	Schedule *ScheduleImpl
-	Security *SecurityImpl
-	SMS      *SMSImpl
-	SMTP     *SMTPImpl
-	Storage  *StorageImpl
+	API           *APIImpl
+	Broker        *MessageBrokerImpl
+	Cache         *CacheImpl
+	Config        *ConfigImpl
+	Database      *DatabaseImpl
+	AdminDatabase *DatabaseImpl
+	OTP           *OTPImpl
+	QR            *QRImpl
+	Schedule      *ScheduleImpl
+	Security      *SecurityImpl
+	SMS           *SMSImpl
+	SMTP          *SMTPImpl
+	Storage       *StorageImpl
 
 	Validator *validator.Validate
 	Logger    *zap.Logger
@@ -88,8 +89,15 @@ func NewHorizonService(lifetime bool) *HorizonService {
 		service.Config.StorageDriver,
 		service.Config.StorageMaxSize,
 		service.secured)
+
 	service.Database = NewDatabaseImpl(
 		service.Config.DatabaseURL,
+		service.Config.DBMaxIdleConn,
+		service.Config.DBMaxOpenConn,
+		time.Duration(service.Config.DBMaxLifetimeSeconds)*time.Second)
+
+	service.AdminDatabase = NewDatabaseImpl(
+		service.Config.AdminDatabaseURL,
 		service.Config.DBMaxIdleConn,
 		service.Config.DBMaxOpenConn,
 		time.Duration(service.Config.DBMaxLifetimeSeconds)*time.Second)
@@ -189,6 +197,18 @@ func (h *HorizonService) Run(ctx context.Context) error {
 		h.printStatus("Database", "ok")
 	}
 
+	if h.AdminDatabase != nil {
+		h.printStatus("AdminDatabase", "init")
+		if err := helpers.Retry(ctx, retry, delay, func() error {
+			return h.AdminDatabase.Run(ctx)
+		}); err != nil {
+			h.printStatus("AdminDatabase", "fail")
+			h.Logger.Error("AdminDatabase error", zap.Error(err))
+			return err
+		}
+		h.printStatus("AdminDatabase", "ok")
+	}
+
 	if h.OTP != nil {
 		if h.Cache == nil {
 			h.Logger.Error("OTP service requires a cache service")
@@ -259,41 +279,6 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 	h.Logger.Info("Horizon App Started")
 	return nil
 }
-func (h *HorizonService) printUIEndpoints() {
-	if h.secured {
-		return
-	}
-	headerStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212")).
-		Align(lipgloss.Center)
-	cellStyle := lipgloss.NewStyle().
-		Padding(0, 1)
-	urlStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("39"))
-	t := table.New().
-		Headers("Service", "URL").
-		Border(lipgloss.RoundedBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("240"))).
-		StyleFunc(func(row, col int) lipgloss.Style {
-			if row == 0 {
-				return headerStyle
-			}
-			if col == 1 {
-				return urlStyle
-			}
-			return cellStyle
-		}).
-		Rows(
-			[]string{"Mailpit", fmt.Sprintf("http://%s:%d", h.Config.MailpitUIHost, h.Config.MailpitUIPort)},
-			[]string{"RedisInsight", fmt.Sprintf("http://%s:%d", h.Config.RedisInsightHost, h.Config.RedisInsightPort)},
-			[]string{"PgAdmin", fmt.Sprintf("http://%s:%d", h.Config.PgAdminHost, h.Config.PgAdminPort)},
-			[]string{"Storage Console", fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort)},
-			[]string{"NATS Monitor", fmt.Sprintf("http://%s:%d", h.Config.NatsHost, h.Config.NatsMonitorPort)},
-		)
-	log.Println(t)
-}
-
 func (h *HorizonService) Stop(ctx context.Context) error {
 	if h.API != nil {
 		if err := h.API.Stop(ctx); err != nil {
@@ -340,4 +325,39 @@ func (h *HorizonService) printStatus(service string, status string) {
 		h.Logger.Error("Failed to initialize service", zap.String("service", service))
 		_ = os.Stdout.Sync()
 	}
+}
+
+func (h *HorizonService) printUIEndpoints() {
+	if h.secured {
+		return
+	}
+	headerStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("212")).
+		Align(lipgloss.Center)
+	cellStyle := lipgloss.NewStyle().
+		Padding(0, 1)
+	urlStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("39"))
+	t := table.New().
+		Headers("Service", "URL").
+		Border(lipgloss.RoundedBorder()).
+		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("240"))).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			if row == 0 {
+				return headerStyle
+			}
+			if col == 1 {
+				return urlStyle
+			}
+			return cellStyle
+		}).
+		Rows(
+			[]string{"Mailpit", fmt.Sprintf("http://%s:%d", h.Config.MailpitUIHost, h.Config.MailpitUIPort)},
+			[]string{"RedisInsight", fmt.Sprintf("http://%s:%d", h.Config.RedisInsightHost, h.Config.RedisInsightPort)},
+			[]string{"PgAdmin", fmt.Sprintf("http://%s:%d", h.Config.PgAdminHost, h.Config.PgAdminPort)},
+			[]string{"Storage Console", fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort)},
+			[]string{"NATS Monitor", fmt.Sprintf("http://%s:%d", h.Config.NatsHost, h.Config.NatsMonitorPort)},
+		)
+	log.Println(t)
 }

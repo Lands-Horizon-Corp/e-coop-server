@@ -1,0 +1,67 @@
+package types
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type License struct {
+	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+
+	// Audit
+	CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
+	CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
+	CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
+	UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
+	UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
+	UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+
+	// License Core
+	Name        string     `gorm:"type:varchar(255);not null" json:"name"`
+	Description string     `gorm:"type:text" json:"description"`
+	LicenseKey  string     `gorm:"type:varchar(255);uniqueIndex;not null" json:"license_key"`
+	ExpiresAt   *time.Time `gorm:"index" json:"expires_at,omitempty"`
+
+	// Usage
+	IsUsed   bool       `gorm:"default:false" json:"is_used"`
+	UsedAt   *time.Time `json:"used_at,omitempty"`
+	UsedByID *uuid.UUID `gorm:"type:uuid" json:"used_by_id,omitempty"`
+	UsedBy   *User      `gorm:"foreignKey:UsedByID;constraint:OnDelete:SET NULL;" json:"used_by,omitempty"`
+
+	// Status
+	IsRevoked bool       `gorm:"default:false" json:"is_revoked"`
+	RevokedAt *time.Time `json:"revoked_at,omitempty"`
+
+	// Extra (future-proof)
+	MaxUses  int            `gorm:"default:1" json:"max_uses"`
+	UseCount int            `gorm:"default:0" json:"use_count"`
+	Metadata map[string]any `gorm:"type:jsonb" json:"metadata,omitempty"`
+}
+
+type LicenseRequest struct {
+	Name        string     `json:"name" validate:"required,min=1,max=255"`
+	Description string     `json:"description,omitempty"`
+	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
+	MaxUses     int        `json:"max_uses" validate:"gte=1"`
+}
+
+type LicenseResponse struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	LicenseKey  string    `json:"license_key"`
+	ExpiresAt   *string   `json:"expires_at,omitempty"`
+
+	IsUsed    bool    `json:"is_used"`
+	UsedAt    *string `json:"used_at,omitempty"`
+	IsRevoked bool    `json:"is_revoked"`
+
+	MaxUses  int `json:"max_uses"`
+	UseCount int `json:"use_count"`
+
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
