@@ -13,7 +13,6 @@ import (
 )
 
 func MemberAddressController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-address/member-profile/:member_profile_id",

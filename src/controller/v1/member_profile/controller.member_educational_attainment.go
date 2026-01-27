@@ -13,7 +13,6 @@ import (
 )
 
 func MemberEducationalAttainmentController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-educational-attainment/member-profile/:member_profile_id",

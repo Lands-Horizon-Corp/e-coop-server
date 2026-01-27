@@ -13,7 +13,6 @@ import (
 )
 
 func TimeDepositComputationPreMatureController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-computation-pre-mature/time-deposit-type/:time_deposit_type_id",

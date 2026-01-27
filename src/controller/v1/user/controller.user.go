@@ -12,7 +12,6 @@ import (
 )
 
 func UserController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user/:user_id",

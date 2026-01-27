@@ -14,7 +14,6 @@ import (
 )
 
 func FinancialStatementController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping",

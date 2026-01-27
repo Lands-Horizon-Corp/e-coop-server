@@ -15,7 +15,6 @@ import (
 
 func AccountTransactionController(service *horizon.HorizonService) {
 
-	
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-transaction/account/:account_id/year/:year",
 		Method:       "GET",

@@ -13,7 +13,6 @@ import (
 )
 
 func TimesheetController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/current",

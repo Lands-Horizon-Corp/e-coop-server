@@ -15,7 +15,6 @@ import (
 )
 
 func AdjustmentEntryController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry",

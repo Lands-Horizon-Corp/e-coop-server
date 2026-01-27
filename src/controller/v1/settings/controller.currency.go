@@ -16,7 +16,6 @@ import (
 )
 
 func CurrencyController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency",

@@ -13,7 +13,6 @@ import (
 )
 
 func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search",

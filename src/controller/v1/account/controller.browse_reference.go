@@ -14,7 +14,6 @@ import (
 )
 
 func BrowseReferenceController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",

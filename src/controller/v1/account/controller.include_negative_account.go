@@ -13,7 +13,6 @@ import (
 )
 
 func IncludeNegativeAccountController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id/search",

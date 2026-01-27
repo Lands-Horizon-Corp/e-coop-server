@@ -16,8 +16,6 @@ import (
 
 func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 
-	
-
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-savings-interest/search",
 		Method:       "GET",

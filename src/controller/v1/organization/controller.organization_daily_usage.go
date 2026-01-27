@@ -12,7 +12,6 @@ import (
 )
 
 func OrganizationDailyUsageController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization-daily-usage",

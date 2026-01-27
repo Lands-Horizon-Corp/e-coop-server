@@ -18,8 +18,6 @@ import (
 
 func UserOrganizationController(service *horizon.HorizonService) {
 
-	
-
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id/permission",
 		Method:       "PUT",

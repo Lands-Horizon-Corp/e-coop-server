@@ -13,7 +13,6 @@ import (
 )
 
 func DisbursementTransactionController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement-transaction",

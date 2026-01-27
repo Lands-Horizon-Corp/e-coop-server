@@ -14,7 +14,6 @@ import (
 )
 
 func MemberProfileMediaController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-media/member-profile/:member_profile_id",

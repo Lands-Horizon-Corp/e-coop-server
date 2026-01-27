@@ -13,7 +13,6 @@ import (
 )
 
 func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/charges-rate-scheme/:charges_rate_scheme_id",

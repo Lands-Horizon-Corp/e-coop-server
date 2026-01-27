@@ -14,7 +14,6 @@ import (
 )
 
 func OrganizationMediaController(service *horizon.HorizonService) {
-	
 
 	// Get all organization media for a specific organization
 	service.API.RegisterWebRoute(horizon.Route{

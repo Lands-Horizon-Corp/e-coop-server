@@ -13,7 +13,6 @@ import (
 )
 
 func MemberJointAccountController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-joint-account/member-profile/:member_profile_id",

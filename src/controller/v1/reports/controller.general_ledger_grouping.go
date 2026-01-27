@@ -14,7 +14,6 @@ import (
 )
 
 func GeneralLedgerGroupingController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-accounts-grouping",

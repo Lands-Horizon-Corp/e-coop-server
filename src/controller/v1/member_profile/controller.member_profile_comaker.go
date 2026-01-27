@@ -12,7 +12,6 @@ import (
 )
 
 func MemberProfileComakerController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-comaker/member-profile/:member_profile_id",

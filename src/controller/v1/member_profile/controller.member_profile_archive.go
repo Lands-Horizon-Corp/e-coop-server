@@ -15,7 +15,6 @@ import (
 )
 
 func MemberProfileArchiveController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id",

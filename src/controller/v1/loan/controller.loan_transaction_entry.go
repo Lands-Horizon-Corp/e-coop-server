@@ -14,7 +14,6 @@ import (
 )
 
 func LoanTransactionEntryController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction-entry/loan-transaction/:loan_transaction_id/deduction",

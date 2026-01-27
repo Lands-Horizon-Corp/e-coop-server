@@ -14,7 +14,6 @@ import (
 )
 
 func MutualFundsController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/mutual-fund",

@@ -13,7 +13,6 @@ import (
 )
 
 func ComputationSheetController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",

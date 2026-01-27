@@ -23,7 +23,7 @@ import (
 )
 
 func KYCController(service *horizon.HorizonService) {
-	
+
 	validator := service.Validator
 
 	// Step 1: Personal Details

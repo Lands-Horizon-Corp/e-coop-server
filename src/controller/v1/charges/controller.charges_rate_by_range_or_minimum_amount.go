@@ -13,7 +13,6 @@ import (
 )
 
 func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/charges-rate-scheme/:charges_rate_scheme_id",

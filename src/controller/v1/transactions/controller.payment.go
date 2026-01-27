@@ -13,7 +13,7 @@ import (
 )
 
 func PaymentController(service *horizon.HorizonService) {
-	
+
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/multipayment",
 		Method:       "POST",

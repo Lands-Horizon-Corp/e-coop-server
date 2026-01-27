@@ -14,7 +14,6 @@ import (
 )
 
 func MemberAccountingLedgerController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/total",

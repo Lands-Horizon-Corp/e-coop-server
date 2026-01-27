@@ -16,7 +16,6 @@ import (
 )
 
 func CashCheckVoucherController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher",

@@ -13,7 +13,6 @@ import (
 )
 
 func AutomaticLoanDeductionController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id",

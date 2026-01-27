@@ -13,7 +13,6 @@ import (
 )
 
 func MemberGovernmentBenefitController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-government-benefit/member-profile/:member_profile_id",

@@ -14,7 +14,6 @@ import (
 
 // LicenseKey handles license CRUD + activation
 func LicenseKeyController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license",

@@ -13,7 +13,6 @@ import (
 )
 
 func AccountHistoryController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Method:       "GET",

@@ -13,7 +13,6 @@ import (
 )
 
 func SubscriptionPlanController(service *horizon.HorizonService) {
-	
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan",
