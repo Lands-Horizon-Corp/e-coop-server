@@ -1,4 +1,4 @@
-package v1
+package admin
 
 import (
 	"net/http"
@@ -17,7 +17,7 @@ type GovernmentIDResponse struct {
 	Regex     string `json:"regex,omitempty"`
 }
 
-func commonController(service *horizon.HorizonService) {
+func CommonController(service *horizon.HorizonService) {
 	req := service.API
 
 	req.RegisterWebRoute(horizon.Route{
