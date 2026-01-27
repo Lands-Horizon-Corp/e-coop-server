@@ -1,9 +1,8 @@
 .PHONY: \
 	cache-clean security-enforce-blocklist \
 	db-reset db-migrate db-seed \
-	server \
-	run-debug test build build-debug \
-	actiongraph-why profiler resurrect teleport webdev
+	server run-debug test build build-debug \
+	actiongraph actiongraph-why profiler resurrect teleport webdev deploy build-all-trace
 
 ########################################
 # Go helpers
@@ -34,12 +33,15 @@ db-seed:
 ########################################
 
 server:
-	go run . server
+	@echo "Starting server with Air (live reload)..."
+	air
 
 run-debug:
+	@echo "Running server with debug flags..."
 	go run -gcflags='all=-N -l' . server
 
 test:
+	@echo "Running tests..."
 	go test -v ./services/horizon_test
 
 ########################################
@@ -47,9 +49,11 @@ test:
 ########################################
 
 build:
+	@echo "Building app..."
 	go build -o app .
 
 build-debug:
+	@echo "Building app with debug flags..."
 	go build -gcflags='all=-N -l' -o app .
 
 ########################################
@@ -61,7 +65,6 @@ actiongraph: cache-clean
 	start=$$(date +%s); \
 	echo "=== Actiongraph: FULL PROJECT ==="; \
 	echo "WARNING: slow and memory-heavy"; \
-	echo "Step 1: Building with debug-actiongraph"; \
 	go build -debug-actiongraph=compile.json ./...; \
 	end=$$(date +%s); \
 	echo "Actiongraph finished in $$((end - start)) seconds"; \
@@ -70,7 +73,7 @@ actiongraph: cache-clean
 
 actiongraph-why:
 	@bash -c '\
-	echo "Rendering compile dependency WHY-graph for all packages"; \
+	echo "Rendering compile dependency WHY-graph"; \
 	actiongraph graph --why ./... -f compile.json > compile-why.dot; \
 	dot -Tsvg -Grankdir=LR < compile-why.dot > compile-why.svg; \
 	echo "Output: compile-why.svg"; \
@@ -85,9 +88,7 @@ profiler:
 	start=$$(date +%s); \
 	echo "=== PROFILER MODE ==="; \
 	echo "WARNING: very slow, high memory usage"; \
-	echo "Step 1: Clearing ALL caches"; \
 	go clean -cache -modcache -testcache -fuzzcache; \
-	echo "Step 2: Running server with debug flags"; \
 	go run -gcflags="all=-N -l" . server; \
 	end=$$(date +%s); \
 	echo "Profiler run finished in $$((end - start)) seconds"; \
@@ -101,17 +102,11 @@ resurrect:
 	@bash -c '\
 	start=$$(date +%s); \
 	echo "=== RESURRECT ==="; \
-	echo "Step 1: Clearing all caches"; \
 	go clean -cache -modcache -testcache -fuzzcache; \
-	echo "Step 2: Pulling latest code"; \
 	git pull; \
-	echo "Step 3: Resetting DB"; \
 	go run . db-reset; \
-	echo "Step 4: Migrating DB"; \
 	go run . db-migrate; \
-	echo "Step 5: Seeding DB"; \
 	go run . db-seed; \
-	echo "Step 6: Starting server"; \
 	go run . server; \
 	end=$$(date +%s); \
 	echo "Total resurrect time: $$((end - start)) seconds"; \
