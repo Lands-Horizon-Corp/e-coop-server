@@ -1,29 +1,40 @@
 .PHONY: \
-	clean clense \
-	wake run run-debug \
-	test refresh \
-	build build-debug \
-	actiongraph-why \
-	profiler resurrect teleport webdev
+	cache-clean security-enforce-blocklist \
+	db-reset db-migrate db-seed \
+	server \
+	run-debug test build build-debug \
+	actiongraph-why profiler resurrect teleport webdev
 
 ########################################
 # Go helpers
 ########################################
 
-clean:
+cache-clean:
 	go clean -cache
 
-clense:
-	go clean -cache -modcache -testcache -fuzzcache
+security-enforce-blocklist:
+	@echo "Enforcing security blocklist..."
+	go run . security-enforce-blocklist
+
+########################################
+# Database
+########################################
+
+db-reset:
+	go run . db-reset
+
+db-migrate:
+	go run . db-migrate
+
+db-seed:
+	go run . db-seed
 
 ########################################
 # Run / Dev
 ########################################
 
-run:
-	air
-
-wake: run
+server:
+	go run . server
 
 run-debug:
 	go run -gcflags='all=-N -l' . server
@@ -31,24 +42,21 @@ run-debug:
 test:
 	go test -v ./services/horizon_test
 
-refresh:
-	go run . db refresh
-
 ########################################
 # Build
 ########################################
 
 build:
-	go build -o ecoop-server .
+	go build -o app .
 
 build-debug:
-	go build -gcflags='all=-N -l' -o ecoop-server .
+	go build -gcflags='all=-N -l' -o app .
 
 ########################################
 # Build + Dependency Analysis (Actiongraph)
 ########################################
 
-actiongraph: clense
+actiongraph: cache-clean
 	@bash -c '\
 	start=$$(date +%s); \
 	echo "=== Actiongraph: FULL PROJECT ==="; \
@@ -68,12 +76,10 @@ actiongraph-why:
 	echo "Output: compile-why.svg"; \
 	'
 
-
 ########################################
 # Profiling / Diagnostics
 ########################################
 
-# Full rebuild + run with profiling enabled
 profiler:
 	@bash -c '\
 	start=$$(date +%s); \
@@ -96,11 +102,16 @@ resurrect:
 	start=$$(date +%s); \
 	echo "=== RESURRECT ==="; \
 	echo "Step 1: Clearing all caches"; \
+	go clean -cache -modcache -testcache -fuzzcache; \
 	echo "Step 2: Pulling latest code"; \
 	git pull; \
-	echo "Step 3: Refreshing DB"; \
-	go run . db refresh; \
-	echo "Step 4: Starting server"; \
+	echo "Step 3: Resetting DB"; \
+	go run . db-reset; \
+	echo "Step 4: Migrating DB"; \
+	go run . db-migrate; \
+	echo "Step 5: Seeding DB"; \
+	go run . db-seed; \
+	echo "Step 6: Starting server"; \
 	go run . server; \
 	end=$$(date +%s); \
 	echo "Total resurrect time: $$((end - start)) seconds"; \
@@ -114,12 +125,20 @@ teleport:
 webdev:
 	code .
 
+########################################
+# Deployment
+########################################
 
 deploy:
-	echo "Deploying to Fly.io...fly"
-	fly deploy; fly logs
+	@echo "Deploying to Fly.io..."
+	fly deploy
+	fly logs
 
-build-all-trace: clense
+########################################
+# Full build trace
+########################################
+
+build-all-trace: cache-clean
 	@bash -c '\
 	mkdir -p tmp; \
 	echo "=== FULL BUILD WITH DEBUG TRACE ==="; \
