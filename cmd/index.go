@@ -1,38 +1,36 @@
 package cmd
 
 import (
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
-type CommandConfig struct {
-	Use     string
-	Short   string
-	RunFunc func(cmd *cobra.Command, args []string) error
-}
-
 func Execute() {
-	command.AddCommand(versionCmd)
-	for _, group := range commandGroups {
-		command.AddCommand(group.Parent)
-
-		for _, childConfig := range group.Children {
-			cfg := childConfig
-
-			group.Parent.AddCommand(&cobra.Command{
-				Use:   cfg.Use,
-				Short: cfg.Short,
-				RunE: func(cmd *cobra.Command, args []string) error {
-					return cfg.RunFunc(cmd, args)
-				},
-			})
-		}
+	command := &cobra.Command{
+		Use:   "e-coop-server",
+		Short: "E-Coop Server CLI - Financial cooperative management system",
+		Long: `A comprehensive CLI tool for managing the E-Coop server application.
+This tool provides commands for database management, cache operations, 
+and server operations for your financial cooperative system.`,
+		Run: func(_ *cobra.Command, _ []string) {
+			helpers.PrintASCIIArt()
+		},
 	}
-	for _, cfg := range standaloneCommands {
+	command.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "Print the version number",
+		Run: func(_ *cobra.Command, _ []string) {
+			color.Green("E-Coop Server v1.0.0")
+		},
+	})
+	for _, cfg := range Register() {
+		cfgCopy := cfg
 		command.AddCommand(&cobra.Command{
-			Use:   cfg.Use,
-			Short: cfg.Short,
+			Use:   cfgCopy.Use,
+			Short: cfgCopy.Short,
 			RunE: func(cmd *cobra.Command, args []string) error {
-				return cfg.RunFunc(cmd, args)
+				return cfgCopy.RunFunc(cmd, args)
 			},
 		})
 	}

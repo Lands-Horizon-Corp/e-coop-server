@@ -5,18 +5,28 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
 
-// HorizonHandler defines the function signature for a handler
-type HorizonHandler func(ctx context.Context, service *HorizonService) error
+// CommandConfig defines a Cobra command wrapper
+type CommandConfig struct {
+	Use     string
+	Short   string
+	RunFunc func(cmd *cobra.Command, args []string) error
+}
 
-// HorizonRunnerParams defines the interface for runner parameters
+// HorizonHandler now only takes context and service
+type HorizonHandler func(ctx context.Context, service *HorizonService, cmd *cobra.Command, args []string) error
+
+// HorizonRunnerParams defines the parameters for a Horizon service runner
 type HorizonRunnerParams interface {
 	Timeout() time.Duration
 	OnStartMessage() string
 	OnStopMessage() string
 	Handler() HorizonHandler
 	ForceLifetime() bool
+	CommandUse() string
+	CommandShort() string
 }
 
 // DefaultHorizonRunnerParams implements HorizonRunnerParams
@@ -26,6 +36,8 @@ type DefaultHorizonRunnerParams struct {
 	OnStopMessageText  string
 	HandlerFunc        HorizonHandler
 	ForceLifetimeFunc  *bool
+	CommandUseText     string
+	CommandShortText   string
 }
 
 func (p DefaultHorizonRunnerParams) Timeout() time.Duration {
@@ -54,38 +66,59 @@ func (p DefaultHorizonRunnerParams) ForceLifetime() bool {
 	return *p.ForceLifetimeFunc
 }
 
-func WithHorizonService(params HorizonRunnerParams) error {
-	var (
-		ctx  context.Context
-		stop context.CancelFunc
-	)
-	if params.ForceLifetime() {
-		ctx, stop = context.WithCancel(context.Background())
-	} else {
-		ctx, stop = context.WithTimeout(context.Background(), params.Timeout())
+func (p DefaultHorizonRunnerParams) CommandUse() string {
+	return p.CommandUseText
+}
+
+func (p DefaultHorizonRunnerParams) CommandShort() string {
+	return p.CommandShortText
+}
+
+func HorizonServiceRegister(params HorizonRunnerParams) CommandConfig {
+	return CommandConfig{
+		Use:   params.CommandUse(),
+		Short: params.CommandShort(),
+		RunFunc: func(cmd *cobra.Command, args []string) error {
+			var (
+				ctx  context.Context
+				stop context.CancelFunc
+			)
+			if params.ForceLifetime() {
+				ctx, stop = context.WithCancel(context.Background())
+			} else {
+				ctx, stop = context.WithTimeout(context.Background(), params.Timeout())
+			}
+			defer stop()
+			service := NewHorizonService(params.ForceLifetime())
+			if msg := params.OnStartMessage(); msg != "" {
+				color.Blue(msg)
+			}
+			if err := service.Run(ctx); err != nil {
+				return err
+			}
+			if handler := params.Handler(); handler != nil {
+				if err := handler(ctx, service, cmd, args); err != nil {
+					_ = service.Stop(context.Background())
+					return err
+				}
+			}
+			if params.ForceLifetime() {
+				<-ctx.Done()
+			}
+			if err := service.Stop(context.Background()); err != nil {
+				return err
+			}
+			if msg := params.OnStopMessage(); msg != "" {
+				color.Yellow(msg)
+			}
+			return nil
+		},
 	}
-	defer stop()
-	service := NewHorizonService(params.ForceLifetime())
-	if msg := params.OnStartMessage(); msg != "" {
-		color.Blue(msg)
+}
+func (c CommandConfig) ToCobraCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   c.Use,
+		Short: c.Short,
+		RunE:  c.RunFunc,
 	}
-	if err := service.Run(ctx); err != nil {
-		return err
-	}
-	if handler := params.Handler(); handler != nil {
-		if err := handler(ctx, service); err != nil {
-			_ = service.Stop(context.Background())
-			return err
-		}
-	}
-	if params.ForceLifetime() {
-		<-ctx.Done()
-	}
-	if err := service.Stop(context.Background()); err != nil {
-		return err
-	}
-	if msg := params.OnStopMessage(); msg != "" {
-		color.Yellow(msg)
-	}
-	return nil
 }
