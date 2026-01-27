@@ -282,7 +282,6 @@ func (h *APIImpl) Init() error {
 	h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			clientIP := helpers.GetClientIP(c)
-
 			if net.ParseIP(clientIP) == nil {
 				logger.Warn("Invalid IP format detected - potential attack",
 					zap.String("raw_ip", clientIP),

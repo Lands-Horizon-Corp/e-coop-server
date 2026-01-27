@@ -69,7 +69,6 @@ func migrateDatabase() error {
 			OnStartMessageText: "Migrating database...",
 			OnStopMessageText:  "Database migration completed.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
-
 				if err := types.Migrate(service); err != nil {
 					return err
 				}
@@ -124,7 +123,6 @@ func cleanCache() error {
 			OnStartMessageText: "Cleaning cache...",
 			OnStopMessageText:  "Cache cleaned successfully.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
-
 				if err := service.Cache.Flush(ctx); err != nil {
 					return err
 				}
@@ -141,7 +139,6 @@ func refreshDatabase() error {
 			OnStartMessageText: "Refreshing database...",
 			OnStopMessageText:  "Database refreshed successfully.",
 			HandlerFunc: func(ctx context.Context, service *horizon.HorizonService) error {
-
 				if err := service.Cache.Flush(ctx); err != nil {
 					return err
 				}
