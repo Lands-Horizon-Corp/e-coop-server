@@ -12,9 +12,9 @@ import (
 )
 
 func MemberProfileComakerController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-comaker/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Retrieves comaker details for a specific member profile ID.",

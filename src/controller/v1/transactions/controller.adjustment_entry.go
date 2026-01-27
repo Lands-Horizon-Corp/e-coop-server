@@ -15,9 +15,9 @@ import (
 )
 
 func AdjustmentEntryController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "GET",
 		Note:         "Returns all adjustment entries for the current user's organization and branch. Returns empty if not authenticated.",
@@ -38,7 +38,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AdjustmentEntryManager(service).ToModels(adjustmentEntries))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries for the current user's organization and branch.",
@@ -62,7 +62,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, adjustmentEntries)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method:       "GET",
 		Note:         "Returns a single adjustment entry by its ID.",
@@ -80,7 +80,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, adjustmentEntry)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry",
 		Method:       "POST",
 		Note:         "Creates a new adjustment entry for the current user's organization and branch.",
@@ -164,7 +164,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.AdjustmentEntryManager(service).ToModel(adjustmentEntry))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/adjustment-entry/:adjustment_entry_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified adjustment entry by its ID.",
@@ -204,7 +204,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/adjustment-entry/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple adjustment entries by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -250,7 +250,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry/total",
 		Method:       "GET",
 		Note:         "Returns the total debit and credit of all adjustment entries for the current user's organization and branch.",
@@ -282,7 +282,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries filtered by currency and optionally by user organization.",
@@ -326,7 +326,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/total",
 		Method:       "GET",
 		Note:         "Returns the total amount of adjustment entries filtered by currency and optionally by user organization.",
@@ -366,7 +366,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of adjustment entries filtered by currency and user organization.",
@@ -415,7 +415,7 @@ func AdjustmentEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/adjustment-entry/currency/:currency_id/employee/:user_organization_id/total",
 		Method:       "GET",
 		Note:         "Returns the total amount of adjustment entries filtered by currency and user organization.",

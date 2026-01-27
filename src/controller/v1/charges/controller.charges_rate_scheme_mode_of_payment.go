@@ -13,9 +13,9 @@ import (
 )
 
 func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme model of payment for the current user's organization and branch.",
@@ -109,7 +109,7 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.ChargesRateSchemeModeOfPaymentManager(service).ToModel(chargesRateSchemeModeOfPayment))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme model of payment by its ID.",
@@ -196,7 +196,7 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.ChargesRateSchemeModeOfPaymentManager(service).ToModel(chargesRateSchemeModeOfPayment))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/charges-rate-scheme-mode-of-payment/:charges_rate_scheme_model_of_payment_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified charges rate scheme model of payment by its ID.",
@@ -236,7 +236,7 @@ func ChargesRateSchemeModeOfPaymentController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/charges-rate-scheme-mode-of-payment/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate scheme mode of payment by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

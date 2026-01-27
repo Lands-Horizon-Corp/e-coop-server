@@ -14,9 +14,9 @@ import (
 
 func MediaController(service *horizon.HorizonService) {
 
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media",
 		Method:       "GET",
 		Note:         "Returns all media records in the system.",
@@ -30,7 +30,7 @@ func MediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MediaManager(service).ToModels(media))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "GET",
 		Note:         "Returns a specific media record by its ID.",
@@ -49,7 +49,7 @@ func MediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, media)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media",
 		Method:       "POST",
 		ResponseType: types.MediaResponse{},
@@ -140,7 +140,7 @@ func MediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.MediaManager(service).ToModel(completed))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/media/:media_id",
 		Method:       "PUT",
 		RequestType:  types.MediaRequest{},
@@ -193,7 +193,7 @@ func MediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MediaManager(service).ToModel(media))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/media/:media_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific media record by its ID and associated file.",
@@ -233,7 +233,7 @@ func MediaController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/media/bulk-delete",
 		Method:      "DELETE",
 		RequestType: types.IDSRequest{},

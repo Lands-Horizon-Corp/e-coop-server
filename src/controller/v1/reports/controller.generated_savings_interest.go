@@ -16,9 +16,9 @@ import (
 
 func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-savings-interest/search",
 		Method:       "GET",
 		Note:         "Returns all generated savings interest for the current user's organization and branch. Returns empty if not authenticated.",
@@ -42,7 +42,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, generatedSavingsInterests)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id",
 		Method:       "GET",
 		Note:         "Returns a single generated savings interest by its ID.",
@@ -60,7 +60,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, generatedSavingsInterest)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/generated-savings-interest/:generated_savings_interest_id/view",
 		ResponseType: types.GeneratedSavingsInterestViewResponse{},
@@ -97,7 +97,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 			TotalInterest: totalInterest.InexactFloat64(),
 		})
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generated-savings-interest/view",
 		ResponseType: types.GeneratedSavingsInterestViewResponse{},
@@ -153,7 +153,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/generated-savings-interest",
 		ResponseType: types.GeneratedSavingsInterestEntry{},
@@ -247,7 +247,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestEntryManager(service).ToModels(entries))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method: "PUT",
 		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print",
 		Note:   "Prints generated savings interest entries.",
@@ -282,7 +282,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		}
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestManager(service).ToModel(generateSavingsInterest))
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method: "PUT",
 		Route:  "/api/v1/generated-savings-interest/:generated_savings_interest_id/print-undo",
 		Note:   "Undoes the print status of generated savings interest entries.",
@@ -320,7 +320,7 @@ func GeneratedSavingsInterestController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneratedSavingsInterestManager(service).ToModel(generateSavingsInterest))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:      "PUT",
 		Route:       "/api/v1/generated-savings-interest/:generated_savings_interest_id/post",
 		RequestType: types.GenerateSavingsInterestPostRequest{},

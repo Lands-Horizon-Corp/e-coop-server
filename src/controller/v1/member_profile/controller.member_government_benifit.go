@@ -13,9 +13,9 @@ import (
 )
 
 func MemberGovernmentBenefitController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-government-benefit/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: types.MemberGovernmentBenefitResponse{},
@@ -86,7 +86,7 @@ func MemberGovernmentBenefitController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGovernmentBenefitManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-government-benefit/:member_government_benefit_id",
 		Method:       "PUT",
 		ResponseType: types.MemberGovernmentBenefitResponse{},
@@ -160,7 +160,7 @@ func MemberGovernmentBenefitController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGovernmentBenefitManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-government-benefit/:member_government_benefit_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's government benefit record by its ID.",

@@ -15,8 +15,8 @@ import (
 
 func AccountTransactionController(service *horizon.HorizonService) {
 
-	req := service.API
-	req.RegisterWebRoute(horizon.Route{
+	
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-transaction/account/:account_id/year/:year",
 		Method:       "GET",
 		Note:         "Returns account transaction ledgers for a specific account and year.",
@@ -43,7 +43,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, ledgers)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/account-transaction/process-gl",
 		Method:      "POST",
 		RequestType: types.AccountTransactionProcessGLRequest{},
@@ -91,7 +91,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-transaction/year/:year/month/:month",
 		Method:       "GET",
 		Note:         "Returns account transactions for the specified year and month.",
@@ -126,7 +126,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountTransactionManager(service).ToModels(accountTransactions))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-transaction",
 		Method:       "GET",
 		Note:         "Returns all account transactions for the current user's organization and branch.",
@@ -151,7 +151,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 	})
 
 	// SEARCH / PAGINATION
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-transaction/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of account transactions.",
@@ -185,7 +185,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-transaction/:transaction_id",
 		Method:       "GET",
 		Note:         "Returns a single account transaction by ID.",
@@ -211,7 +211,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 	})
 
 	// UPDATE
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-transaction/:transaction_id",
 		Method:       "PUT",
 		Note:         "Updates an account transaction.",
@@ -252,7 +252,7 @@ func AccountTransactionController(service *horizon.HorizonService) {
 	})
 
 	// DELETE
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/account-transaction/:transaction_id",
 		Method: "DELETE",
 		Note:   "Deletes an account transaction.",

@@ -15,9 +15,9 @@ import (
 )
 
 func BranchController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch",
 		Method:       "GET",
 		Note:         "Returns all branches if unauthenticated; otherwise, returns branches filtered by the user's organization from cache.",
@@ -40,7 +40,7 @@ func BranchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModels(branches))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/kyc",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization in members portal.",
@@ -58,7 +58,7 @@ func BranchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModels(branches))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Returns all branches belonging to the specified organization.",
@@ -76,7 +76,7 @@ func BranchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModels(branches))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/organization/:organization_id",
 		Method:       "POST",
 		Note:         "Creates a new branch for the given organization. If the user already has a branch, a new user organization is created; otherwise, the user's current user organization is updated with the new branch.",
@@ -295,7 +295,7 @@ func BranchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModel(branch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/:branch_id",
 		Method:       "PUT",
 		Note:         "Updates branch information for the specified branch. Only allowed for the owner of the branch.",
@@ -408,7 +408,7 @@ func BranchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BranchManager(service).ToModel(branch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/branch/:branch_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified branch if the user is the owner and there are less than 3 members in the branch.",
@@ -517,7 +517,7 @@ func BranchController(service *horizon.HorizonService) {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch/:branch_id",
 		Method:       "GET",
 		Note:         "Returns a single branch by its ID.",
@@ -535,7 +535,7 @@ func BranchController(service *horizon.HorizonService) {
 
 		return ctx.JSON(http.StatusOK, branch)
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",
@@ -682,7 +682,7 @@ func BranchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, newBranchSettings)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch-settings/current",
 		Method:       "GET",
 		Note:         "Get the current branch settings",
@@ -703,7 +703,7 @@ func BranchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, branchSettings)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch-settings/currency",
 		Method:       "PUT",
 		Note:         "Updates branch settings for the current user's branch.",

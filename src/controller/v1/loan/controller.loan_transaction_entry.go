@@ -14,9 +14,9 @@ import (
 )
 
 func LoanTransactionEntryController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction-entry/loan-transaction/:loan_transaction_id/deduction",
 		Method:       "POST",
 		Note:         "Adds a deduction to a loan transaction by ID.",
@@ -102,7 +102,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModel(newLoanTransaction))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/deduction",
 		Method:       "PUT",
 		Note:         "Adds a deduction to a loan transaction by ID.",
@@ -191,7 +191,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanTransactionManager(service).ToModel(newLoanTransaction))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/loan-transaction-entry/:loan_transaction_entry_id",
 		Method: "DELETE",
 		Note:   "Deletes a loan transaction entry by ID.",
@@ -252,7 +252,7 @@ func LoanTransactionEntryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Loan transaction entry deleted successfully"})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/loan-transaction-entry/:loan_transaction_entry_id/restore",
 		Method: "PUT",
 		Note:   "Restores a deleted automatic loan deduction entry by ID.",

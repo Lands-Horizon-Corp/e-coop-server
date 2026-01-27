@@ -14,9 +14,9 @@ import (
 )
 
 func OrganizationController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization",
 		Method:       "GET",
 		ResponseType: types.OrganizationResponse{},
@@ -30,7 +30,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.OrganizationManager(service).ToModels(organization))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "GET",
 		ResponseType: types.OrganizationResponse{},
@@ -49,7 +49,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, organization)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization",
 		Method:       "POST",
 		RequestType:  types.OrganizationRequest{},
@@ -280,7 +280,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/:organization_id",
 		Method:       "PUT",
 		RequestType:  types.OrganizationRequest{},
@@ -428,7 +428,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.OrganizationManager(service).ToModel(organization))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/organization/:organization_id",
 		Method: "DELETE",
 		Note:   "Deletes an organization. User must be logged in.",
@@ -559,7 +559,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/featured",
 		Method:       "GET",
 		ResponseType: types.OrganizationResponse{},
@@ -573,7 +573,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.OrganizationManager(service).ToModels(organizations))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/recently",
 		Method:       "GET",
 		ResponseType: types.OrganizationResponse{},
@@ -587,7 +587,7 @@ func OrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.OrganizationManager(service).ToModels(organizations))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization/category",
 		Method:       "GET",
 		ResponseType: types.OrganizationPerCategoryResponse{},

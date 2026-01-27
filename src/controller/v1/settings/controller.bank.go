@@ -13,9 +13,9 @@ import (
 )
 
 func BankController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bank",
 		Method:       "GET",
 		Note:         "Returns all banks for the current user's organization and branch. Returns empty if not authenticated.",
@@ -36,7 +36,7 @@ func BankController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BankManager(service).ToModels(banks))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bank/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of banks for the current user's organization and branch.",
@@ -60,7 +60,7 @@ func BankController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, banks)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "GET",
 		Note:         "Returns a single bank by its ID.",
@@ -78,7 +78,7 @@ func BankController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, bank)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bank",
 		Method:       "POST",
 		Note:         "Creates a new bank for the current user's organization and branch.",
@@ -141,7 +141,7 @@ func BankController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.BankManager(service).ToModel(bank))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bank/:bank_id",
 		Method:       "PUT",
 		Note:         "Updates an existing bank by its ID.",
@@ -207,7 +207,7 @@ func BankController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BankManager(service).ToModel(bank))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/bank/:bank_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified bank by its ID.",
@@ -247,7 +247,7 @@ func BankController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/bank/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple banks by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

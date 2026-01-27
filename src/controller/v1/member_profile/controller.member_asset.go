@@ -13,9 +13,9 @@ import (
 )
 
 func MemberAssetController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-asset/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  types.MemberAsset{},
@@ -88,7 +88,7 @@ func MemberAssetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.MemberAssetManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-asset/:member_asset_id",
 		Method:       "PUT",
 		RequestType:  types.MemberAsset{},
@@ -166,7 +166,7 @@ func MemberAssetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberAssetManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-asset/:member_asset_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's asset record by its ID.",

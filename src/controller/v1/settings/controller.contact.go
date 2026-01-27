@@ -13,9 +13,9 @@ import (
 )
 
 func ContactController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/contact",
 		Method:       "GET",
 		Note:         "Returns all contact records in the system.",
@@ -29,7 +29,7 @@ func ContactController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.ContactUsManager(service).ToModels(contacts))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/contact/:contact_id",
 		Method:       "GET",
 		Note:         "Returns a single contact record by its ID.",
@@ -47,7 +47,7 @@ func ContactController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, contact)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/contact",
 		Method:       "POST",
 		ResponseType: types.ContactUsResponse{},
@@ -93,7 +93,7 @@ func ContactController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.ContactUsManager(service).ToModel(contact))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/contact/:contact_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified contact record by its ID.",
@@ -133,7 +133,7 @@ func ContactController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/contact/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple contact records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

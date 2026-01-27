@@ -13,9 +13,9 @@ import (
 )
 
 func AccountCategoryController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-category/search",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch.",
@@ -40,7 +40,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-category",
 		Method:       "GET",
 		Note:         "Retrieve all account categories for the current branch (raw).",
@@ -64,7 +64,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountCategoryManager(service).ToModels(categories))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "GET",
 		Note:         "Get an account category by ID.",
@@ -82,7 +82,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountCategoryManager(service).ToModel(category))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-category",
 		Method:       "POST",
 		Note:         "Create a new account category for the current branch.",
@@ -145,7 +145,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.AccountCategoryManager(service).ToModel(accountCategory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-category/:account_category_id",
 		Method:       "PUT",
 		Note:         "Update an account category by ID.",
@@ -219,7 +219,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountCategoryManager(service).ToModel(accountCategory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/account-category/:account_category_id",
 		Method: "DELETE",
 		Note:   "Delete an account category by ID.",
@@ -276,7 +276,7 @@ func AccountCategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountCategoryManager(service).ToModel(accountCategory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/account-category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account categories by IDs.",

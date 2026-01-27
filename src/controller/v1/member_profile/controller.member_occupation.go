@@ -13,9 +13,9 @@ import (
 )
 
 func MemberOccupationController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation-history",
 		Method:       "GET",
 		ResponseType: types.MemberOccupationHistoryResponse{},
@@ -33,7 +33,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberOccupationHistoryManager(service).ToModels(memberOccupationHistory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: types.MemberOccupationHistoryResponse{},
@@ -59,7 +59,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberOccupationHistory)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "GET",
 		ResponseType: types.MemberOccupationResponse{},
@@ -77,7 +77,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberOccupationManager(service).ToModels(memberOccupation))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation/search",
 		Method:       "GET",
 		ResponseType: types.MemberOccupationResponse{},
@@ -98,7 +98,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation",
 		Method:       "POST",
 		ResponseType: types.MemberOccupationResponse{},
@@ -154,7 +154,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberOccupationManager(service).ToModel(memberOccupation))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-occupation/:member_occupation_id",
 		Method:       "PUT",
 		ResponseType: types.MemberOccupationResponse{},
@@ -220,7 +220,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberOccupationManager(service).ToModel(memberOccupation))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-occupation/:member_occupation_id",
 		Method: "DELETE",
 		Note:   "Deletes a member occupation record by its ID.",
@@ -260,7 +260,7 @@ func MemberOccupationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-occupation/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member occupation records by their IDs.",

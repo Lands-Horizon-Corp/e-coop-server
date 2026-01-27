@@ -14,9 +14,9 @@ import (
 )
 
 func MemberProfileMediaController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-media/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Get all member profile media for a specific member profile.",
@@ -76,7 +76,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberProfileMediaList)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-media",
 		Method:       "POST",
 		Note:         "Creates a new member profile media for the current user's organization and branch.",
@@ -149,7 +149,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, result)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "PUT",
 		Note:         "Update a member profile media by ID.",
@@ -226,7 +226,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-profile-media/:member_profile_media_id",
 		Method: "DELETE",
 		Note:   "Delete a member profile media by ID.",
@@ -292,7 +292,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Member profile media deleted successfully"})
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-media/:member_profile_media_id",
 		Method:       "GET",
 		Note:         "Get a specific member profile media by ID.",
@@ -313,7 +313,7 @@ func MemberProfileMediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberProfileMedia)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-media/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile media for a specific member profile.",

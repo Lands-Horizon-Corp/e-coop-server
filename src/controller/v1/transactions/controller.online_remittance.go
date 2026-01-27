@@ -13,9 +13,9 @@ import (
 )
 
 func OnlineRemittanceController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/online-remittance",
 		Method:       "GET",
 		ResponseType: types.OnlineRemittanceResponse{},
@@ -55,7 +55,7 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.OnlineRemittanceManager(service).ToModels(onlineRemittance))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/online-remittance",
 		Method:       "POST",
 		ResponseType: types.OnlineRemittanceResponse{},
@@ -160,7 +160,7 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.OnlineRemittanceManager(service).ToModel(onlineRemittance))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/online-remittance/:online_remittance_id",
 		Method:       "PUT",
 		ResponseType: types.OnlineRemittanceResponse{},
@@ -301,7 +301,7 @@ func OnlineRemittanceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.OnlineRemittanceManager(service).ToModel(updatedRemittance))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/online-remittance/:online_remittance_id",
 		Method: "DELETE",
 		Note:   "Deletes an online remittance by its ID for the current active transaction batch.",

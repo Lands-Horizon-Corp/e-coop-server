@@ -13,9 +13,9 @@ import (
 )
 
 func LoanTagController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-tag",
 		Method:       "GET",
 		Note:         "Returns all loan tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -36,7 +36,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanTagManager(service).ToModels(loanTags))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-tag/loan-transaction/:loan_transaction_id",
 		Method:       "GET",
 		Note:         "Returns all loan tags for the specified loan transaction ID within the current user's organization and branch.",
@@ -65,7 +65,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanTagManager(service).ToModels(loanTags))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of loan tags for the current user's organization and branch.",
@@ -89,7 +89,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, loanTags)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "GET",
 		Note:         "Returns a single loan tag by its ID.",
@@ -107,7 +107,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, loanTag)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-tag",
 		Method:       "POST",
 		Note:         "Creates a new loan tag for the current user's organization and branch.",
@@ -173,7 +173,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.LoanTagManager(service).ToModel(loanTag))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-tag/:loan_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing loan tag by its ID.",
@@ -242,7 +242,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanTagManager(service).ToModel(loanTag))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/loan-tag/:loan_tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified loan tag by its ID.",
@@ -282,7 +282,7 @@ func LoanTagController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/loan-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

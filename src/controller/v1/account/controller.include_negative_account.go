@@ -13,9 +13,9 @@ import (
 )
 
 func IncludeNegativeAccountController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		ResponseType: types.IncludeNegativeAccountResponse{},
@@ -44,7 +44,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, records)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		ResponseType: types.IncludeNegativeAccountResponse{},
@@ -73,7 +73,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.IncludeNegativeAccountManager(service).ToModels(records))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts",
 		Method:       "POST",
 		ResponseType: types.IncludeNegativeAccountResponse{},
@@ -136,7 +136,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.IncludeNegativeAccountManager(service).ToModel(record))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method:       "PUT",
 		ResponseType: types.IncludeNegativeAccountResponse{},
@@ -203,7 +203,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.IncludeNegativeAccountManager(service).ToModel(record))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/include-negative-accounts/:include_negative_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified include negative account by its ID.",
@@ -243,7 +243,7 @@ func IncludeNegativeAccountController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/include-negative-accounts/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple include negative accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

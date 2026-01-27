@@ -13,9 +13,9 @@ import (
 )
 
 func AdminController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/admin/current",
 		Method:       "GET",
 		ResponseType: types.AdminResponse{},
@@ -30,7 +30,7 @@ func AdminController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core_admin.AdminManager(service).ToModel(admin))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/admin/login",
 		Method:       "POST",
 		RequestType:  types.AdminLoginRequest{},
@@ -63,7 +63,7 @@ func AdminController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core_admin.AdminManager(service).ToModel(admin))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/admin/register",
 		Method:       "POST",
 		RequestType:  types.AdminRegisterRequest{},
@@ -99,7 +99,7 @@ func AdminController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core_admin.AdminManager(service).ToModel(admin))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/admin/logout",
 		Method: "POST",
 		Note:   "Logs out all users including itself for the session.",
@@ -116,7 +116,7 @@ func AdminController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/admin/:admin_id",
 		Method:       "GET",
 		ResponseType: types.AdminResponse{},
@@ -134,7 +134,7 @@ func AdminController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, admin)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/admin/profile",
 		Method:       "PUT",
 		Note:         "Changes the profile of the current admin.",
@@ -166,7 +166,7 @@ func AdminController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core_admin.AdminManager(service).ToModel(admin))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/admin/profile/password",
 		Method:       "PUT",
 		Note:         "Changes the admin's password.",
@@ -207,7 +207,7 @@ func AdminController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core_admin.AdminManager(service).ToModel(updatedAdmin))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/admin/profile/general",
 		Method:       "PUT",
 		Note:         "Changes the admin's general settings.",

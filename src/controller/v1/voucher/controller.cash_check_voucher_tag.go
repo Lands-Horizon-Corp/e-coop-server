@@ -13,9 +13,9 @@ import (
 )
 
 func CashCheckVoucherTagController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher-tag",
 		Method:       "GET",
 		Note:         "Returns all cash check voucher tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -36,7 +36,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CashCheckVoucherTagManager(service).ToModels(tags))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cash check voucher tags for the current user's organization and branch.",
@@ -60,7 +60,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, tags)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method:       "GET",
 		Note:         "Returns a single cash check voucher tag by its ID.",
@@ -78,7 +78,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, tag)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher-tag",
 		Method:       "POST",
 		Note:         "Creates a new cash check voucher tag for the current user's organization and branch.",
@@ -144,7 +144,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.CashCheckVoucherTagManager(service).ToModel(tag))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cash check voucher tag by its ID.",
@@ -213,7 +213,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CashCheckVoucherTagManager(service).ToModel(tag))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/cash-check-voucher-tag/:tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified cash check voucher tag by its ID.",
@@ -253,7 +253,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/cash-check-voucher-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cash check voucher tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -298,7 +298,7 @@ func CashCheckVoucherTagController(service *horizon.HorizonService) {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-check-voucher-tag/cash-check-voucher/:cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns all cash check voucher tags for the specified cash check voucher ID.",

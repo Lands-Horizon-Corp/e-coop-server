@@ -13,9 +13,9 @@ import (
 )
 
 func TimeDepositComputationController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-computation/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation for the current user's organization and branch.",
@@ -98,7 +98,7 @@ func TimeDepositComputationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.TimeDepositComputationManager(service).ToModel(timeDepositComputation))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation by its ID.",
@@ -174,7 +174,7 @@ func TimeDepositComputationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TimeDepositComputationManager(service).ToModel(timeDepositComputation))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/time-deposit-computation/:time_deposit_computation_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified time deposit computation by its ID.",
@@ -214,7 +214,7 @@ func TimeDepositComputationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/time-deposit-computation/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computations by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

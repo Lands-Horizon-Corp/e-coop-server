@@ -13,9 +13,9 @@ import (
 )
 
 func LoanStatusController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status",
 		Method:       "GET",
 		ResponseType: types.LoanStatusResponse{},
@@ -36,7 +36,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanStatusManager(service).ToModels(statuses))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status/search",
 		Method:       "GET",
 		ResponseType: types.LoanStatusResponse{},
@@ -60,7 +60,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status/:loan_status_id",
 		Method:       "GET",
 		ResponseType: types.LoanStatusResponse{},
@@ -78,7 +78,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, status)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status",
 		Method:       "POST",
 		ResponseType: types.LoanStatusResponse{},
@@ -140,7 +140,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.LoanStatusManager(service).ToModel(status))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-status/:loan_status_id",
 		Method:       "PUT",
 		ResponseType: types.LoanStatusResponse{},
@@ -214,7 +214,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanStatusManager(service).ToModel(status))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/loan-status/:loan_status_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified loan status record by its ID.",
@@ -254,7 +254,7 @@ func LoanStatusController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/loan-status/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan status records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

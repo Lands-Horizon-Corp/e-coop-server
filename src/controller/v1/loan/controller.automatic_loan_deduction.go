@@ -13,9 +13,9 @@ import (
 )
 
 func AutomaticLoanDeductionController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
@@ -44,7 +44,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AutomaticLoanDeductionManager(service).ToModels(alds))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/automatic-loan-deduction/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all automatic loan deductions for a computation sheet in the current user's org/branch.",
@@ -73,7 +73,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, alds)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/automatic-loan-deduction",
 		Method:       "POST",
 		Note:         "Creates a new automatic loan deduction for the current user's org/branch.",
@@ -162,7 +162,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.AutomaticLoanDeductionManager(service).ToModel(ald))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method:       "PUT",
 		Note:         "Updates an existing automatic loan deduction by its ID.",
@@ -256,7 +256,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AutomaticLoanDeductionManager(service).ToModel(ald))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/automatic-loan-deduction/:automatic_loan_deduction_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified automatic loan deduction by its ID.",
@@ -296,7 +296,7 @@ func AutomaticLoanDeductionController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/automatic-loan-deduction/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple automatic loan deductions by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

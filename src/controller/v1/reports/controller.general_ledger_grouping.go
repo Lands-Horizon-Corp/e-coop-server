@@ -14,9 +14,9 @@ import (
 )
 
 func GeneralLedgerGroupingController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-accounts-grouping",
 		Method:       "GET",
 		ResponseType: types.GeneralLedgerAccountsGroupingResponse{},
@@ -38,7 +38,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerAccountsGroupingManager(service).ToModels(gl))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-accounts-grouping/:general_ledger_accounts_grouping_id",
 		Method:       "PUT",
 		ResponseType: types.GeneralLedgerAccountsGroupingResponse{},
@@ -115,7 +115,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerAccountsGroupingManager(service).ToModel(grouping))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-definition",
 		Method:       "GET",
 		ResponseType: types.GeneralLedgerDefinitionResponse{},
@@ -139,7 +139,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, gl)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-definition",
 		Method:       "POST",
 		RequestType:  types.GeneralLedgerDefinitionRequest{},
@@ -207,7 +207,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.GeneralLedgerDefinitionManager(service).ToModel(glDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id",
 		Method:       "PUT",
 		RequestType:  types.GeneralLedgerDefinitionRequest{},
@@ -287,7 +287,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerDefinitionManager(service).ToModel(glDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id/account/:account_id/connect",
 		Method:       "POST",
 		Note:         "Connects an account to a general ledger definition by their IDs.",
@@ -392,7 +392,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerDefinitionManager(service).ToModel(glDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-definition/:general_ledger_definition_id/index/:index",
 		Method:       "PUT",
 		ResponseType: types.GeneralLedgerDefinitionResponse{},
@@ -462,7 +462,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerDefinitionManager(service).ToModel(glDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/general-ledger-grouping/general-ledger-definition/:general_ledger_definition_id/account/:account_id/index",
 		Method:       "PUT",
 		Note:         "Updates the index of an account within a general ledger definition and reorders accordingly.",
@@ -598,7 +598,7 @@ func GeneralLedgerGroupingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerDefinitionManager(service).ToModel(glDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/general-ledger-definition/:general_definition_id",
 		Method: "DELETE",
 		Note:   "Deletes a general ledger definition by its ID, only if no accounts are linked.",

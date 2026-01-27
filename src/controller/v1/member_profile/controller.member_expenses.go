@@ -13,9 +13,9 @@ import (
 )
 
 func MemberExpenseController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-expense/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: types.MemberExpenseResponse{},
@@ -82,7 +82,7 @@ func MemberExpenseController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberExpenseManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-expense/:member_expense_id",
 		Method:       "PUT",
 		RequestType:  types.MemberExpenseRequest{},
@@ -153,7 +153,7 @@ func MemberExpenseController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberExpenseManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-expense/:member_expense_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's expense record by its ID.",

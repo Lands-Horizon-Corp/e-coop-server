@@ -13,9 +13,9 @@ import (
 )
 
 func PaymentTypeController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type",
 		Method:       "GET",
 		ResponseType: types.PaymentTypeResponse{},
@@ -33,7 +33,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.PaymentTypeManager(service).ToModels(paymentTypes))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type/search",
 		Method:       "GET",
 		ResponseType: types.PaymentTypeResponse{},
@@ -54,7 +54,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "GET",
 		Note:         "Returns a specific payment type by its ID.",
@@ -72,7 +72,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paymentType)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type",
 		Method:       "POST",
 		ResponseType: types.PaymentTypeResponse{},
@@ -130,7 +130,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.PaymentTypeManager(service).ToModel(paymentType))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/payment-type/:payment_type_id",
 		Method:       "PUT",
 		ResponseType: types.PaymentTypeResponse{},
@@ -198,7 +198,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.PaymentTypeManager(service).ToModel(paymentType))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/payment-type/:payment_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a payment type record by its ID.",
@@ -238,7 +238,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/payment-type/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple payment type records by their IDs.",

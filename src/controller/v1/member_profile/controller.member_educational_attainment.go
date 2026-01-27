@@ -13,9 +13,9 @@ import (
 )
 
 func MemberEducationalAttainmentController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-educational-attainment/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  types.MemberEducationalAttainmentRequest{},
@@ -84,7 +84,7 @@ func MemberEducationalAttainmentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberEducationalAttainmentManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method:       "PUT",
 		RequestType:  types.MemberEducationalAttainmentRequest{},
@@ -157,7 +157,7 @@ func MemberEducationalAttainmentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberEducationalAttainmentManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-educational-attainment/:member_educational_attainment_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's educational attainment record by its ID.",
@@ -197,7 +197,7 @@ func MemberEducationalAttainmentController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-educational-attainment/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple educational attainment records by their IDs.",

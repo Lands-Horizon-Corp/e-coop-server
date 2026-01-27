@@ -13,9 +13,8 @@ import (
 )
 
 func MemberIncomeController(service *horizon.HorizonService) {
-	req := service.API
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-income/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: types.MemberIncomeResponse{},
@@ -84,7 +83,7 @@ func MemberIncomeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberIncomeManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-income/:member_income_id",
 		Method:       "PUT",
 		ResponseType: types.MemberIncomeResponse{},
@@ -156,7 +155,7 @@ func MemberIncomeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberIncomeManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-income/:member_income_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's income record by its ID.",

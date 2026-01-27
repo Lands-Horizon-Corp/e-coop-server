@@ -13,9 +13,9 @@ import (
 )
 
 func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id/search",
 		Method:       "GET",
 		Note:         "Returns all browse exclude include accounts for a computation sheet in the current user's org/branch.",
@@ -44,7 +44,7 @@ func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BrowseExcludeIncludeAccountsManager(service).ToModels(records))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/computation-sheet/:computation_sheet_id",
 		Method:       "GET",
 		ResponseType: types.BrowseExcludeIncludeAccountsResponse{},
@@ -73,7 +73,7 @@ func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BrowseExcludeIncludeAccountsManager(service).ToModels(records))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts",
 		Method:       "POST",
 		RequestType:  types.BrowseExcludeIncludeAccountsRequest{},
@@ -139,7 +139,7 @@ func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.BrowseExcludeIncludeAccountsManager(service).ToModel(record))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method:       "PUT",
 		Note:         "Updates an existing browse exclude include account by its ID.",
@@ -209,7 +209,7 @@ func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BrowseExcludeIncludeAccountsManager(service).ToModel(record))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/browse-exclude-include-accounts/:browse_exclude_include_accounts_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified browse exclude include account by its ID.",
@@ -249,7 +249,7 @@ func BrowseExcludeIncludeAccountsController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/browse-exclude-include-accounts/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple browse exclude include accounts by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

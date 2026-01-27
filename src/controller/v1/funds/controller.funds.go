@@ -13,9 +13,9 @@ import (
 )
 
 func FundsController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/funds",
 		Method:       "GET",
 		ResponseType: types.FundsResponse{},
@@ -33,7 +33,7 @@ func FundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FundsManager(service).ToModels(funds))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/funds/search",
 		Method:       "GET",
 		ResponseType: types.FundsResponse{},
@@ -54,7 +54,7 @@ func FundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, funds)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/funds",
 		Method:       "POST",
 		ResponseType: types.FundsResponse{},
@@ -113,7 +113,7 @@ func FundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FundsManager(service).ToModel(funds))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/funds/:funds_id",
 		Method:       "PUT",
 		ResponseType: types.FundsResponse{},
@@ -182,7 +182,7 @@ func FundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FundsManager(service).ToModel(funds))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/funds/:funds_id",
 		Method: "DELETE",
 		Note:   "Deletes a funds record by its ID.",
@@ -222,7 +222,7 @@ func FundsController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/funds/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple funds records by their IDs.",

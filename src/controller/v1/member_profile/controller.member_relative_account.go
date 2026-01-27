@@ -13,9 +13,9 @@ import (
 )
 
 func MemberRelativeAccountController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-relative-account/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  types.MemberRelativeAccountRequest{},
@@ -82,7 +82,7 @@ func MemberRelativeAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberRelativeAccountManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-relative-account/:member_relative_account_id",
 		Method:       "PUT",
 		RequestType:  types.MemberRelativeAccountRequest{},
@@ -153,7 +153,7 @@ func MemberRelativeAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberRelativeAccountManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-relative-account/:member_relative_account_id",
 		Method: "DELETE",
 		Note:   "Deletes a relative account record by its ID.",

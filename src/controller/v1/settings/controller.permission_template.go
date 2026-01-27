@@ -13,9 +13,9 @@ import (
 )
 
 func PermissionTemplateController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "GET",
 		ResponseType: types.PermissionTemplateResponse{},
@@ -33,7 +33,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.PermissionTemplateManager(service).ToModels(permissionTemplates))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/search",
 		Method:       "GET",
 		ResponseType: types.PermissionTemplateResponse{},
@@ -54,7 +54,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, permissionTemplates)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "GET",
 		ResponseType: types.PermissionTemplateResponse{},
@@ -74,7 +74,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.PermissionTemplateManager(service).ToModel(permissionTemplate))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template",
 		Method:       "POST",
 		RequestType:  types.PermissionTemplateRequest{},
@@ -133,7 +133,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.PermissionTemplateManager(service).ToModel(newTemplate))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/permission-template/:permission_template_id",
 		Method:       "PUT",
 		RequestType:  types.PermissionTemplateRequest{},
@@ -208,7 +208,7 @@ func PermissionTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.PermissionTemplateManager(service).ToModel(template))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/permission-template/:permission_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a permission template by its ID.",

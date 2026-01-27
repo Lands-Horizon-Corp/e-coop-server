@@ -13,9 +13,9 @@ import (
 )
 
 func MemberCenterController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center-history",
 		Method:       "GET",
 		ResponseType: types.MemberCenterResponse{},
@@ -33,7 +33,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberCenterHistoryManager(service).ToModels(memberCenterHistory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: types.MemberCenterHistoryResponse{},
@@ -59,7 +59,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberCenterHistory)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "GET",
 		ResponseType: types.MemberCenterResponse{},
@@ -77,7 +77,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberCenterManager(service).ToModels(memberCenter))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center/search",
 		Method:       "GET",
 		ResponseType: types.MemberCenterResponse{},
@@ -98,7 +98,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center",
 		Method:       "POST",
 		ResponseType: types.MemberCenterResponse{},
@@ -154,7 +154,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberCenterManager(service).ToModel(memberCenter))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-center/:member_center_id",
 		Method:       "PUT",
 		ResponseType: types.MemberCenterResponse{},
@@ -220,7 +220,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberCenterManager(service).ToModel(memberCenter))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-center/:member_center_id",
 		Method: "DELETE",
 		Note:   "Deletes a member center record by its ID.",
@@ -265,7 +265,7 @@ func MemberCenterController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-center/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member center records by their IDs.",

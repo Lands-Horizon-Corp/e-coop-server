@@ -15,9 +15,9 @@ import (
 )
 
 func NotificationController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/me",
 		Method:       "GET",
 		ResponseType: types.NotificationResponse{},
@@ -35,7 +35,7 @@ func NotificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.NotificationManager(service).ToModels(notification))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/view",
 		Method:       "PUT",
 		RequestType:  types.IDSRequest{},
@@ -119,7 +119,7 @@ func NotificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.NotificationManager(service).ToModels(notifications))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/notification/view-all",
 		Method:       "PUT",
 		ResponseType: types.NotificationResponse{},
@@ -212,7 +212,7 @@ func NotificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.NotificationManager(service).ToModels(newNotifications))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/notification/:notification_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific notification record by its notificationit_id.",

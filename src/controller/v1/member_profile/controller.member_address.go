@@ -13,9 +13,9 @@ import (
 )
 
 func MemberAddressController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-address/member-profile/:member_profile_id",
 		Method:       "POST",
 		RequestType:  types.MemberAddress{},
@@ -93,7 +93,7 @@ func MemberAddressController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.MemberAddressManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-address/:member_address_id",
 		Method:       "PUT",
 		RequestType:  types.MemberAddress{},
@@ -177,7 +177,7 @@ func MemberAddressController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberAddressManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-address/:member_address_id",
 		Method: "DELETE",
 		Note:   "Deletes a member's address record by its ID.",

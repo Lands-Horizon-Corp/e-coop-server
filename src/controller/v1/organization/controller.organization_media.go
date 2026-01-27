@@ -14,10 +14,10 @@ import (
 )
 
 func OrganizationMediaController(service *horizon.HorizonService) {
-	req := service.API
+	
 
 	// Get all organization media for a specific organization
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization-media/organization/:organization_id",
 		Method:       "GET",
 		Note:         "Get all organization media for a specific organization.",
@@ -69,7 +69,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 	})
 
 	// Create organization media
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization-media",
 		Method:       "POST",
 		Note:         "Creates a new organization media for the current user's organization and branch.",
@@ -140,7 +140,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 	})
 
 	// Update organization media by ID
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization-media/:organization_media_id",
 		Method:       "PUT",
 		Note:         "Update an organization media by ID.",
@@ -207,7 +207,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 	})
 
 	// Delete organization media by ID
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/organization-media/:organization_media_id",
 		Method: "DELETE",
 		Note:   "Delete an organization media by ID.",
@@ -262,7 +262,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 	})
 
 	// Get organization media by ID (raw)
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization-media/:organization_media_id",
 		Method:       "GET",
 		Note:         "Get a specific organization media by ID.",
@@ -283,7 +283,7 @@ func OrganizationMediaController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, organizationMedia)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization-media/bulk/organization/:organization_id",
 		Method:       "POST",
 		Note:         "Bulk create organization media for a specific organization.",

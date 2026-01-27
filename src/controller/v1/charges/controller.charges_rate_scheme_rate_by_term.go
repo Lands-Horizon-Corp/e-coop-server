@@ -13,9 +13,9 @@ import (
 )
 
 func ChargesRateByTermController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-by-term/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by term for the current user's organization and branch.",
@@ -110,7 +110,7 @@ func ChargesRateByTermController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.ChargesRateByTermManager(service).ToModel(chargesRateByTerm))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by term by its ID.",
@@ -198,7 +198,7 @@ func ChargesRateByTermController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.ChargesRateByTermManager(service).ToModel(chargesRateByTerm))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/charges-rate-by-term/:charges_rate_by_term_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified charges rate by term by its ID.",
@@ -238,7 +238,7 @@ func ChargesRateByTermController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/charges-rate-by-term/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate by term by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

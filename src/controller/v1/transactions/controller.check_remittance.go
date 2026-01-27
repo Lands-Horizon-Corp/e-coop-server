@@ -13,9 +13,9 @@ import (
 )
 
 func CheckRemittanceController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "GET",
 		Note:         "Returns all check remittances for the current active transaction batch of the authenticated user's branch. Only 'owner' or 'employee' roles are allowed.",
@@ -55,7 +55,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CheckRemittanceManager(service).ToModels(checkRemittance))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/check-remittance",
 		Method:       "POST",
 		ResponseType: types.CheckRemittanceResponse{},
@@ -159,7 +159,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.CheckRemittanceManager(service).ToModel(checkRemittance))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/check-remittance/:check_remittance_id",
 		Method:       "PUT",
 		Note:         "Updates an existing check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",
@@ -289,7 +289,7 @@ func CheckRemittanceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CheckRemittanceManager(service).ToModel(updatedRemittance))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/check-remittance/:check_remittance_id",
 		Method: "DELETE",
 		Note:   "Deletes a check remittance by ID for the current transaction batch. Only 'owner' or 'employee' roles are allowed.",

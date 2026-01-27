@@ -13,9 +13,9 @@ import (
 )
 
 func TimeDepositComputationPreMatureController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-computation-pre-mature/time-deposit-type/:time_deposit_type_id",
 		Method:       "POST",
 		Note:         "Creates a new time deposit computation pre mature for the current user's organization and branch.",
@@ -89,7 +89,7 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 		return ctx.JSON(http.StatusCreated, core.TimeDepositComputationPreMatureManager(service).ToModel(timeDepositComputationPreMature))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit computation pre mature by its ID.",
@@ -157,7 +157,7 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 		return ctx.JSON(http.StatusOK, core.TimeDepositComputationPreMatureManager(service).ToModel(timeDepositComputationPreMature))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/time-deposit-computation-pre-mature/:time_deposit_computation_pre_mature_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified time deposit computation pre mature by its ID.",
@@ -197,7 +197,7 @@ func TimeDepositComputationPreMatureController(service *horizon.HorizonService) 
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/time-deposit-computation-pre-mature/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit computation pre mature by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

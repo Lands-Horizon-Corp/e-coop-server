@@ -13,9 +13,9 @@ import (
 )
 
 func TransactionController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction",
 		Method:       "POST",
 		RequestType:  types.TransactionRequest{},
@@ -135,7 +135,7 @@ func TransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.TransactionManager(service).ToModel(transaction))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "PUT",
 		RequestType:  types.TransactionRequestEdit{},
@@ -209,7 +209,7 @@ func TransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionManager(service).ToModel(transaction))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id",
 		Method:       "GET",
 		ResponseType: types.TransactionResponse{},
@@ -234,7 +234,7 @@ func TransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionManager(service).ToModel(transaction))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/current/search",
 		Method:       "GET",
 		ResponseType: types.TransactionResponse{},
@@ -273,7 +273,7 @@ func TransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, transactionPagination)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/current",
 		Method:       "GET",
 		ResponseType: types.TransactionResponse{},
@@ -312,7 +312,7 @@ func TransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionManager(service).ToModels(transactions))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: types.TransactionResponse{},
@@ -345,7 +345,7 @@ func TransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, transactions)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: types.TransactionResponse{},
@@ -378,7 +378,7 @@ func TransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionManager(service).ToModels(transactions))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/branch/search",
 		Method:       "GET",
 		ResponseType: types.TransactionResponse{},
@@ -402,7 +402,7 @@ func TransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, transactions)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		ResponseType: types.TransactionResponse{},

@@ -13,8 +13,8 @@ import (
 )
 
 func PaymentController(service *horizon.HorizonService) {
-	req := service.API
-	req.RegisterWebRoute(horizon.Route{
+	
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/multipayment",
 		Method:       "POST",
 		Note:         "Processes multiple payments for the specified transaction by transaction_id and records them in the general ledger.",
@@ -132,7 +132,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/general-ledger/:general_ledger_id/print",
 		Method:       "POST",
 		Note:         "Processes print number for the specified general ledger by general_ledger_id.",
@@ -189,7 +189,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for the specified transaction by transaction_id and records it in the general ledger.",
@@ -270,7 +270,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for the specified transaction by transaction_id and updates the general ledger accordingly.",
@@ -345,7 +345,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for the specified transaction by transaction_id and updates the general ledger accordingly.",
@@ -420,7 +420,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/payment",
 		Method:       "POST",
 		Note:         "Processes a payment for a transaction without specifying transaction_id in the route. Used for general payments.",
@@ -486,7 +486,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/withdraw",
 		Method:       "POST",
 		Note:         "Processes a withdrawal for a transaction without specifying transaction_id in the route. Used for general withdrawals.",
@@ -552,7 +552,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/deposit",
 		Method:       "POST",
 		Note:         "Processes a deposit for a transaction without specifying transaction_id in the route. Used for general deposits.",
@@ -618,7 +618,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(generalLedger))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/transaction/general-ledger/:general_ledger_id/reverse",
 		Method: "POST",
 		Note:   "Reverses a specific general ledger transaction.",
@@ -680,7 +680,7 @@ func PaymentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.GeneralLedgerManager(service).ToModel(newGeneralLedger))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction/:transaction_id/reverse",
 		Method:       "POST",
 		Note:         "Reverses all general ledger entries for a specific transaction by transaction_id.",

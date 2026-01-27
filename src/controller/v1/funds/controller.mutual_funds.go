@@ -14,9 +14,9 @@ import (
 )
 
 func MutualFundsController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/mutual-fund",
 		Method:       "GET",
 		Note:         "Returns all mutual funds for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MutualFundManager(service).ToModels(mutualFunds))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/mutual-fund/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of mutual funds for the current user's organization and branch.",
@@ -61,7 +61,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, mutualFunds)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/mutual-fund/member/:member_id",
 		Method:       "GET",
 		Note:         "Returns all mutual funds for a specific member profile.",
@@ -86,7 +86,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MutualFundManager(service).ToModels(mutualFunds))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id",
 		Method:       "GET",
 		Note:         "Returns a single mutual fund by its ID.",
@@ -104,7 +104,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, mutualFund)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/mutual-fund",
 		Method:       "POST",
 		Note:         "Creates a new mutual fund for the current user's organization and branch.",
@@ -208,7 +208,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.MutualFundManager(service).ToModel(mutualFund))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id",
 		Method:       "PUT",
 		Note:         "Updates an existing mutual fund by its ID.",
@@ -432,7 +432,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MutualFundManager(service).ToModel(mutualFund))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified mutual fund by its ID.",
@@ -472,7 +472,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/mutual-fund/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple mutual funds by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -518,7 +518,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/mutual-fund/view",
 		Method:       "POST",
 		Note:         "Retrieves a summarized view of mutual funds including total amount and entries.",
@@ -594,7 +594,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method: "PUT",
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id/print",
 		Note:   "Prints mutual fund entries.",
@@ -630,7 +630,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MutualFundManager(service).ToModel(mutualFund))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method: "PUT",
 		Route:  "/api/v1/mutual-fund/:mutual_fund_id/print-undo",
 		Note:   "Undoes the print status of mutual fund entries.",
@@ -668,7 +668,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MutualFundManager(service).ToModel(mutualFund))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:      "PUT",
 		Route:       "/api/v1/mutual-fund/:mutual_fund_id/post",
 		RequestType: types.MutualFundViewPostRequest{},
@@ -710,7 +710,7 @@ func MutualFundsController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/mutual-fund/:mutual_fund_id/view",
 		ResponseType: types.MutualFundView{},

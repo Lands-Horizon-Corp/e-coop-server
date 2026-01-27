@@ -18,9 +18,9 @@ type GovernmentIDResponse struct {
 }
 
 func CommonController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/government-ids/:country_code",
 		Method:       "GET",
 		ResponseType: GovernmentIDResponse{},

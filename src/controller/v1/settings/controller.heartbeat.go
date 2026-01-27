@@ -13,9 +13,9 @@ import (
 )
 
 func Heartbeat(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/heartbeat/online",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
@@ -56,7 +56,7 @@ func Heartbeat(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/heartbeat/offline",
 		Method: "POST",
 	}, func(ctx echo.Context) error {
@@ -97,7 +97,7 @@ func Heartbeat(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/heartbeat/status",
 		Method:      "POST",
 		RequestType: types.UserOrganizationStatusRequest{},
@@ -132,7 +132,7 @@ func Heartbeat(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/heartbeat/status",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationStatusResponse{},

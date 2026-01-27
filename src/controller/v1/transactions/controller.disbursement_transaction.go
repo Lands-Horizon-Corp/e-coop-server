@@ -13,9 +13,9 @@ import (
 )
 
 func DisbursementTransactionController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement-transaction",
 		Method:       "POST",
 		Note:         "Returns all disbursement transactions for a specific/current transaction batch.",
@@ -80,7 +80,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement-transaction/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for a specific transaction batch.",
@@ -109,7 +109,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement-transaction/employee/:user_organization_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions handled by a specific employee.",
@@ -138,7 +138,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement-transaction/current/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the currently authenticated user.",
@@ -163,7 +163,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement-transaction/current",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the currently authenticated user.",
@@ -188,7 +188,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement-transaction/branch/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for the current user's branch.",
@@ -212,7 +212,7 @@ func DisbursementTransactionController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, disbursementTransactions)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement-transaction/disbursement/:disbursement_id/search",
 		Method:       "GET",
 		Note:         "Returns all disbursement transactions for a specific disbursement ID.",

@@ -13,9 +13,9 @@ import (
 )
 
 func CategoryController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/category",
 		Method:       "GET",
 		Note:         "Returns all categories in the system.",
@@ -29,7 +29,7 @@ func CategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CategoryManager(service).ToModels(categories))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/category/:category_id",
 		Method:       "GET",
 		Note:         "Returns a single category by its ID.",
@@ -49,7 +49,7 @@ func CategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, category)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/category",
 		Method:       "POST",
 		Note:         "Creates a new category.",
@@ -94,7 +94,7 @@ func CategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.CategoryManager(service).ToModel(category))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/category/:category_id",
 		Method:       "PUT",
 		Note:         "Updates an existing category by its ID.",
@@ -156,7 +156,7 @@ func CategoryController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CategoryManager(service).ToModel(category))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/category/:category_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified category by its ID.",
@@ -200,7 +200,7 @@ func CategoryController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/category/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple categories by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

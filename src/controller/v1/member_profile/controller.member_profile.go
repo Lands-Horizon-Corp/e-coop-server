@@ -15,9 +15,9 @@ import (
 )
 
 func MemberProfileController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/pending",
 		Method:       "GET",
 		ResponseType: types.MemberProfileResponse{},
@@ -42,7 +42,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModels(memberProfile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/user-account",
 		Method:       "POST",
 		RequestType:  types.MemberProfileUserAccountRequest{},
@@ -205,7 +205,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(memberProfile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/approve",
 		Method:       "PUT",
 		ResponseType: types.MemberProfileResponse{},
@@ -314,7 +314,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(memberProfile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/reject",
 		Method:       "PUT",
 		ResponseType: types.MemberProfileResponse{},
@@ -373,7 +373,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(memberProfile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile",
 		Method:       "GET",
 		ResponseType: types.MemberProfileResponse{},
@@ -391,7 +391,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModels(memberProfile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/search",
 		Method:       "GET",
 		ResponseType: types.MemberProfileResponse{},
@@ -412,7 +412,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id",
 		Method:       "GET",
 		ResponseType: types.MemberProfileResponse{},
@@ -430,7 +430,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberProfile)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-profile/:member_profile_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific member profile and all its connections by member_profile_id.",
@@ -488,7 +488,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-profile/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member profiles and all their connections by their IDs.",
@@ -537,7 +537,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect-user",
 		Method:       "POST",
 		RequestType:  types.MemberProfileAccountRequest{},
@@ -596,7 +596,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		})
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(memberProfile))
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/quick-create",
 		Method:       "POST",
 		RequestType:  types.MemberProfileQuickCreateRequest{},
@@ -824,7 +824,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(profile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/personal-info",
 		Method:       "PUT",
 		RequestType:  types.MemberProfilePersonalInfoRequest{},
@@ -954,7 +954,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(profile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/membership-info",
 		Method:       "PUT",
 		RequestType:  types.MemberProfileMembershipInfoRequest{},
@@ -1139,7 +1139,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(profile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/disconnect",
 		Method:       "PUT",
 		ResponseType: types.MemberProfileResponse{},
@@ -1172,7 +1172,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(memberProfile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect-user/:user_id",
 		Method:       "PUT",
 		ResponseType: types.MemberProfileResponse{},
@@ -1257,7 +1257,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(member))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/close",
 		Method:       "POST",
 		RequestType:  types.MemberCloseRemarkRequest{},
@@ -1327,7 +1327,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberCloseRemarkManager(service).ToModels(createdRemarks))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/connect",
 		Method:       "POST",
 		RequestType:  types.MemberProfileAccountRequest{},
@@ -1357,7 +1357,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(memberProfile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/coordinates",
 		Method:       "PUT",
 		RequestType:  types.MemberProfileCoordinatesRequest{},
@@ -1430,7 +1430,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(profile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/member-type/:member_type_id/search",
 		Method:       "GET",
 		ResponseType: types.MemberProfileArchiveResponse{},
@@ -1456,7 +1456,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberProfiles)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/member-type/:member_type_id/link",
 		Method:       "PUT",
 		ResponseType: types.MemberProfileResponse{},
@@ -1509,7 +1509,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(memberProfile))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/unlink",
 		Method:       "PUT",
 		ResponseType: types.MemberProfileResponse{},

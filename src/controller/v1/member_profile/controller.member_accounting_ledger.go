@@ -14,9 +14,9 @@ import (
 )
 
 func MemberAccountingLedgerController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/total",
 		Method:       "GET",
 		ResponseType: event.MemberAccountingLedgerSummary{},
@@ -35,7 +35,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, summary)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/wallet",
 		Method:       "GET",
 		ResponseType: event.MemberAccountingLedgerSummary{},
@@ -65,7 +65,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerManager(service).ToModel(wallet))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/account/:account_id/total",
 		Method:       "GET",
 		ResponseType: types.MemberAccountingLedgerAccountSummary{},
@@ -113,7 +113,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: types.MemberAccountingLedger{},
@@ -152,7 +152,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paginatedResult)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id",
 		Method:       "GET",
 		ResponseType: types.MemberAccountingLedger{},
@@ -192,7 +192,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberAccountingLedgerManager(service).ToModels(entries))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/branch/search",
 		Method:       "GET",
 		ResponseType: types.MemberAccountingLedger{},
@@ -228,7 +228,7 @@ func MemberAccountingLedgerController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paginatedResult)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-accounting-ledger/member-profile/:member_profile_id/compassion-fund-account",
 		Method:       "GET",
 		ResponseType: types.MemberAccountingLedger{},

@@ -13,9 +13,9 @@ import (
 )
 
 func CompanyController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/company",
 		Method:       "GET",
 		Note:         "Returns all companies for the current user's organization and branch. Returns empty if not authenticated.",
@@ -36,7 +36,7 @@ func CompanyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CompanyManager(service).ToModels(companies))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/company/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of companies for the current user's organization and branch.",
@@ -60,7 +60,7 @@ func CompanyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, companies)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/company/:company_id",
 		Method:       "GET",
 		Note:         "Returns a single company by its ID.",
@@ -78,7 +78,7 @@ func CompanyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, company)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/company",
 		Method:       "POST",
 		Note:         "Creates a new company for the current user's organization and branch.",
@@ -141,7 +141,7 @@ func CompanyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.CompanyManager(service).ToModel(company))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/company/:company_id",
 		Method:       "PUT",
 		Note:         "Updates an existing company by its ID.",
@@ -207,7 +207,7 @@ func CompanyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CompanyManager(service).ToModel(company))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/company/:company_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified company by its ID.",
@@ -247,7 +247,7 @@ func CompanyController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/company/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple companies by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

@@ -8,9 +8,9 @@ import (
 )
 
 func QRCodeController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/qr-code/:code",
 		Method:       "GET",
 		ResponseType: horizon.QRResult{},

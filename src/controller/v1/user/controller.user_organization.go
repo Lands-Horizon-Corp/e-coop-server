@@ -18,9 +18,9 @@ import (
 
 func UserOrganizationController(service *horizon.HorizonService) {
 
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id/permission",
 		Method:       "PUT",
 		Note:         "Updates the permission fields of a user organization.",
@@ -102,7 +102,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrg))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-organization/:organization_id/seed",
 		Method: "POST",
 		Note:   "Seeds all branches inside an organization when first created.",
@@ -212,7 +212,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		}
 		return ctx.NoContent(http.StatusOK)
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/employee/search",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -234,7 +234,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/owner/search",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -256,7 +256,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/member/search",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -278,7 +278,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/none-member-profile/search",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -313,7 +313,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/user/:user_id",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -336,7 +336,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModels(userOrganization))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/current",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -355,7 +355,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModels(userOrganization))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/join-request/paginated",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -377,7 +377,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, userOrganization)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/join-request",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -399,7 +399,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModels(userOrganization))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/organization/:organization_id",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -425,7 +425,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModels(userOrganization))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/branch/:branch_id",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -448,7 +448,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModels(userOrganization))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id/switch",
 		ResponseType: types.UserOrganizationResponse{},
 		Method:       "GET",
@@ -479,7 +479,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Switching forbidden - user is " + string(userOrganization.UserType)})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-organization/unswitch",
 		Method: "POST",
 		Note:   "Removes organization and branch from Cache for the current user. No database impact.",
@@ -497,7 +497,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/developer-key-refresh",
 		Method:       "POST",
 		Note:         "Refreshes the developer key associated with the current user organization.",
@@ -541,7 +541,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/invitation-code/:code/join",
 		Method:       "POST",
 		Note:         "Joins an organization and branch using an invitation code.",
@@ -693,7 +693,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrg))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/join",
 		Method:       "POST",
 		Note:         "Joins an existing organization and branch.",
@@ -822,7 +822,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrg))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-organization/leave",
 		Method: "POST",
 		Note:   "Leaves the current organization and branch (must have current organization token set).",
@@ -865,7 +865,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/can-join-member",
 		Method: "GET",
 		Note:   "Checks if the user can join as a member.",
@@ -889,7 +889,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusOK)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-organization/organization/:organization_id/branch/:branch_id/can-join-employee",
 		Method: "GET",
 		Note:   "Checks if the user can join as an employee.",
@@ -913,7 +913,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusOK)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/:user_organization_id",
 		Method:       "GET",
 		Note:         "Returns a specific user organization by ID.",
@@ -931,7 +931,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, userOrg)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-organization/:user_organization_id/accept",
 		Method: "POST",
 		Note:   "Accepts an employee or member application by ID.",
@@ -1010,7 +1010,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-organization/:user_organization_id/reject",
 		Method: "DELETE",
 		Note:   "Rejects an employee or member application by ID.",
@@ -1082,7 +1082,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-organization/:user_organization_id",
 		Method: "DELETE",
 		Note:   "Deletes a user organization by ID.",
@@ -1122,7 +1122,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/user-organization/bulk-delete",
 		Method:      "DELETE",
 		RequestType: types.IDSRequest{},
@@ -1171,7 +1171,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/employee",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -1189,7 +1189,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModels(employees))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/members",
 		Method:       "GET",
 		ResponseType: types.UserOrganizationResponse{},
@@ -1207,7 +1207,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModels(members))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/settings/:user_organization_id",
 		Method:       "PUT",
 		RequestType:  types.UserOrganizationSettingsRequest{},
@@ -1284,7 +1284,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrg))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/settings/current",
 		Method:       "PUT",
 		RequestType:  types.UserOrganizationSelfSettingsRequest{},
@@ -1357,7 +1357,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrg))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/time-machine/cancel",
 		Method:       "PUT",
 		Note:         "Cancels time machine by setting TimeMachineTime to nil for current user organization.",
@@ -1395,7 +1395,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserOrganizationManager(service).ToModel(userOrg))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-organization/employee",
 		Method:       "POST",
 		Note:         "Creates a new employee user and user organization record.",

@@ -13,9 +13,9 @@ import (
 )
 
 func MemberGenderController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender-history",
 		Method:       "GET",
 		ResponseType: types.MemberGenderHistory{},
@@ -33,7 +33,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGenderHistoryManager(service).ToModels(memberGenderHistory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: types.MemberGenderHistoryResponse{},
@@ -59,7 +59,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberGenderHistory)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "GET",
 		ResponseType: types.MemberGenderResponse{},
@@ -77,7 +77,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGenderManager(service).ToModels(memberGender))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender/branch/:branch_id",
 		Method:       "GET",
 		ResponseType: types.MemberGenderResponse{},
@@ -99,7 +99,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGenderManager(service).ToModels(memberGender))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender/search",
 		Method:       "GET",
 		ResponseType: types.MemberGenderResponse{},
@@ -120,7 +120,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberGender)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender",
 		Method:       "POST",
 		ResponseType: types.MemberGenderResponse{},
@@ -176,7 +176,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGenderManager(service).ToModel(memberGender))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-gender/:member_gender_id",
 		Method:       "PUT",
 		ResponseType: types.MemberGenderResponse{},
@@ -242,7 +242,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGenderManager(service).ToModel(memberGender))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-gender/:member_gender_id",
 		Method: "DELETE",
 		Note:   "Deletes a member gender record by its ID.",
@@ -282,7 +282,7 @@ func MemberGenderController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-gender/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member gender records by their IDs.",

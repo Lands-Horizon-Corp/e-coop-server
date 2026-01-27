@@ -13,9 +13,9 @@ import (
 )
 
 func MemberContactReferenceController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-contact-reference/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: types.MemberContactReferenceResponse{},
@@ -82,7 +82,7 @@ func MemberContactReferenceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberContactReferenceManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-contact-reference/:member_contact_reference_id",
 		Method:       "PUT",
 		ResponseType: types.MemberContactReferenceResponse{},
@@ -152,7 +152,7 @@ func MemberContactReferenceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberContactReferenceManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-contact-reference/:member_contact_reference_id",
 		Method: "DELETE",
 		Note:   "Deletes a contact reference entry by its ID.",

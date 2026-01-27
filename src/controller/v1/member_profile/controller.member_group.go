@@ -13,9 +13,9 @@ import (
 )
 
 func MemberGroupController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group-history",
 		Method:       "GET",
 		ResponseType: types.MemberGroupHistoryResponse{},
@@ -33,7 +33,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGroupHistoryManager(service).ToModels(memberGroupHistory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: types.MemberGroupHistoryResponse{},
@@ -59,7 +59,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberGroupHistory)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "GET",
 		ResponseType: types.MemberGroupResponse{},
@@ -80,7 +80,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberGroup)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group/search",
 		Method:       "GET",
 		RequestType:  types.MemberGroupRequest{},
@@ -102,7 +102,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberGroup)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group",
 		Method:       "POST",
 		ResponseType: types.MemberGroupResponse{},
@@ -158,7 +158,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGroupManager(service).ToModel(memberGroup))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-group/:member_group_id",
 		Method:       "PUT",
 		ResponseType: types.MemberGroupResponse{},
@@ -224,7 +224,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberGroupManager(service).ToModel(memberGroup))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-group/:member_group_id",
 		Method: "DELETE",
 		Note:   "Deletes a member group record by its ID.",
@@ -264,7 +264,7 @@ func MemberGroupController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-group/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member group records by their IDs.",

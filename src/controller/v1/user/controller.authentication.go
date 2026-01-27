@@ -14,9 +14,9 @@ import (
 )
 
 func AuthenticationController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/current",
 		Method:       "GET",
 		ResponseType: types.CurrentUserResponse{},
@@ -51,7 +51,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/login",
 		Method:       "POST",
 		RequestType:  types.UserLoginRequest{},
@@ -109,7 +109,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/current-logged-in-accounts/logout",
 		Method: "POST",
 		Note:   "Logs out all users including itself for the session.",
@@ -126,7 +126,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/current-logged-in-accounts",
 		Note:         "Returns all currently logged-in users for the session.",
 		Method:       "GET",
@@ -150,7 +150,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, responses)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/logout",
 		Method: "POST",
 		Note:   "Logs out the current user.",
@@ -165,7 +165,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/register",
 		Method:       "POST",
 		ResponseType: types.CurrentUserResponse{},
@@ -235,7 +235,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/authentication/forgot-password",
 		Method:      "POST",
 		RequestType: types.UserForgotPasswordRequest{},
@@ -310,7 +310,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/verify-reset-link/:reset_id",
 		Method: "GET",
 		Note:   "Verifies if the reset password link is valid.",
@@ -334,7 +334,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		}
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/authentication/change-password/:reset_id",
 		Method:      "POST",
 		RequestType: types.UserChangePasswordRequest{},
@@ -408,7 +408,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/apply-contact-number",
 		Method: "POST",
 		Note:   "Sends OTP for contact number verification.",
@@ -451,7 +451,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/verify-contact-number",
 		Method:       "POST",
 		RequestType:  types.UserVerifyContactNumberRequest{},
@@ -540,7 +540,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserManager(service).ToModel(updatedUser))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/apply-email",
 		Method: "POST",
 		Note:   "Sends OTP for email verification.",
@@ -583,7 +583,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/verify-with-password",
 		Method:       "POST",
 		Note:         "Verifies the user's password for protected self actions.",
@@ -609,7 +609,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/authentication/verify-with-password/owner",
 		Method: "POST",
 		Note:   "Verifies the user's password for protected owner actions. (must be owner and inside a branch)",
@@ -646,7 +646,7 @@ func AuthenticationController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/authentication/verify-email",
 		Method:       "POST",
 		Note:         "Verifies OTP for email verification.",

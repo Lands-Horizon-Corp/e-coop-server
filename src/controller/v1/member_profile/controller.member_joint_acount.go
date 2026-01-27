@@ -13,9 +13,9 @@ import (
 )
 
 func MemberJointAccountController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-joint-account/member-profile/:member_profile_id",
 		Method:       "POST",
 		ResponseType: types.MemberJointAccountResponse{},
@@ -89,7 +89,7 @@ func MemberJointAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberJointAccountManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-joint-account/:member_joint_account_id",
 		Method:       "PUT",
 		ResponseType: types.MemberJointAccountResponse{},
@@ -168,7 +168,7 @@ func MemberJointAccountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberJointAccountManager(service).ToModel(value))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-joint-account/:member_joint_account_id",
 		Method: "DELETE",
 		Note:   "Deletes a joint account record by its ID.",

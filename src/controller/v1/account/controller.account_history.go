@@ -13,9 +13,9 @@ import (
 )
 
 func AccountHistoryController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/account/:account_id",
 		ResponseType: types.AccountHistoryResponse{},
@@ -43,7 +43,7 @@ func AccountHistoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, accountHistory)
 		})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:       "GET",
 		Route:        "/api/v1/account-history/:account_history_id",
 		ResponseType: types.AccountHistory{},
@@ -62,7 +62,7 @@ func AccountHistoryController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusOK, accountHistory)
 		})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Method:       "POST",
 		Route:        "/api/v1/account-history/:account_history_id/restore",
 		ResponseType: types.AccountHistory{},

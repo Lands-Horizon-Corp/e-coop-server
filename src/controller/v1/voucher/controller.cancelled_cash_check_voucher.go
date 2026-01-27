@@ -13,9 +13,9 @@ import (
 )
 
 func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "GET",
 		Note:         "Returns all cancelled cash check vouchers for the current user's organization and branch. Returns empty if not authenticated.",
@@ -36,7 +36,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CancelledCashCheckVoucherManager(service).ToModels(cancelledVouchers))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of cancelled cash check vouchers for the current user's organization and branch.",
@@ -60,7 +60,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, cancelledVouchers)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single cancelled cash check voucher by its ID.",
@@ -78,7 +78,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, cancelledVoucher)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher",
 		Method:       "POST",
 		Note:         "Creates a new cancelled cash check voucher for the current user's organization and branch.",
@@ -141,7 +141,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.CancelledCashCheckVoucherManager(service).ToModel(cancelledVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing cancelled cash check voucher by its ID.",
@@ -207,7 +207,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CancelledCashCheckVoucherManager(service).ToModel(cancelledVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/cancelled-cash-check-voucher/:cancelled_cash_check_voucher_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified cancelled cash check voucher by its ID.",
@@ -247,7 +247,7 @@ func CancelledCashCheckVoucherController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/cancelled-cash-check-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple cancelled cash check vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

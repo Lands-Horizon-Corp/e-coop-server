@@ -14,9 +14,9 @@ import (
 
 // LicenseKey handles license CRUD + activation
 func LicenseKeyController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license",
 		Method:       "GET",
 		Note:         "Returns all licenses for the current user's organization and branch. Returns empty if not authenticated.",
@@ -30,7 +30,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, licenses)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license/:license_id",
 		Method:       "GET",
 		Note:         "Returns a single license by ID.",
@@ -48,7 +48,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, license)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license",
 		Method:       "POST",
 		Note:         "Creates a new license.",
@@ -79,7 +79,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, license)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license/:license_id",
 		Method:       "PUT",
 		Note:         "Updates a license by ID.",
@@ -110,7 +110,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, license)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/license/:license_id/refresh",
 		Method:       "POST",
 		Note:         "Regenerates the license key for a license by ID.",
@@ -137,7 +137,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, license)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/license/activate",
 		Method:      "POST",
 		Note:        "Activate a license key. Expects JSON { \"license_key\": \"xxx\", \"fingerprint\": \"unique_user_fp\" }. Returns a secret key for verification.",
@@ -158,7 +158,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, secretKey)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/license/verify",
 		Method:      "POST",
 		Note:        "Verify a license using secret key and fingerprint. Expects JSON { \"secret_key\": \"xxx\", \"fingerprint\": \"unique_user_fp\" }",
@@ -182,7 +182,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusOK)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/license/deactivate",
 		Method:      "POST",
 		Note:        "Deactivate a license using secret key and fingerprint. Expects JSON { \"secret_key\": \"xxx\", \"fingerprint\": \"unique_user_fp\" }",

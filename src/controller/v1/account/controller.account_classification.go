@@ -13,9 +13,9 @@ import (
 )
 
 func AccountClassificationController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-classification/search",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch.",
@@ -39,7 +39,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, classifications)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-classification",
 		Method:       "GET",
 		Note:         "Retrieve all account classifications for the current branch (raw).",
@@ -63,7 +63,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountClassificationManager(service).ToModels(classifications))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "GET",
 		Note:         "Get an account classification by ID.",
@@ -81,7 +81,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountClassificationManager(service).ToModel(classification))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-classification",
 		Method:       "POST",
 		Note:         "Create a new account classification for the current branch.",
@@ -143,7 +143,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.AccountClassificationManager(service).ToModel(accountClassification))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-classification/:account_classification_id",
 		Method:       "PUT",
 		Note:         "Update an account classification by ID.",
@@ -217,7 +217,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountClassificationManager(service).ToModel(classification))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/account-classification/:account_classification_id",
 		Method: "DELETE",
 		Note:   "Delete an account classification by ID.",
@@ -274,7 +274,7 @@ func AccountClassificationController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountClassificationManager(service).ToModel(classification))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/account-classification/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account classifications by IDs.",

@@ -13,9 +13,9 @@ import (
 )
 
 func DisbursementController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement",
 		Method:       "GET",
 		Note:         "Returns all disbursements for the current user's organization and branch.",
@@ -47,7 +47,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.DisbursementManager(service).ToModels(disbursements))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of disbursements for the current user's organization and branch.",
@@ -71,7 +71,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, disbursements)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "GET",
 		Note:         "Returns a single disbursement by its ID.",
@@ -89,7 +89,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, disbursement)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement",
 		Method:       "POST",
 		Note:         "Creates a new disbursement for the current user's organization and branch.",
@@ -153,7 +153,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.DisbursementManager(service).ToModel(disbursement))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/disbursement/:disbursement_id",
 		Method:       "PUT",
 		Note:         "Updates an existing disbursement by its ID.",
@@ -220,7 +220,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.DisbursementManager(service).ToModel(disbursement))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/disbursement/:disbursement_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified disbursement by its ID.",
@@ -260,7 +260,7 @@ func DisbursementController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/disbursement/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple disbursements by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

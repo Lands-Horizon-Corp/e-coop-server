@@ -17,9 +17,9 @@ import (
 )
 
 func JournalVoucherController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher",
 		Method:       "GET",
 		Note:         "Returns all journal vouchers for the current user's organization and branch. Returns empty if not authenticated.",
@@ -40,7 +40,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModels(journalVouchers))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of journal vouchers for the current user's organization and branch.",
@@ -64,7 +64,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, journalVouchers)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "GET",
 		Note:         "Returns a single journal voucher by its ID.",
@@ -82,7 +82,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, journalVoucher)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher for the current user's organization and branch.",
@@ -206,7 +206,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.JournalVoucherManager(service).ToModel(journalVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher by its ID.",
@@ -373,7 +373,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModel(newJournalVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/journal-voucher/:journal_voucher_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified journal voucher by its ID.",
@@ -413,7 +413,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/journal-voucher/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple journal vouchers by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -461,7 +461,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print",
 		Method:       "PUT",
 		Note:         "Marks a journal voucher as printed by ID.",
@@ -537,7 +537,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModel(journalVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print-undo",
 		Method:       "PUT",
 		Note:         "Reverts the print status of a journal voucher by ID.",
@@ -609,7 +609,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModel(journalVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/approve",
 		Method:       "PUT",
 		Note:         "Approves a journal voucher by ID.",
@@ -681,7 +681,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModel(journalVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/print-only",
 		Method:       "POST",
 		Note:         "Marks a journal voucher as printed without additional details by ID.",
@@ -750,7 +750,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModel(journalVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/approve-undo",
 		Method:       "POST",
 		Note:         "Reverts the approval status of a journal voucher by ID.",
@@ -825,7 +825,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModel(journalVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/:journal_voucher_id/release",
 		Method:       "POST",
 		Note:         "Releases a journal voucher by ID. RELEASED SHOULD NOT BE UNAPPROVED.",
@@ -971,7 +971,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModel(journalVoucher))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/draft",
 		Method:       "GET",
 		Note:         "Fetches draft journal vouchers for the current user's organization and branch.",
@@ -994,7 +994,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModels(journalVouchers))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/printed",
 		Method:       "GET",
 		Note:         "Fetches printed journal vouchers for the current user's organization and branch.",
@@ -1017,7 +1017,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModels(journalVouchers))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/approved",
 		Method:       "GET",
 		Note:         "Fetches approved journal vouchers for the current user's organization and branch.",
@@ -1046,7 +1046,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModels(journalVouchers))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/released",
 		Method:       "GET",
 		Note:         "Fetches released journal vouchers for the current user's organization and branch.",
@@ -1070,7 +1070,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherManager(service).ToModels(journalVouchers))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher/released/today",
 		Method:       "GET",
 		Note:         "Fetches journal vouchers released today for the current user's organization and branch.",

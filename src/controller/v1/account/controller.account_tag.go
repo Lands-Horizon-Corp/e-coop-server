@@ -14,9 +14,9 @@ import (
 )
 
 func AccountTagController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-tag",
 		Method:       "GET",
 		Note:         "Returns all account tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -37,7 +37,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountTagManager(service).ToModels(accountTags))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of account tags for the current user's organization and branch.",
@@ -61,7 +61,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accountTags)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "GET",
 		Note:         "Returns a single account tag by its ID.",
@@ -79,7 +79,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accountTag)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-tag/account/:account_id",
 		Method:       "GET",
 		Note:         "Returns all account tags for a specific account ID within the user's organization and branch.",
@@ -109,7 +109,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, accountTags)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-tag",
 		Method:       "POST",
 		Note:         "Creates a new account tag for the user's organization and branch.",
@@ -177,7 +177,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountTagManager(service).ToModel(accountTag))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/account-tag/:account_tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing account tag by its ID.",
@@ -248,7 +248,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.AccountTagManager(service).ToModel(accountTag))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/account-tag/:account_tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified account tag by its ID.",
@@ -279,7 +279,7 @@ func AccountTagController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/account-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Bulk delete multiple account tags by IDs.",

@@ -13,9 +13,9 @@ import (
 )
 
 func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "POST",
 		Note:         "Creates a new charges rate by range or minimum amount for the current user's organization and branch.",
@@ -90,7 +90,7 @@ func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService
 		return ctx.JSON(http.StatusCreated, core.ChargesRateByRangeOrMinimumAmountManager(service).ToModel(chargesRateByRangeOrMinimumAmount))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate by range or minimum amount by its ID.",
@@ -158,7 +158,7 @@ func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService
 		return ctx.JSON(http.StatusOK, core.ChargesRateByRangeOrMinimumAmountManager(service).ToModel(chargesRateByRangeOrMinimumAmount))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/charges-rate-by-range-or-minimum-amount/:charges_rate_by_range_or_minimum_amount_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified charges rate by range or minimum amount by its ID.",
@@ -198,7 +198,7 @@ func ChargesRateByRangeOrMinimumAmountController(service *horizon.HorizonService
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/charges-rate-by-range-or-minimum-amount/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate by range or minimum amount by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

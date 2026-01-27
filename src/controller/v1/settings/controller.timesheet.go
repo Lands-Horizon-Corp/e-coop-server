@@ -13,9 +13,9 @@ import (
 )
 
 func TimesheetController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/current",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},
@@ -37,7 +37,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModel(timesheet))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/time-in-and-out",
 		Method:       "POST",
 		RequestType:  types.TimesheetRequest{},
@@ -123,7 +123,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModel(timesheet))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/:timesheet_id",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},
@@ -141,7 +141,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, timesheet)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},
@@ -159,7 +159,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModels(timesheets))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/search",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},
@@ -180,7 +180,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/timesheet/me",
 		Method:      "GET",
 		Note:        "Returns timesheets of the current user for the current branch.",
@@ -198,7 +198,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModels(timesheets))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/me/search",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},
@@ -220,7 +220,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/user/:user_id",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},
@@ -242,7 +242,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TimesheetManager(service).ToModels(timesheets))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/user/:user_id/search",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},
@@ -268,7 +268,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},
@@ -299,7 +299,7 @@ func TimesheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/timesheet/current/users",
 		Method:       "GET",
 		ResponseType: types.TimesheetResponse{},

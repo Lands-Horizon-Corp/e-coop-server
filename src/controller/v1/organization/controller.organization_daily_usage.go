@@ -12,9 +12,9 @@ import (
 )
 
 func OrganizationDailyUsageController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization-daily-usage",
 		Method:       "GET",
 		Note:         "Returns all daily usage records for the current user's organization.",
@@ -32,7 +32,7 @@ func OrganizationDailyUsageController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.OrganizationDailyUsageManager(service).ToModels(dailyUsage))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/organization-daily-usage/:organization_daily_usage_id",
 		Method:       "GET",
 		Note:         "Returns a specific organization daily usage record by its ID.",

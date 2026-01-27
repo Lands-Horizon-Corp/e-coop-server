@@ -13,9 +13,9 @@ import (
 )
 
 func LoanPurposeController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "GET",
 		ResponseType: types.LoanPurposeResponse{},
@@ -36,7 +36,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanPurposeManager(service).ToModels(purposes))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose/search",
 		Method:       "GET",
 		ResponseType: types.LoanPurposeResponse{},
@@ -60,7 +60,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "GET",
 		Note:         "Returns a loan purpose record by its ID.",
@@ -78,7 +78,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, purpose)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose",
 		Method:       "POST",
 		RequestType:  types.LoanPurposeRequest{},
@@ -138,7 +138,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.LoanPurposeManager(service).ToModel(purpose))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/loan-purpose/:loan_purpose_id",
 		Method:       "PUT",
 		RequestType:  types.LoanPurposeRequest{},
@@ -210,7 +210,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.LoanPurposeManager(service).ToModel(purpose))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/loan-purpose/:loan_purpose_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified loan purpose record by its ID.",
@@ -250,7 +250,7 @@ func LoanPurposeController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/loan-purpose/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple loan purpose records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

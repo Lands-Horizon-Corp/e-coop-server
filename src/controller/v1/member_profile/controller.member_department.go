@@ -13,9 +13,9 @@ import (
 )
 
 func MemberDepartmentController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department-history",
 		Method:       "GET",
 		ResponseType: types.MemberDepartmentHistory{},
@@ -33,7 +33,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberDepartmentHistoryManager(service).ToModels(memberDepartmentHistory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: types.MemberDepartmentHistoryResponse{},
@@ -59,7 +59,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberDepartmentHistory)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department",
 		Method:       "GET",
 		ResponseType: types.MemberDepartmentResponse{},
@@ -77,7 +77,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberDepartmentManager(service).ToModels(memberDepartment))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department/search",
 		Method:       "GET",
 		ResponseType: types.MemberDepartmentResponse{},
@@ -98,7 +98,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberDepartment)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department",
 		Method:       "POST",
 		ResponseType: types.MemberDepartmentResponse{},
@@ -155,7 +155,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberDepartmentManager(service).ToModel(memberDepartment))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-department/:member_department_id",
 		Method:       "PUT",
 		ResponseType: types.MemberDepartmentResponse{},
@@ -222,7 +222,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberDepartmentManager(service).ToModel(memberDepartment))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-department/:member_department_id",
 		Method: "DELETE",
 		Note:   "Deletes a member department record by its ID.",
@@ -262,7 +262,7 @@ func MemberDepartmentController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-department/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple member department records by their IDs.",

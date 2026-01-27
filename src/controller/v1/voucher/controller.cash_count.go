@@ -15,9 +15,9 @@ import (
 )
 
 func CashCountController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-count/search",
 		Method:       "GET",
 		Note:         "Returns all cash counts of the current branch",
@@ -41,7 +41,7 @@ func CashCountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, cashCount)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-count/transaction-batch/:transaction_batch_id/search",
 		Method:       "GET",
 		Note:         "Returns all cash counts for a specific transaction batch",
@@ -70,7 +70,7 @@ func CashCountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, cashCount)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-count",
 		Method:       "GET",
 		Note:         "Returns all cash count bills for the current active transaction batch of the authenticated user's branch. Only allowed for 'owner' or 'employee'.",
@@ -105,7 +105,7 @@ func CashCountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CashCountManager(service).ToModels(cashCounts))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-count",
 		Method:       "POST",
 		ResponseType: types.CashCountResponse{},
@@ -213,7 +213,7 @@ func CashCountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.CashCountManager(service).ToModel(newCashCount))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-count",
 		Method:       "PUT",
 		ResponseType: types.CashCountResponse{},
@@ -427,7 +427,7 @@ func CashCountController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/cash-count/:id",
 		Method: "DELETE",
 		Note:   "Deletes a specific cash count bill with the given ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",
@@ -503,7 +503,7 @@ func CashCountController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/cash-count/:id",
 		Method:       "GET",
 		Note:         "Retrieves a specific cash count bill by its ID from the current active transaction batch. Only allowed for 'owner' or 'employee'.",

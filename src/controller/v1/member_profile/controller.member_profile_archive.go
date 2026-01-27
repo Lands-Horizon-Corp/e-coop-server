@@ -15,9 +15,9 @@ import (
 )
 
 func MemberProfileArchiveController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id",
 		Method:       "GET",
 		Note:         "Get all member profile archive for a specific member profile.",
@@ -77,7 +77,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberProfileArchiveList)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive",
 		Method:       "POST",
 		Note:         "Creates a new member profile archive for the current user's organization and branch.",
@@ -151,7 +151,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, result)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "PUT",
 		Note:         "Update a member profile archive by ID.",
@@ -229,7 +229,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method: "DELETE",
 		Note:   "Delete a member profile archive by ID.",
@@ -291,7 +291,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Member profile archive deleted successfully"})
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/:member_profile_archive_id",
 		Method:       "GET",
 		Note:         "Get a specific member profile archive by ID.",
@@ -312,7 +312,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberProfileArchive)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/bulk/member-profile/:member_profile_id",
 		Method:       "POST",
 		Note:         "Bulk create member profile archive for a specific member profile.",
@@ -364,7 +364,7 @@ func MemberProfileArchiveController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.MemberProfileArchiveManager(service).ToModels(createdMedia))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile-archive/member-profile/:member_profile_id/category",
 		Method:       "GET",
 		Note:         "Get distinct categories of member profile archive for a specific member profile.",

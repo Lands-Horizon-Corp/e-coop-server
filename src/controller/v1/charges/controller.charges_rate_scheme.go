@@ -13,9 +13,9 @@ import (
 )
 
 func ChargesRateSchemeController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "GET",
 		Note:         "Returns a paginated list of charges rate schemes for the current user's organization and branch.",
@@ -36,7 +36,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.ChargesRateSchemeManager(service).ToModels(chargesRateSchemes))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Returns a list of charges rate schemes for a specific currency.",
@@ -65,7 +65,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.ChargesRateSchemeManager(service).ToModels(chargesRateSchemes))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "GET",
 		Note:         "Returns a single charges rate scheme by its ID.",
@@ -83,7 +83,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, chargesRateScheme)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme",
 		Method:       "POST",
 		Note:         "Creates a new charges rate scheme for the current user's organization and branch.",
@@ -218,7 +218,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.ChargesRateSchemeManager(service).ToModel(chargesRateScheme))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method:       "PUT",
 		Note:         "Updates an existing charges rate scheme by its ID.",
@@ -629,7 +629,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, newRateScheme)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/charges-rate-scheme/:charges_rate_scheme_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified charges rate scheme by its ID.",
@@ -669,7 +669,7 @@ func ChargesRateSchemeController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/charges-rate-scheme/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple charges rate schemes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

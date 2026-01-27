@@ -13,9 +13,9 @@ import (
 )
 
 func TagTemplateController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "GET",
 		ResponseType: types.TagTemplateResponse{},
@@ -36,7 +36,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TagTemplateManager(service).ToModels(templates))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template/search",
 		Method:       "GET",
 		ResponseType: types.TagTemplateResponse{},
@@ -57,7 +57,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "GET",
 		ResponseType: types.TagTemplateResponse{},
@@ -75,7 +75,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, template)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template",
 		Method:       "POST",
 		ResponseType: types.TagTemplateResponse{},
@@ -134,7 +134,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TagTemplateManager(service).ToModel(template))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/tag-template/:tag_template_id",
 		Method:       "PUT",
 		ResponseType: types.TagTemplateResponse{},
@@ -203,7 +203,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TagTemplateManager(service).ToModel(template))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/tag-template/:tag_template_id",
 		Method: "DELETE",
 		Note:   "Deletes a tag template by its ID.",
@@ -243,7 +243,7 @@ func TagTemplateController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/tag-template/bulk-delete",
 		Method:      "DELETE",
 		RequestType: types.IDSRequest{},

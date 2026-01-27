@@ -14,9 +14,9 @@ import (
 )
 
 func BrowseReferenceController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "PUT",
 		ResponseType: types.BrowseReferenceResponse{},
@@ -261,7 +261,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BrowseReferenceManager(service).ToModel(updatedBrowseReference))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/:browse_reference_id",
 		Method:       "GET",
 		ResponseType: types.BrowseReferenceResponse{},
@@ -290,7 +290,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BrowseReferenceManager(service).ToModel(browseReference))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "GET",
 		ResponseType: types.BrowseReferenceResponse{},
@@ -311,7 +311,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BrowseReferenceManager(service).ToModels(browseReferences))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference",
 		Method:       "POST",
 		ResponseType: types.BrowseReferenceResponse{},
@@ -444,7 +444,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.BrowseReferenceManager(service).ToModel(createdBrowseReference))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/browse-reference/:browse_reference_id",
 		Method: "DELETE",
 		Note:   "Deletes a browse reference and all related interest rates.",
@@ -486,7 +486,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Browse reference deleted successfully"})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/by-member-type/:member_type_id",
 		Method:       "GET",
 		ResponseType: types.BrowseReferenceResponse{},
@@ -512,7 +512,7 @@ func BrowseReferenceController(service *horizon.HorizonService) {
 	})
 
 	// GET /api/v1/browse-reference/account/:account_id/member-type/:member_type_id
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/browse-reference/account/:account_id/member-type/:member_type_id",
 		Method:       "GET",
 		ResponseType: types.BrowseReferenceResponse{},

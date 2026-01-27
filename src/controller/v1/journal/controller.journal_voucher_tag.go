@@ -13,9 +13,9 @@ import (
 )
 
 func JournalVoucherTagController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "GET",
 		Note:         "Returns all journal voucher tags for the current user's organization and branch. Returns empty if not authenticated.",
@@ -36,7 +36,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherTagManager(service).ToModels(tags))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher-tag/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of journal voucher tags for the current user's organization and branch.",
@@ -60,7 +60,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, tags)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "GET",
 		Note:         "Returns a single journal voucher tag by its ID.",
@@ -78,7 +78,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, tag)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher-tag",
 		Method:       "POST",
 		Note:         "Creates a new journal voucher tag for the current user's organization and branch.",
@@ -144,7 +144,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.JournalVoucherTagManager(service).ToModel(tag))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher-tag/:tag_id",
 		Method:       "PUT",
 		Note:         "Updates an existing journal voucher tag by its ID.",
@@ -213,7 +213,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherTagManager(service).ToModel(tag))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/journal-voucher-tag/journal-voucher/:journal_voucher_id",
 		Method:       "GET",
 		Note:         "Returns all journal voucher tags associated with the specified journal voucher ID.",
@@ -243,7 +243,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.JournalVoucherTagManager(service).ToModels(tags))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/journal-voucher-tag/:tag_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified journal voucher tag by its ID.",
@@ -283,7 +283,7 @@ func JournalVoucherTagController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/journal-voucher-tag/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple journal voucher tags by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

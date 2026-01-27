@@ -13,9 +13,9 @@ import (
 )
 
 func UserRatingController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating/user-rater/:user_id",
 		Method:       "GET",
 		ResponseType: types.UserRatingResponse{},
@@ -33,7 +33,7 @@ func UserRatingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserRatingManager(service).ToModels(userRating))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating/user-ratee/:user_id",
 		Method:       "GET",
 		ResponseType: types.UserRatingResponse{},
@@ -51,7 +51,7 @@ func UserRatingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserRatingManager(service).ToModels(userRating))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating/:user_rating_id",
 		Method:       "GET",
 		ResponseType: types.UserRatingResponse{},
@@ -69,7 +69,7 @@ func UserRatingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserRatingManager(service).ToModel(userRating))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating/branch",
 		Method:       "GET",
 		ResponseType: types.UserRatingResponse{},
@@ -87,7 +87,7 @@ func UserRatingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserRatingManager(service).ToModels(userRating))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user-rating",
 		Method:       "POST",
 		ResponseType: types.UserRatingResponse{},
@@ -145,7 +145,7 @@ func UserRatingController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserRatingManager(service).ToModel(userRating))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/user-rating/:user_rating_id",
 		Method: "DELETE",
 		Note:   "Deletes a user rating by its ID.",

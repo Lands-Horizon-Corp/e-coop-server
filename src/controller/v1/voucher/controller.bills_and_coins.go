@@ -13,9 +13,9 @@ import (
 )
 
 func BillAndCoinsController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "GET",
 		Note:         "Returns all bills and coins for the current user's organization and branch. Returns error if not authenticated.",
@@ -51,7 +51,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of bills and coins for the current user's organization and branch.",
@@ -75,7 +75,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "GET",
 		Note:         "Returns a bills and coins record by its ID.",
@@ -93,7 +93,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, billAndCoins)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins",
 		Method:       "POST",
 		RequestType:  types.BillAndCoinsRequest{},
@@ -158,7 +158,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.BillAndCoinsManager(service).ToModel(billAndCoins))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method:       "PUT",
 		RequestType:  types.BillAndCoinsRequest{},
@@ -226,7 +226,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.BillAndCoinsManager(service).ToModel(billAndCoins))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/bills-and-coins/:bills_and_coins_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified bills and coins record by its ID.",
@@ -266,7 +266,7 @@ func BillAndCoinsController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/bills-and-coins/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple bills and coins records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

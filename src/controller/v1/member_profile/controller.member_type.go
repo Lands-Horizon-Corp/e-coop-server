@@ -14,9 +14,9 @@ import (
 )
 
 func MemberTypeController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type-history",
 		Method:       "GET",
 		ResponseType: types.MemberTypeHistoryResponse{},
@@ -34,7 +34,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberTypeHistoryManager(service).ToModels(memberTypeHistory))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type-history/member-profile/:member_profile_id/search",
 		Method:       "GET",
 		ResponseType: types.MemberTypeHistoryResponse{},
@@ -60,7 +60,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, memberTypeHistory)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "GET",
 		ResponseType: types.MemberTypeResponse{},
@@ -78,7 +78,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberTypeManager(service).ToModels(memberType))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type/search",
 		Method:       "GET",
 		ResponseType: types.MemberTypeResponse{},
@@ -99,7 +99,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, value)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type",
 		Method:       "POST",
 		RequestType:  types.MemberTypeRequest{},
@@ -156,7 +156,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberTypeManager(service).ToModel(memberType))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-type/:member_type_id",
 		Method:       "PUT",
 		RequestType:  types.MemberTypeRequest{},
@@ -226,7 +226,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.MemberTypeManager(service).ToModel(memberType))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/member-type/:member_type_id",
 		Method: "DELETE",
 		Note:   "Deletes a member type record by its ID.",
@@ -266,7 +266,7 @@ func MemberTypeController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/member-type/bulk-delete",
 		Method:      "DELETE",
 		RequestType: types.IDSRequest{},

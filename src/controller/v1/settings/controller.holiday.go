@@ -15,9 +15,9 @@ import (
 )
 
 func HolidayController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "GET",
 		ResponseType: types.HolidayResponse{},
@@ -38,7 +38,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.HolidayManager(service).ToModels(holiday))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/search",
 		Method:       "GET",
 		ResponseType: types.HolidayResponse{},
@@ -62,7 +62,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, holidays)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "GET",
 		ResponseType: types.HolidayResponse{},
@@ -81,7 +81,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, holiday)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday",
 		Method:       "POST",
 		ResponseType: types.HolidayResponse{},
@@ -143,7 +143,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.HolidayManager(service).ToModel(holiday))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/:holiday_id",
 		Method:       "PUT",
 		ResponseType: types.HolidayResponse{},
@@ -217,7 +217,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.HolidayManager(service).ToModel(holiday))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/holiday/:holiday_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified holiday record by its ID.",
@@ -257,7 +257,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/holiday/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple holiday records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -305,7 +305,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/year-available",
 		Method:       "GET",
 		ResponseType: types.HoldayYearAvaiable{},
@@ -358,7 +358,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id/year-available",
 		Method:       "GET",
 		ResponseType: types.HoldayYearAvaiable{},
@@ -416,7 +416,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, response)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/year/:year",
 		Method:       "GET",
 		ResponseType: types.HolidayResponse{},
@@ -451,7 +451,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.HolidayManager(service).ToModels(result))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: types.HolidayResponse{},
@@ -483,7 +483,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.HolidayManager(service).ToModels(holiday))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: types.HolidayResponse{},
@@ -526,7 +526,7 @@ func HolidayController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.HolidayManager(service).ToModels(result))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/holiday/year/:year/currency/:currency_id/copy/:source_year",
 		Method:       "POST",
 		ResponseType: types.HolidayResponse{},

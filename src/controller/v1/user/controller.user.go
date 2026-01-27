@@ -12,9 +12,9 @@ import (
 )
 
 func UserController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/user/:user_id",
 		Method:       "GET",
 		ResponseType: types.UserResponse{},
@@ -32,7 +32,7 @@ func UserController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, user)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/profile",
 		Method:       "PUT",
 		Note:         "Changes the profile of the current user.",
@@ -63,7 +63,7 @@ func UserController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserManager(service).ToModel(user))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/profile/password",
 		Method:       "PUT",
 		Note:         "Changes the user's password from profile settings.",
@@ -139,7 +139,7 @@ func UserController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserManager(service).ToModel(updatedUser))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/profile/profile-picture",
 		Method:       "PUT",
 		Note:         "Changes the user's profile picture.",
@@ -198,7 +198,7 @@ func UserController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.UserManager(service).ToModel(updatedUser))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/profile/general",
 		Method:       "PUT",
 		Note:         "Changes the user's general profile settings.",

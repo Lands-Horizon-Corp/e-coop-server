@@ -23,11 +23,11 @@ import (
 )
 
 func KYCController(service *horizon.HorizonService) {
-	req := service.API
+	
 	validator := service.Validator
 
 	// Step 1: Personal Details
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/personal-details",
 		Method:      "POST",
 		Note:        "Submit or update basic personal information (step 1 of KYC)",
@@ -63,7 +63,7 @@ func KYCController(service *horizon.HorizonService) {
 	})
 
 	// Step 2: Security / Account Credentials
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/security-details",
 		Method:      "POST",
 		Note:        "Create login credentials (email, phone, password)",
@@ -142,7 +142,7 @@ func KYCController(service *horizon.HorizonService) {
 	})
 
 	// Email Verification
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/verify-email",
 		Method:      "POST",
 		Note:        "Verify email address using OTP",
@@ -174,7 +174,7 @@ func KYCController(service *horizon.HorizonService) {
 	})
 
 	// Phone Number Verification
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/verify-contact-number",
 		Method:      "POST",
 		Note:        "Verify phone number using OTP",
@@ -202,7 +202,7 @@ func KYCController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Phone number verified successfully"})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/verify-addresses",
 		Method:      "POST",
 		Note:        "Verify one or more addresses (verification only)",
@@ -230,7 +230,7 @@ func KYCController(service *horizon.HorizonService) {
 	})
 
 	// Government Benefits / ID Verification
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/verify-government-benefits",
 		Method:      "POST",
 		Note:        "Submit government ID or benefits proof",
@@ -262,7 +262,7 @@ func KYCController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/kyc/face-recognize",
 		Method: "POST",
 		Note:   "Upload video for face recognition and liveness check (multipart/form-data)",
@@ -338,7 +338,7 @@ func KYCController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/kyc/selfie",
 		Method: "POST",
 		Note:   "Submit selfie image (WEBP, exactly 500x500)",
@@ -382,7 +382,7 @@ func KYCController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, echo.Map{"message": "Selfie image accepted successfully"})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/resend-email-verification",
 		Method:      "POST",
 		Note:        "Resend email verification OTP",
@@ -428,7 +428,7 @@ func KYCController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/resend-contact-number-verification",
 		Method:      "POST",
 		Note:        "Resend contact number verification OTP",
@@ -471,7 +471,7 @@ func KYCController(service *horizon.HorizonService) {
 		})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/kyc/register",
 		Method:      "POST",
 		Note:        "Complete KYC registration (all-in-one endpoint)",
@@ -631,7 +631,7 @@ func KYCController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, map[string]string{"message": "KYC registration submitted successfully"})
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/kyc/login",
 		Method:       "POST",
 		RequestType:  types.KYCLoginRequest{},

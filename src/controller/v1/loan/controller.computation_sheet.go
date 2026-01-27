@@ -13,9 +13,9 @@ import (
 )
 
 func ComputationSheetController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/computation-sheet/:computation_sheet_id/calculator",
 		Method:       "POST",
 		Note:         "Returns sample payment calculation data for a computation sheet.",
@@ -71,7 +71,7 @@ func ComputationSheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, computed)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/computation-sheet",
 		Method:       "GET",
 		Note:         "Returns all computation sheets for the current user's organization and branch.",
@@ -92,7 +92,7 @@ func ComputationSheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.ComputationSheetManager(service).ToModels(sheets))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "GET",
 		ResponseType: types.ComputationSheetResponse{},
@@ -110,7 +110,7 @@ func ComputationSheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, sheet)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/computation-sheet",
 		Method:       "POST",
 		RequestType:  types.ComputationSheetRequest{},
@@ -178,7 +178,7 @@ func ComputationSheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.ComputationSheetManager(service).ToModel(sheet))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/computation-sheet/:id",
 		Method:       "PUT",
 		RequestType:  types.ComputationSheetRequest{},
@@ -249,7 +249,7 @@ func ComputationSheetController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.ComputationSheetManager(service).ToModel(sheet))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/computation-sheet/:id",
 		Method: "DELETE",
 		Note:   "Deletes the specified computation sheet by its ID.",
@@ -289,7 +289,7 @@ func ComputationSheetController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/computation-sheet/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple computation sheets by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

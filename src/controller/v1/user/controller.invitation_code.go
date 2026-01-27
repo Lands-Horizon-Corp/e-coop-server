@@ -13,9 +13,9 @@ import (
 )
 
 func InvitationCodeController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/invitation-code",
 		Method:       "GET",
 		ResponseType: types.InvitationCodeResponse{},
@@ -36,7 +36,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.InvitationCodeManager(service).ToModels(invitationCode))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/invitation-code/search",
 		Method:      "GET",
 		RequestType: types.InvitationCodeRequest{},
@@ -60,7 +60,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, invitationCode)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/invitation-code/code/:code",
 		Method:       "GET",
 		Note:         "Returns the invitation code matching the specified code for the current user's organization.",
@@ -75,7 +75,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.InvitationCodeManager(service).ToModel(invitationCode))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "GET",
 		Note:         "Returns the details of a specific invitation code by its ID.",
@@ -93,7 +93,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.InvitationCodeManager(service).ToModel(invitationCode))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/invitation-code",
 		Method:       "POST",
 		ResponseType: types.InvitationCodeResponse{},
@@ -173,7 +173,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.InvitationCodeManager(service).ToModel(data))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/invitation-code/:invitation_code_id",
 		Method:       "PUT",
 		ResponseType: types.InvitationCodeResponse{},
@@ -254,7 +254,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.InvitationCodeManager(service).ToModel(invitationCode))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/invitation-code/:invitation_code_id",
 		Method: "DELETE",
 		Note:   "Deletes a specific invitation code identified by its ID.",
@@ -294,7 +294,7 @@ func InvitationCodeController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/invitation-code/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple invitation codes by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

@@ -13,9 +13,9 @@ import (
 )
 
 func CollateralController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "GET",
 		Note:         "Returns all collateral records for the current user's organization and branch. Returns error if not authenticated.",
@@ -36,7 +36,7 @@ func CollateralController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CollateralManager(service).ToModels(collaterals))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral/search",
 		Method:       "GET",
 		ResponseType: types.CollateralResponse{},
@@ -60,7 +60,7 @@ func CollateralController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, collaterals)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "GET",
 		Note:         "Returns a collateral record by its ID.",
@@ -78,7 +78,7 @@ func CollateralController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, collateral)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral",
 		Method:       "POST",
 		RequestType:  types.CollateralRequest{},
@@ -142,7 +142,7 @@ func CollateralController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.CollateralManager(service).ToModel(collateral))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/collateral/:collateral_id",
 		Method:       "PUT",
 		RequestType:  types.CollateralRequest{},
@@ -208,7 +208,7 @@ func CollateralController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CollateralManager(service).ToModel(collateral))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/collateral/:collateral_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified collateral record by its ID.",
@@ -248,7 +248,7 @@ func CollateralController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/collateral/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple collateral records by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",

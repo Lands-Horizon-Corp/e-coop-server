@@ -13,9 +13,9 @@ import (
 )
 
 func SubscriptionPlanController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "GET",
 		ResponseType: types.SubscriptionPlanResponse{},
@@ -29,7 +29,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.SubscriptionPlanManager(service).ToModels(categories))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "GET",
 		ResponseType: types.SubscriptionPlanResponse{},
@@ -49,7 +49,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, subscriptionPlan)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan",
 		Method:       "POST",
 		ResponseType: types.SubscriptionPlanResponse{},
@@ -106,7 +106,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.SubscriptionPlanManager(service).ToModel(subscriptionPlan))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/:subscription_plan_id",
 		Method:       "PUT",
 		ResponseType: types.SubscriptionPlanResponse{},
@@ -180,7 +180,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.SubscriptionPlanManager(service).ToModel(subscriptionPlan))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/subscription-plan/:subscription_plan_id",
 		Method: "DELETE",
 		Note:   "Deletes a subscription plan by its ID.",
@@ -224,7 +224,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/subscription-plan/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple subscription plan records.",
@@ -273,7 +273,7 @@ func SubscriptionPlanController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/subscription-plan/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: types.SubscriptionPlanResponse{},

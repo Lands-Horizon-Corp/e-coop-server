@@ -16,9 +16,9 @@ import (
 )
 
 func CurrencyController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency",
 		Method:       "GET",
 		ResponseType: types.CurrencyResponse{},
@@ -32,7 +32,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModels(currencies))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/blotter-available",
 		Method:       "GET",
 		ResponseType: types.CurrencyResponse{},
@@ -52,7 +52,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModels(currency))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/available",
 		Method:       "GET",
 		ResponseType: types.CurrencyResponse{},
@@ -88,7 +88,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModels(currencies))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "GET",
 		ResponseType: types.CurrencyResponse{},
@@ -108,7 +108,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, currency)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/code/:currency_code",
 		Method:       "GET",
 		ResponseType: types.CurrencyResponse{},
@@ -128,7 +128,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModel(currency))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency",
 		Method:       "POST",
 		ResponseType: types.CurrencyResponse{},
@@ -175,7 +175,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModel(currency))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/:currency_id",
 		Method:       "PUT",
 		ResponseType: types.CurrencyResponse{},
@@ -239,7 +239,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.CurrencyManager(service).ToModel(currency))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/currency/:currency_id",
 		Method: "DELETE",
 		Note:   "Deletes a currency by its ID.",
@@ -283,7 +283,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/currency/bulk-delete",
 		Method:      "DELETE",
 		RequestType: types.IDSRequest{},
@@ -331,7 +331,7 @@ func CurrencyController(service *horizon.HorizonService) {
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/exchange-rate/:currency_from_id/:currency_to_id/:amount",
 		Method:       "POST",
 		ResponseType: usecase.ExchangeResult{},
@@ -370,7 +370,7 @@ func CurrencyController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/currency/timezone/:timezone",
 		Method:       "GET",
 		ResponseType: types.CurrencyResponse{},

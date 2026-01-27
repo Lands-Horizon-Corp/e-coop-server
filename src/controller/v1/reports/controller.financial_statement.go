@@ -14,9 +14,9 @@ import (
 )
 
 func FinancialStatementController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping",
 		Method:       "GET",
 		ResponseType: types.FinancialStatementAccountsGroupingResponse{},
@@ -40,7 +40,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FinancialStatementAccountsGroupingManager(service).ToModels(fsGroupings))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping/:financial_statement_grouping_id",
 		Method:       "PUT",
 		RequestType:  types.FinancialStatementAccountsGroupingRequest{},
@@ -118,7 +118,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FinancialStatementAccountsGroupingManager(service).ToModel(grouping))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "GET",
 		ResponseType: types.FinancialStatementDefinitionResponse{},
@@ -142,7 +142,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, fsDefs)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition",
 		Method:       "POST",
 		RequestType:  types.FinancialStatementDefinitionRequest{},
@@ -210,7 +210,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method:       "PUT",
 		Note:         "Updates an existing financial statement definition by its ID.",
@@ -290,7 +290,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/account/:account_id/connect",
 		Method:       "POST",
 		ResponseType: types.FinancialStatementDefinitionResponse{},
@@ -395,7 +395,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-definition/:financial_statement_definition_id/index/:index",
 		Method:       "PUT",
 		ResponseType: types.FinancialStatementDefinitionResponse{},
@@ -465,7 +465,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/financial-statement-grouping/financial-statement-definition/:financial_statement_definition_id/account/:account_id/index",
 		Method:       "PUT",
 		ResponseType: types.FinancialStatementDefinitionResponse{},
@@ -601,7 +601,7 @@ func FinancialStatementController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.FinancialStatementDefinitionManager(service).ToModel(fsDefinition))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/financial-statement-definition/:financial_statement_definition_id",
 		Method: "DELETE",
 		Note:   "Deletes a financial statement definition by its ID, only if no accounts are linked.",

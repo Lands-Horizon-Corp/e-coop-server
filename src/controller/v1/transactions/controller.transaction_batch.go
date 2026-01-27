@@ -14,9 +14,9 @@ import (
 )
 
 func TransactionBatchController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "GET",
 		ResponseType: types.TransactionBatchResponse{},
@@ -40,7 +40,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModels(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/search",
 		Method:       "GET",
 		ResponseType: types.TransactionBatchResponse{},
@@ -61,7 +61,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, transactionBatch)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/signature",
 		Method:       "PUT",
 		ResponseType: types.TransactionBatchResponse{},
@@ -172,7 +172,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/current",
 		Method:       "GET",
 		ResponseType: types.TransactionBatchResponse{},
@@ -202,7 +202,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/deposit-in-bank",
 		Method:       "PUT",
 		ResponseType: types.TransactionBatchResponse{},
@@ -313,7 +313,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch",
 		Method:       "POST",
 		ResponseType: types.TransactionBatchResponse{},
@@ -481,7 +481,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, result)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/end",
 		Method:       "PUT",
 		RequestType:  types.TransactionBatchEndRequest{},
@@ -551,7 +551,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id",
 		Method:       "GET",
 		Note:         "Returns a transaction batch by its ID.",
@@ -583,7 +583,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-request",
 		Method:       "PUT",
 		RequestType:  types.TransactionBatchEndRequest{},
@@ -670,7 +670,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/view-request",
 		Method:       "GET",
 		Note:         "Returns all pending view (blotter) requests for transaction batches on the current branch.",
@@ -691,7 +691,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModels(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/ended-batch",
 		Method:       "GET",
 		Note:         "Returns all ended (closed) transaction batches for the current day.",
@@ -712,7 +712,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModels(batches))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/:transaction_batch_id/view-accept",
 		Method:       "PUT",
 		Note:         "Accepts a view (blotter) request for a transaction batch by its ID.",
@@ -785,7 +785,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TransactionBatchManager(service).ToModel(transactionBatch))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/transaction-batch/employee/:user_organization_id/search",
 		Method:       "GET",
 		ResponseType: types.TransactionBatchResponse{},

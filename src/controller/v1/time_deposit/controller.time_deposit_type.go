@@ -13,9 +13,9 @@ import (
 )
 
 func TimeDepositTypeController(service *horizon.HorizonService) {
-	req := service.API
+	
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "GET",
 		Note:         "Returns a paginated list of time deposit types for the current user's organization and branch.",
@@ -36,7 +36,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TimeDepositTypeManager(service).ToModels(timeDepositTypes))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "GET",
 		Note:         "Returns a single time deposit type by its ID.",
@@ -54,7 +54,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, timeDepositType)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type",
 		Method:       "POST",
 		Note:         "Creates a new time deposit type for the current user's organization and branch.",
@@ -120,7 +120,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.TimeDepositTypeManager(service).ToModel(timeDepositType))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method:       "PUT",
 		Note:         "Updates an existing time deposit type by its ID.",
@@ -345,7 +345,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, core.TimeDepositTypeManager(service).ToModel(newTimeDepositType))
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/time-deposit-type/:time_deposit_type_id",
 		Method: "DELETE",
 		Note:   "Deletes the specified time deposit type by its ID.",
@@ -385,7 +385,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 		return ctx.NoContent(http.StatusNoContent)
 	})
 
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:       "/api/v1/time-deposit-type/bulk-delete",
 		Method:      "DELETE",
 		Note:        "Deletes multiple time deposit types by their IDs. Expects a JSON body: { \"ids\": [\"id1\", \"id2\", ...] }",
@@ -433,7 +433,7 @@ func TimeDepositTypeController(service *horizon.HorizonService) {
 
 		return ctx.NoContent(http.StatusNoContent)
 	})
-	req.RegisterWebRoute(horizon.Route{
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/time-deposit-type/currency/:currency_id",
 		Method:       "GET",
 		Note:         "Fetch time deposit types by currency ID.",
