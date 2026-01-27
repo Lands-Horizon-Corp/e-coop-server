@@ -42,6 +42,7 @@ func AdminController(service *horizon.HorizonService) {
 		if err := ctx.Bind(&req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid login payload: " + err.Error()})
 		}
+
 		if err := service.Validator.Struct(req); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
@@ -99,7 +100,7 @@ func AdminController(service *horizon.HorizonService) {
 	})
 
 	req.RegisterWebRoute(horizon.Route{
-		Route:  "/api/v1/authentication/current-logged-in-accounts/logout",
+		Route:  "/api/v1/admin/logout",
 		Method: "POST",
 		Note:   "Logs out all users including itself for the session.",
 	}, func(ctx echo.Context) error {

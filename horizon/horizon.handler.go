@@ -7,8 +7,10 @@ import (
 	"github.com/fatih/color"
 )
 
+// HorizonHandler defines the function signature for a handler
 type HorizonHandler func(ctx context.Context, service *HorizonService) error
 
+// HorizonRunnerParams defines the interface for runner parameters
 type HorizonRunnerParams interface {
 	Timeout() time.Duration
 	OnStartMessage() string
@@ -16,6 +18,8 @@ type HorizonRunnerParams interface {
 	Handler() HorizonHandler
 	ForceLifetime() bool
 }
+
+// DefaultHorizonRunnerParams implements HorizonRunnerParams
 type DefaultHorizonRunnerParams struct {
 	TimeoutValue       time.Duration
 	OnStartMessageText string
@@ -49,35 +53,36 @@ func (p DefaultHorizonRunnerParams) ForceLifetime() bool {
 	}
 	return *p.ForceLifetimeFunc
 }
+
 func WithHorizonService(params HorizonRunnerParams) error {
-	var lifecycleCtx context.Context
-	var stop context.CancelFunc
+	var (
+		ctx  context.Context
+		stop context.CancelFunc
+	)
 	if params.ForceLifetime() {
-		lifecycleCtx, stop = context.WithCancel(context.Background())
+		ctx, stop = context.WithCancel(context.Background())
 	} else {
-		lifecycleCtx, stop = context.WithTimeout(context.Background(), params.Timeout())
+		ctx, stop = context.WithTimeout(context.Background(), params.Timeout())
 	}
 	defer stop()
 	service := NewHorizonService(params.ForceLifetime())
 	if msg := params.OnStartMessage(); msg != "" {
 		color.Blue(msg)
 	}
-	if err := service.Run(lifecycleCtx); err != nil {
+	if err := service.Run(ctx); err != nil {
 		return err
 	}
-	if params.Handler() != nil {
-		handlerCtx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		if err := params.Handler()(handlerCtx, service); err != nil {
-			return service.Stop(context.Background())
+	if handler := params.Handler(); handler != nil {
+		if err := handler(ctx, service); err != nil {
+			_ = service.Stop(context.Background())
+			return err
 		}
 	}
 	if params.ForceLifetime() {
-		<-lifecycleCtx.Done()
+		<-ctx.Done()
 	}
 	if err := service.Stop(context.Background()); err != nil {
-		return nil
+		return err
 	}
 	if msg := params.OnStopMessage(); msg != "" {
 		color.Yellow(msg)
