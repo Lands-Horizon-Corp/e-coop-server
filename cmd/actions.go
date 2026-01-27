@@ -25,66 +25,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func enforceBlocklist() horizon.CommandConfig {
-	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
-		TimeoutValue:       30 * time.Minute,
-		OnStartMessageText: "Enforcing HaGeZi blocklist...",
-		OnStopMessageText:  "Blocklist enforcement stopped",
-		CommandUseText:     "secure-enforce",
-		CommandShortText:   "Update HaGeZi blocklist",
-		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
-			return service.Security.Firewall(ctx, func(ip, host string) {
-				cacheKey := "blocked_ip:" + ip
-				timestamp := float64(time.Now().Unix())
-
-				if err := service.Cache.ZAdd(ctx, "blocked_ips_registry", timestamp, ip); err != nil {
-					color.Red("Failed to add IP %s: %v", ip, err)
-				}
-
-				if err := service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
-					color.Red("Failed to cache IP %s: %v", ip, err)
-				}
-
-				color.Yellow("Cached blocked IP %s from host %s", ip, host)
-			})
-		},
-	})
-}
-
-func clearBlockedIPs() horizon.CommandConfig {
-	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
-		TimeoutValue:       30 * time.Minute,
-		OnStartMessageText: "Clearing blocked IPs from cache...",
-		OnStopMessageText:  "Blocked IPs cleared successfully",
-		CommandUseText:     "secure-clear",
-		CommandShortText:   "Clear all blocked IPs",
-		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
-			keys, err := service.Cache.Keys(ctx, "blocked_ip:*")
-			if err != nil {
-				color.Red("Failed to get blocked IP keys: %v", err)
-				return err
-			}
-			count := 0
-			for _, key := range keys {
-				if err := service.Cache.Delete(ctx, key); err != nil {
-					color.Red("Failed to delete key %s: %v", key, err)
-				} else {
-					count++
-				}
-			}
-			color.Green("Cleared %d blocked IP entries from cache", count)
-			return nil
-		},
-	})
-}
-
+// Database Commands
 func migrateDatabase() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		TimeoutValue:       30 * time.Minute,
-		OnStartMessageText: "Migrating database...",
-		OnStopMessageText:  "Database migration completed",
+		OnStartMessageText: "🔄 Database migration in progress...",
+		OnStopMessageText:  "✅ Database migration completed successfully",
 		CommandUseText:     "db-migrate",
-		CommandShortText:   "Automigrate all tables",
+		CommandShortText:   "Apply database schema migrations",
 		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
 			return types.Migrate(service)
 		},
@@ -94,10 +42,10 @@ func migrateDatabase() horizon.CommandConfig {
 func seedDatabase() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		TimeoutValue:       2 * time.Hour,
-		OnStartMessageText: "Seeding database...",
-		OnStopMessageText:  "Database seeding completed",
+		OnStartMessageText: "🌱 Seeding database with initial data...",
+		OnStopMessageText:  "✅ Database seeding completed successfully",
 		CommandUseText:     "db-seed",
-		CommandShortText:   "Seed initial data",
+		CommandShortText:   "Seed database with initial configuration",
 		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
 			return core.Seed(ctx, service)
 		},
@@ -107,10 +55,10 @@ func seedDatabase() horizon.CommandConfig {
 func resetDatabase() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		TimeoutValue:       30 * time.Minute,
-		OnStartMessageText: "Resetting database...",
-		OnStopMessageText:  "Database reset completed",
+		OnStartMessageText: "⚠️  Resetting database - this will drop all tables...",
+		OnStopMessageText:  "✅ Database reset completed successfully",
 		CommandUseText:     "db-reset",
-		CommandShortText:   "Drop and recreate database",
+		CommandShortText:   "Reset database (drop all tables and recreate)",
 		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
 			if err := service.Storage.RemoveAllFiles(ctx); err != nil {
 				return err
@@ -126,10 +74,10 @@ func resetDatabase() horizon.CommandConfig {
 func refreshDatabase() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		TimeoutValue:       2 * time.Hour,
-		OnStartMessageText: "Refreshing database...",
-		OnStopMessageText:  "Database refreshed successfully",
+		OnStartMessageText: "🔄 Refreshing database - resetting and reseeding...",
+		OnStopMessageText:  "✅ Database refresh completed successfully",
 		CommandUseText:     "db-refresh",
-		CommandShortText:   "Reset and seed database",
+		CommandShortText:   "Full database refresh (reset + seed)",
 		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
 			if err := service.Cache.Flush(ctx); err != nil {
 				return err
@@ -148,28 +96,88 @@ func refreshDatabase() horizon.CommandConfig {
 	})
 }
 
+// Cache Commands
 func cleanCache() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		TimeoutValue:       30 * time.Minute,
-		OnStartMessageText: "Cleaning cache...",
-		OnStopMessageText:  "Cache cleaned successfully",
+		OnStartMessageText: "🧹 Clearing application cache...",
+		OnStopMessageText:  "✅ Cache cleared successfully",
 		CommandUseText:     "cache-clean",
-		CommandShortText:   "Flush application cache",
+		CommandShortText:   "Clear all cached data",
 		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
 			return service.Cache.Flush(ctx)
 		},
 	})
 }
 
+// Security Commands
+func enforceBlocklist() horizon.CommandConfig {
+	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
+		TimeoutValue:       30 * time.Minute,
+		OnStartMessageText: "🛡️  Enforcing HaGeZi blocklist updates...",
+		OnStopMessageText:  "✅ Blocklist enforcement completed",
+		CommandUseText:     "security-enforce-blocklist",
+		CommandShortText:   "Update and enforce HaGeZi security blocklist",
+		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
+			return service.Security.Firewall(ctx, func(ip, host string) {
+				cacheKey := "blocked_ip:" + ip
+				timestamp := float64(time.Now().Unix())
+
+				if err := service.Cache.ZAdd(ctx, "blocked_ips_registry", timestamp, ip); err != nil {
+					color.Red("❌ Failed to register IP %s: %v", ip, err)
+					return
+				}
+
+				if err := service.Cache.Set(ctx, cacheKey, host, 60*24*time.Hour); err != nil {
+					color.Red("❌ Failed to cache IP %s: %v", ip, err)
+					return
+				}
+
+				color.Green("✅ Blocked IP %s (from %s)", ip, host)
+			})
+		},
+	})
+}
+
+func clearBlockedIPs() horizon.CommandConfig {
+	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
+		TimeoutValue:       30 * time.Minute,
+		OnStartMessageText: "🧹 Removing blocked IP entries...",
+		OnStopMessageText:  "✅ Blocked IPs cleared successfully",
+		CommandUseText:     "security-clear-blocked",
+		CommandShortText:   "Clear all blocked IP entries",
+		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
+			keys, err := service.Cache.Keys(ctx, "blocked_ip:*")
+			if err != nil {
+				color.Red("❌ Failed to retrieve blocked IP keys: %v", err)
+				return err
+			}
+
+			count := 0
+			for _, key := range keys {
+				if err := service.Cache.Delete(ctx, key); err != nil {
+					color.Yellow("⚠️  Failed to delete key %s: %v", key, err)
+				} else {
+					count++
+				}
+			}
+
+			color.Green("✅ Removed %d blocked IP entries", count)
+			return nil
+		},
+	})
+}
+
+// Server Commands
 func startServer() horizon.CommandConfig {
 	forceLifeTime := true
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		ForceLifetimeFunc:  &forceLifeTime,
 		TimeoutValue:       5 * time.Minute,
-		OnStartMessageText: "Starting server...",
-		OnStopMessageText:  "Server started successfully",
+		OnStartMessageText: "🚀 Starting E-Cooperative Server...",
+		OnStopMessageText:  "✅ Server is now running",
 		CommandUseText:     "server",
-		CommandShortText:   "Start the main server",
+		CommandShortText:   "Start the main application server",
 		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
 			// Admin controllers
 			admin.AdminController(service)
@@ -307,13 +315,20 @@ func startServer() horizon.CommandConfig {
 
 func Register() []horizon.CommandConfig {
 	return []horizon.CommandConfig{
+		// Database Operations
 		migrateDatabase(),
 		seedDatabase(),
 		resetDatabase(),
 		refreshDatabase(),
+
+		// Cache Operations
 		cleanCache(),
+
+		// Security Operations
 		enforceBlocklist(),
 		clearBlockedIPs(),
+
+		// Server Operations
 		startServer(),
 	}
 }
