@@ -38,6 +38,30 @@ type ExtendedSecurityHeaders struct {
 	CrossOriginResourcePolicy     string
 }
 
+type Route struct {
+	Route        string `json:"route"`
+	Request      string `json:"request,omitempty"`  // TypeScript interface for request
+	Response     string `json:"response,omitempty"` // TypeScript interface for response
+	RequestType  any    // Go type for request (used internally)
+	ResponseType any    // Go type for response (used internally)
+	Method       string `json:"method"`            // HTTP method (GET, POST, etc.)
+	Note         string `json:"note"`              // Additional documentation
+	Private      bool   `json:"private,omitempty"` // Excluded from public docs
+}
+
+type APIImpl struct {
+	service    *echo.Echo
+	serverPort int
+	cache      *CacheImpl
+	secured    bool
+
+	routesList     []Route
+	interfacesList []APIInterfaces
+}
+type APIInterfaces struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
 type GroupedRoute struct {
 	Key    string  `json:"key"`    // Base path segment (e.g. "users")
 	Routes []Route `json:"routes"` // Routes under this group
@@ -156,31 +180,6 @@ func SecurityHeadersMiddleware(secured bool) echo.MiddlewareFunc {
 			return err
 		}
 	}
-}
-
-type Route struct {
-	Route        string `json:"route"`
-	Request      string `json:"request,omitempty"`  // TypeScript interface for request
-	Response     string `json:"response,omitempty"` // TypeScript interface for response
-	RequestType  any    // Go type for request (used internally)
-	ResponseType any    // Go type for response (used internally)
-	Method       string `json:"method"`            // HTTP method (GET, POST, etc.)
-	Note         string `json:"note"`              // Additional documentation
-	Private      bool   `json:"private,omitempty"` // Excluded from public docs
-}
-
-type APIImpl struct {
-	service    *echo.Echo
-	serverPort int
-	cache      *CacheImpl
-	secured    bool
-
-	routesList     []Route
-	interfacesList []APIInterfaces
-}
-type APIInterfaces struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
 }
 
 func NewAPIImpl(
