@@ -172,7 +172,7 @@ func CreateGeneralLedgerEntry(
 	} else {
 		switch data.Account.GeneralLedgerType {
 		case types.GLTypeAssets, types.GLTypeExpenses:
-			balanceChange = debit.Sub(credit)
+			balanceChange = credit.Sub(credit)
 		case types.GLTypeLiabilities, types.GLTypeEquity, types.GLTypeRevenue:
 			balanceChange = credit.Sub(debit)
 		default:
