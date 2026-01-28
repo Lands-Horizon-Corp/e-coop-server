@@ -1261,7 +1261,6 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.SettingsAccountingWithdrawDefaultValueID = req.SettingsAccountingWithdrawDefaultValueID
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
-		userOrg.SettingsAllowWithdrawExactBalance = req.SettingsAllowWithdrawExactBalance
 		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
 
 		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
@@ -1329,7 +1328,6 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.PaymentPadding = req.PaymentPadding
 
 		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
-		userOrg.SettingsAllowWithdrawExactBalance = req.SettingsAllowWithdrawExactBalance
 		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
 		userOrg.SettingsAccountingPaymentDefaultValueID = req.SettingsAccountingPaymentDefaultValueID
 		userOrg.SettingsAccountingDepositDefaultValueID = req.SettingsAccountingDepositDefaultValueID

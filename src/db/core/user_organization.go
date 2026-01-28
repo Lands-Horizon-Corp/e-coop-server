@@ -98,7 +98,6 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 				PaymentPrefix:                        data.PaymentPrefix,
 				PaymentPadding:                       data.PaymentPadding,
 				SettingsAllowWithdrawNegativeBalance: data.SettingsAllowWithdrawNegativeBalance,
-				SettingsAllowWithdrawExactBalance:    data.SettingsAllowWithdrawExactBalance,
 				SettingsMaintainingBalance:           data.SettingsMaintainingBalance,
 				Status:                               data.Status,
 				LastOnlineAt:                         data.LastOnlineAt,

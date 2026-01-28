@@ -170,8 +170,9 @@ func MemberAccountingLedgerUpdateOrCreate(
 		params.BranchID,
 	)
 	if err != nil {
-		return nil, eris.Wrap(err, "failed to find member accounting ledger for update")
+		return nil, eris.Wrap(err, "member accounting ledger: failed to find member accounting ledger for update")
 	}
+
 	if ledger == nil || ledger.ID == uuid.Nil {
 		ledger = &types.MemberAccountingLedger{
 			CreatedAt:           time.Now().UTC(),

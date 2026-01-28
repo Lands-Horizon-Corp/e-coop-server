@@ -194,6 +194,7 @@ func TransactionPayment(
 			}
 		}
 	}
+
 	newGeneralLedger := &types.GeneralLedger{
 		CreatedAt:          now,
 		CreatedByID:        userOrg.UserID,

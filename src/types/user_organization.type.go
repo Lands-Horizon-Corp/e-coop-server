@@ -67,7 +67,6 @@ type (
 		PaymentPadding          int    `gorm:"not null;default:6" json:"payment_padding"`
 
 		SettingsAllowWithdrawNegativeBalance bool `gorm:"not null;default:false" json:"allow_withdraw_negative_balance"`
-		SettingsAllowWithdrawExactBalance    bool `gorm:"not null;default:false" json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `gorm:"not null;default:false" json:"maintaining_balance"`
 
 		Status       UserOrganizationStatus `gorm:"type:varchar(50);not null;default:'offline'" json:"status"`
@@ -181,7 +180,6 @@ type (
 		PaymentPadding          int    `json:"payment_padding,omitempty" validate:"min=0"`
 
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
-		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 
 		TimeMachineTime *time.Time `json:"time_machine_time,omitempty"`
@@ -207,7 +205,6 @@ type (
 		PaymentPadding          int    `json:"payment_padding,omitempty" validate:"min=0"`
 
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
-		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 
 		TimeMachineTime *time.Time `json:"time_machine_time,omitempty"`
@@ -255,7 +252,6 @@ type (
 		PaymentPadding          int    `json:"payment_padding"`
 
 		SettingsAllowWithdrawNegativeBalance bool `json:"allow_withdraw_negative_balance"`
-		SettingsAllowWithdrawExactBalance    bool `json:"allow_withdraw_exact_balance"`
 		SettingsMaintainingBalance           bool `json:"maintaining_balance"`
 
 		Status       UserOrganizationStatus `json:"status"`
