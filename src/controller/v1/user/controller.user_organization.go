@@ -1398,9 +1398,7 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		RequestType:  types.EmployeeCreateRequest{},
 		ResponseType: types.UserOrganizationResponse{},
 	}, func(ctx echo.Context) error {
-
 		context := ctx.Request().Context()
-
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
@@ -1486,5 +1484,4 @@ func UserOrganizationController(service *horizon.HorizonService) {
 
 		return ctx.JSON(http.StatusCreated, map[string]string{"message": "Employee user created successfully"})
 	})
-
 }
