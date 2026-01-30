@@ -3,7 +3,7 @@ package helpers
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -491,29 +491,13 @@ func GenerateLicenseKey() (string, error) {
 	}
 	uuid[6] = (uuid[6] & 0x0f) | 0x40
 	uuid[8] = (uuid[8] & 0x3f) | 0x80
-	uuidStr := fmt.Sprintf("%x-%x-%x-%x-%x",
-		uuid[0:4],
-		uuid[4:6],
-		uuid[6:8],
-		uuid[8:10],
-		uuid[10:16],
-	)
 	timestamp := time.Now().UTC().UnixNano()
-	entropy := make([]byte, 32)
+	entropy := make([]byte, 64)
 	if _, err := rand.Read(entropy); err != nil {
 		return "", err
 	}
-	payload := fmt.Sprintf("%s:%d:%x", uuidStr, timestamp, entropy)
-	hash := sha256.Sum256([]byte(payload))
-	hashStr := hex.EncodeToString(hash[:])
-	license := strings.ToUpper(fmt.Sprintf(
-		"%s-%s-%s-%s-%s",
-		hashStr[0:5],
-		hashStr[5:10],
-		hashStr[10:15],
-		hashStr[15:20],
-		hashStr[20:25],
-	))
-
-	return license, nil
+	payload := fmt.Sprintf("%x:%d:%x", uuid, timestamp, entropy)
+	hash := sha512.Sum512([]byte(payload))
+	hashHex := strings.ToUpper(hex.EncodeToString(hash[:]))
+	return hashHex[:127], nil
 }

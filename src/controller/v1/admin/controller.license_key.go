@@ -182,7 +182,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{
-		Route:       "/api/v1/license/deactivate",
+		Route:       "t/api/v1/license/deactivate",
 		Method:      "POST",
 		Note:        "Deactivate a license using secret key and fingerprint. Expects JSON { \"secret_key\": \"xxx\", \"fingerprint\": \"unique_user_fp\" }",
 		RequestType: types.LicenseDeactivateRequest{},
