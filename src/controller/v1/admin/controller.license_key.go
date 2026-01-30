@@ -164,6 +164,8 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		RequestType: types.LicenseVerifyRequest{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+		timestamp := float64(time.Now().Unix())
+		clientIP := helpers.GetClientIP(ctx)
 		var reqBody types.LicenseVerifyRequest
 		if err := ctx.Bind(&reqBody); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
@@ -173,10 +175,16 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		}
 		license, err := event.VerifyLicenseByFingerprint(context, service, reqBody.SecretKey, reqBody.Fingerprint)
 		if err != nil {
+			if cacheErr := service.Cache.ZAdd(context, "blocked_ips_registry", timestamp, clientIP); cacheErr != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update blocked IP registry: " + cacheErr.Error()})
+			}
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": err.Error()})
 		}
 		if license == nil || license.LicenseKey == "" {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "License not found"})
+			if cacheErr := service.Cache.ZAdd(context, "blocked_ips_registry", timestamp, clientIP); cacheErr != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update blocked IP registry: " + cacheErr.Error()})
+			}
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "License not found or invalid"})
 		}
 		return ctx.NoContent(http.StatusOK)
 	})

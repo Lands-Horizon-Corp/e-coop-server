@@ -609,7 +609,6 @@ func (h *APIImpl) RegisterWebRoute(
 		http.MethodOptions,
 		http.MethodPatch,
 		http.MethodDelete:
-		// ok
 	default:
 		panic(eris.Errorf(
 			"unsupported HTTP method: %s for route: %s",
