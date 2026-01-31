@@ -287,11 +287,21 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 				Accounts:      periodAccounts,
 			})
 			loc := startDate.Location()
-			day := startDate.Day()
 
 			if isMonthlyExactDay {
 				nextMonth := startDate.AddDate(0, 1, 0)
-				startDate = time.Date(nextMonth.Year(), nextMonth.Month(), day, startDate.Hour(), startDate.Minute(), startDate.Second(), startDate.Nanosecond(), loc)
+				lastDayOfNextMonth := time.Date(nextMonth.Year(), nextMonth.Month()+1, 0, 0, 0, 0, 0, loc).Day()
+				dayToUse := min(30, lastDayOfNextMonth)
+				startDate = time.Date(
+					nextMonth.Year(),
+					nextMonth.Month(),
+					dayToUse,
+					startDate.Hour(),
+					startDate.Minute(),
+					startDate.Second(),
+					startDate.Nanosecond(),
+					loc,
+				)
 			} else {
 				startDate = startDate.AddDate(0, 0, 30)
 			}
