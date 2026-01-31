@@ -232,6 +232,8 @@ func (h *APIImpl) Init() error {
 			"http://localhost:3001",
 			"http://localhost:3002",
 			"http://localhost:3003",
+			"http://localhost:4173",
+			"http://localhost:4174",
 		)
 	}
 	allowedHosts := make([]string, 0, len(origins))

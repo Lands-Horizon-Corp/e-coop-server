@@ -103,10 +103,19 @@ func LoanGuide(
 	if err != nil {
 		return nil, eris.Wrap(err, "LoanGuide: GenerateLoanSchedule: failed to generate amortization")
 	}
-	// currentDate := userOrg.TimeMachine()
+	currentDate := userOrg.TimeMachine()
 
 	for _, acc := range loanAccounts {
 		schedule := []*LoanPaymentSchedule{}
+
+		// LoanScheduleStatusPaid
+		// LoanScheduleStatusDue
+		// LoanScheduleStatusOverdue
+		// LoanScheduleStatusSkipped
+		// LoanScheduleStatusAdvance
+		// LoanScheduleStatusDefault
+
+		// LoanScheduleStatusOverdue
 		generalLedgers, err := core.GeneralLedgerManager(service).ArrFind(ctx, []query.ArrFilterSQL{
 			{Field: "account_id", Op: query.ModeEqual, Value: acc.AccountID},
 			{Field: "organization_id", Op: query.ModeEqual, Value: userOrg.OrganizationID},
@@ -124,14 +133,25 @@ func LoanGuide(
 			// 		if payment date <= entry.ScheduledDate add it to payments and make sure if its payed then remove it from stacks the general ledger
 			// if  entry.ScheduledDate is behind current date   just put due
 			// if  entry.ScheduledDate is behind 1 month   then overdue
-			// i
+
+			scheduleType := LoanScheduleStatusDefault
+			daysPast := int(currentDate.Sub(entry.ScheduledDate).Hours() / 24)
+			if daysPast < 0 {
+				// Future: treat as due (upcoming payment).
+				scheduleType = LoanScheduleStatusDue
+			} else if daysPast <= 60 {
+				scheduleType = LoanScheduleStatusDue
+			} else {
+				scheduleType = LoanScheduleStatusOverdue
+			}
+
 			schedule = append(schedule, &LoanPaymentSchedule{
 				LoanPayments: payments,
 				PaymentDate:  entry.ScheduledDate,
 				ActualDate:   entry.ActualDate,
 				DaysSkipped:  entry.DaysSkipped,
 				Balance:      schedAcc.Value,
-				Type:         LoanScheduleStatusDefault,
+				Type:         scheduleType,
 			})
 		})
 
