@@ -103,7 +103,7 @@ func LoanGuide(
 	if err != nil {
 		return nil, eris.Wrap(err, "LoanGuide: GenerateLoanSchedule: failed to generate amortization")
 	}
-	currentDate := userOrg.TimeMachine()
+	// currentDate := userOrg.TimeMachine()
 
 	for _, acc := range loanAccounts {
 		schedule := []*LoanPaymentSchedule{}
@@ -129,21 +129,34 @@ func LoanGuide(
 		fmt.Println(generalLedgers)
 		filterSchedule(amortization.Schedule, acc.AccountID, func(entry *LoanAmortizationSchedule, schedAcc *AccountValue) {
 			payments := []*LoanPayments{}
+			for len(generalLedgers) > 0 {
+				gl := generalLedgers[0]
+				if gl.EntryDate.After(entry.ScheduledDate) {
+					break
+				}
+				payments = append(payments, &LoanPayments{
+					Amount:        gl.Credit,
+					PayDate:       gl.EntryDate,
+					GeneralLedger: gl,
+				})
+				generalLedgers = generalLedgers[1:]
+			}
 			// for each general ledger (payments)
 			// 		if payment date <= entry.ScheduledDate add it to payments and make sure if its payed then remove it from stacks the general ledger
 			// if  entry.ScheduledDate is behind current date   just put due
 			// if  entry.ScheduledDate is behind 1 month   then overdue
 
 			scheduleType := LoanScheduleStatusDefault
-			daysPast := int(currentDate.Sub(entry.ScheduledDate).Hours() / 24)
-			if daysPast < 0 {
-				// Future: treat as due (upcoming payment).
-				scheduleType = LoanScheduleStatusDue
-			} else if daysPast <= 60 {
-				scheduleType = LoanScheduleStatusDue
-			} else {
-				scheduleType = LoanScheduleStatusOverdue
-			}
+			// daysPast := int(currentDate.Sub(entry.ScheduledDate).Hours() / 24)
+			// if daysPast < 0 {
+			// 	// Future: treat as due (upcoming payment).
+			// 	scheduleType = LoanScheduleStatusDue
+			// } else if daysPast <= 60 { // Approx 2 months (current or recent past due).
+			// 	scheduleType = LoanScheduleStatusDue
+			// } else {
+			// 	// More than 2 months past: overdue.
+			// 	scheduleType = LoanScheduleStatusOverdue
+			// }
 
 			schedule = append(schedule, &LoanPaymentSchedule{
 				LoanPayments: payments,
