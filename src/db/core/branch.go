@@ -48,7 +48,7 @@ func BranchManager(service *horizon.HorizonService) *registry.Registry[types.Bra
 				Email:         data.Email,
 				Description:   data.Description,
 				CurrencyID:    data.CurrencyID,
-				Currency:      CurrencyManager(service).ToModel(data.Currency), // Use the Currency relationship
+				Currency:      CurrencyManager(service).ToModel(data.Currency),
 				ContactNumber: data.ContactNumber,
 				Address:       data.Address,
 				Province:      data.Province,
