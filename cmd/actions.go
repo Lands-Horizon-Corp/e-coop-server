@@ -26,7 +26,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Database Commands
 func migrateDatabase() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		TimeoutValue:       30 * time.Minute,
@@ -101,7 +100,6 @@ func refreshDatabase() horizon.CommandConfig {
 	})
 }
 
-// Cache Commands
 func cleanCache() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		TimeoutValue:       30 * time.Minute,
@@ -115,7 +113,6 @@ func cleanCache() horizon.CommandConfig {
 	})
 }
 
-// Security Commands
 func enforceBlocklist() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
 		TimeoutValue:       30 * time.Minute,
@@ -173,7 +170,6 @@ func clearBlockedIPs() horizon.CommandConfig {
 	})
 }
 
-// Server Commands
 func startServer() horizon.CommandConfig {
 	forceLifeTime := true
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
@@ -184,12 +180,10 @@ func startServer() horizon.CommandConfig {
 		CommandUseText:     "server",
 		CommandShortText:   "Start the main application server",
 		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
-			// Admin controllers
 			admin.AdminController(service)
 			admin.LicenseKeyController(service)
 			admin.CommonController(service)
 
-			// Settings
 			settings.Heartbeat(service)
 			settings.BranchController(service)
 			settings.CategoryController(service)
@@ -208,7 +202,6 @@ func startServer() horizon.CommandConfig {
 			settings.BankController(service)
 			settings.CompanyController(service)
 
-			// User
 			user.AuthenticationController(service)
 			user.UserController(service)
 			user.UserOrganizationController(service)
@@ -216,7 +209,6 @@ func startServer() horizon.CommandConfig {
 			user.InvitationCodeController(service)
 			user.KYCController(service)
 
-			// Member Profile
 			member_profile.MemberGenderController(service)
 			member_profile.MemberCenterController(service)
 			member_profile.MemberTypeController(service)
@@ -239,23 +231,19 @@ func startServer() horizon.CommandConfig {
 			member_profile.MemberProfileComakerController(service)
 			member_profile.MemberAccountingLedgerController(service)
 
-			// Organization
 			organization.OrganizationController(service)
 			organization.OrganizationDailyUsageController(service)
 			organization.OrganizationMediaController(service)
 
-			// Voucher
 			voucher.CancelledCashCheckVoucherController(service)
 			voucher.CashCheckVoucherController(service)
 			voucher.CashCheckVoucherTagController(service)
 			voucher.BillAndCoinsController(service)
 			voucher.CashCountController(service)
 
-			// Journal
 			journal.JournalVoucherController(service)
 			journal.JournalVoucherTagController(service)
 
-			// Transactions
 			transactions.TransactionBatchController(service)
 			transactions.CheckRemittanceController(service)
 			transactions.TransactionController(service)
@@ -267,7 +255,6 @@ func startServer() horizon.CommandConfig {
 			transactions.PaymentTypeController(service)
 			transactions.PaymentController(service)
 
-			// Accounts
 			account.AccountController(service)
 			account.AccountHistoryController(service)
 			account.AccountCategoryController(service)
@@ -320,20 +307,13 @@ func startServer() horizon.CommandConfig {
 
 func Register() []horizon.CommandConfig {
 	return []horizon.CommandConfig{
-		// Database Operations
 		migrateDatabase(),
 		seedDatabase(),
 		resetDatabase(),
 		refreshDatabase(),
-
-		// Cache Operations
 		cleanCache(),
-
-		// Security Operations
 		enforceBlocklist(),
 		clearBlockedIPs(),
-
-		// Server Operations
 		startServer(),
 	}
 }

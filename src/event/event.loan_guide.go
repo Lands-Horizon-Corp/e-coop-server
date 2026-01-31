@@ -101,7 +101,7 @@ func LoanGuide(
 	}
 	amortization, err := LoanAmortization(ctx, service, loanTransactionID, userOrg)
 	if err != nil {
-		return nil, eris.Wrap(err, "GenerateLoanSchedule: failed to generate amortization")
+		return nil, eris.Wrap(err, "LoanGuide: GenerateLoanSchedule: failed to generate amortization")
 	}
 	// currentDate := userOrg.TimeMachine()
 
@@ -115,7 +115,7 @@ func LoanGuide(
 			{Field: "entry_date", Order: query.SortOrderAsc},
 		})
 		if err != nil {
-			return nil, eris.Wrap(err, "error getting general ledger")
+			return nil, eris.Wrap(err, "LoanGuide: error getting general ledger")
 		}
 		fmt.Println(generalLedgers)
 		filterSchedule(amortization.Schedule, acc.AccountID, func(entry *LoanAmortizationSchedule, schedAcc *AccountValue) {

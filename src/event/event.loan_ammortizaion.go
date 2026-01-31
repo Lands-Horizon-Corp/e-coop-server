@@ -124,11 +124,11 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 	totalCredit := totalCreditDec.InexactFloat64()
 	principal := totalCredit
 	balance := totalCredit
-	total := 0.0
+	total := decimal.Zero
 
 	principalDec := decimal.NewFromFloat(principal)
 	balanceDec := decimal.NewFromFloat(balance)
-	totalDec := decimal.NewFromFloat(total)
+	totalDec := decimal.NewFromFloat(0.0)
 
 	for i := range numberOfPayments + 1 {
 		actualDate := startDate
@@ -232,7 +232,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 		switch loanTransaction.ModeOfPayment {
 		case types.LoanModeOfPaymentDaily:
 			amortization = append(amortization, &LoanAmortizationSchedule{
-				Balance:       balance,
+				Balance:       balanceDec.InexactFloat64(),
 				ActualDate:    actualDate,
 				ScheduledDate: scheduledDate,
 				DaysSkipped:   daysSkipped,
@@ -243,7 +243,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 
 		case types.LoanModeOfPaymentWeekly:
 			amortization = append(amortization, &LoanAmortizationSchedule{
-				Balance:       balance,
+				Balance:       balanceDec.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
@@ -255,7 +255,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 
 		case types.LoanModeOfPaymentSemiMonthly:
 			amortization = append(amortization, &LoanAmortizationSchedule{
-				Balance:       balance,
+				Balance:       balanceDec.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
@@ -279,7 +279,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 
 		case types.LoanModeOfPaymentMonthly:
 			amortization = append(amortization, &LoanAmortizationSchedule{
-				Balance:       balance,
+				Balance:       balanceDec.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
@@ -298,7 +298,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 
 		case types.LoanModeOfPaymentQuarterly:
 			amortization = append(amortization, &LoanAmortizationSchedule{
-				Balance:       balance,
+				Balance:       balanceDec.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
@@ -309,7 +309,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 
 		case types.LoanModeOfPaymentSemiAnnual:
 			amortization = append(amortization, &LoanAmortizationSchedule{
-				Balance:       balance,
+				Balance:       balanceDec.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
@@ -320,7 +320,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 
 		case types.LoanModeOfPaymentLumpsum:
 			amortization = append(amortization, &LoanAmortizationSchedule{
-				Balance:       balance,
+				Balance:       balanceDec.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
@@ -330,7 +330,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 
 		case types.LoanModeOfPaymentFixedDays:
 			amortization = append(amortization, &LoanAmortizationSchedule{
-				Balance:       balance,
+				Balance:       balanceDec.InexactFloat64(),
 				ScheduledDate: scheduledDate,
 				ActualDate:    actualDate,
 				DaysSkipped:   daysSkipped,
@@ -339,6 +339,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 			})
 			startDate = startDate.AddDate(0, 0, 1)
 		}
+		total = total.Add(rowTotalDec)
 	}
 
 	return &LoanTransactionAmortizationResponse{
@@ -346,7 +347,7 @@ func LoanAmortization(context context.Context, service *horizon.HorizonService, 
 		Currency:    *core.CurrencyManager(service).ToModel(currency),
 		TotalDebit:  totalDebit,
 		TotalCredit: totalCredit,
-		Total:       total,
+		Total:       total.InexactFloat64(),
 		Schedule:    amortization,
 	}, nil
 }
