@@ -19,7 +19,7 @@ func IncrementOfficialReceipt(
 	source types.GeneralLedgerSource,
 	userOrg *types.UserOrganization,
 ) error {
-	branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
+	branchSetting, err := core.BranchSettingManager(service).FindOneWithLock(context, tx, &types.BranchSetting{
 		BranchID: *userOrg.BranchID,
 	})
 	if err != nil {
