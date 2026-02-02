@@ -1,12 +1,14 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
+	"github.com/google/uuid"
 )
 
 func AreaManager(service *horizon.HorizonService) *registry.Registry[
@@ -65,5 +67,11 @@ func AreaManager(service *horizon.HorizonService) *registry.Registry[
 				fmt.Sprintf("area.delete.organization.%s", data.OrganizationID),
 			}
 		},
+	})
+}
+func AreaCurrentBranch(context context.Context, service *horizon.HorizonService, organizationID uuid.UUID, branchID uuid.UUID) ([]*types.Area, error) {
+	return AreaManager(service).Find(context, &types.Area{
+		OrganizationID: organizationID,
+		BranchID:       branchID,
 	})
 }
