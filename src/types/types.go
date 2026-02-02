@@ -193,6 +193,7 @@ func Models() ([]any, []any) {
 		AccountTransaction{},
 		AccountTransactionEntry{},
 		MemberAccountingLedger{},
+		Area{},
 	}
 	second := []any{}
 	return first, second
