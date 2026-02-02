@@ -654,6 +654,13 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting.AnnualDivisor = settingsReq.AnnualDivisor
 		branchSetting.TaxInterest = settingsReq.TaxInterest
 
+		branchSetting.MemberProfilePassbookAllowUserInput = settingsReq.MemberProfilePassbookAllowUserInput
+		branchSetting.MemberProfilePassbookORUnique = settingsReq.MemberProfilePassbookORUnique
+		branchSetting.MemberProfilePassbookPrefix = settingsReq.MemberProfilePassbookPrefix
+		branchSetting.MemberProfilePassbookORStart = settingsReq.MemberProfilePassbookORStart
+		branchSetting.MemberProfilePassbookORCurrent = settingsReq.MemberProfilePassbookORCurrent
+		branchSetting.MemberProfilePassbookPadding = settingsReq.MemberProfilePassbookPadding
+
 		if err := core.BranchSettingManager(service).UpdateByID(context, branchSetting.ID, branchSetting); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",

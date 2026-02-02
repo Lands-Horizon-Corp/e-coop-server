@@ -122,6 +122,13 @@ func BranchSettingManager(service *horizon.HorizonService) *registry.Registry[
 				LoanAppliedEqualToBalance: data.LoanAppliedEqualToBalance,
 				AccountWalletID:           data.AccountWalletID,
 				AccountWallet:             AccountManager(service).ToModel(data.AccountWallet),
+
+				MemberProfilePassbookAllowUserInput: data.MemberProfilePassbookAllowUserInput,
+				MemberProfilePassbookORUnique:       data.MemberProfilePassbookORUnique,
+				MemberProfilePassbookPrefix:         data.MemberProfilePassbookPrefix,
+				MemberProfilePassbookORStart:        data.MemberProfilePassbookORStart,
+				MemberProfilePassbookORCurrent:      data.MemberProfilePassbookORCurrent,
+				MemberProfilePassbookPadding:        data.MemberProfilePassbookPadding,
 			}
 		},
 		Created: func(data *types.BranchSetting) registry.Topics {

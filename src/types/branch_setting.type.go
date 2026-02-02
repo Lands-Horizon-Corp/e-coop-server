@@ -97,6 +97,13 @@ type (
 
 		AccountWalletID *uuid.UUID `gorm:"type:uuid" json:"account_wallet_id,omitempty"`
 		AccountWallet   *Account   `gorm:"foreignKey:AccountWalletID;constraint:OnDelete:SET NULL;" json:"account_wallet,omitempty"`
+
+		MemberProfilePassbookAllowUserInput bool   `gorm:"not null;default:true" json:"member_profile_passbook_allow_user_input"`
+		MemberProfilePassbookORUnique       bool   `gorm:"not null;default:false" json:"member_profile_passbook_or_unique"`
+		MemberProfilePassbookPrefix         string `gorm:"type:varchar(50);not null;default:''" json:"member_profile_passbook_prefix"`
+		MemberProfilePassbookORStart        int    `gorm:"not null;default:0" json:"member_profile_passbook_or_start"`
+		MemberProfilePassbookORCurrent      int    `gorm:"not null;default:1" json:"member_profile_passbook_or_current"`
+		MemberProfilePassbookPadding        int    `gorm:"not null;default:6" json:"member_profile_passbook_padding"`
 	}
 
 	BranchSettingRequest struct {
@@ -161,6 +168,13 @@ type (
 		LoanAppliedEqualToBalance bool    `json:"loan_applied_equal_to_balance"`
 		AnnualDivisor             int     `json:"annual_divisor" validate:"min=0"`
 		TaxInterest               float64 `json:"tax_interest" validate:"min=0"`
+
+		MemberProfilePassbookAllowUserInput bool   `json:"member_profile_passbook_allow_user_input"`
+		MemberProfilePassbookORUnique       bool   `json:"member_profile_passbook_or_unique"`
+		MemberProfilePassbookPrefix         string `json:"member_profile_passbook_prefix" validate:"omitempty"`
+		MemberProfilePassbookORStart        int    `json:"member_profile_passbook_or_start" validate:"min=0"`
+		MemberProfilePassbookORCurrent      int    `json:"member_profile_passbook_or_current" validate:"min=0"`
+		MemberProfilePassbookPadding        int    `json:"member_profile_passbook_padding" validate:"min=0"`
 	}
 
 	BranchSettingsCurrencyRequest struct {
@@ -256,5 +270,12 @@ type (
 
 		AccountWalletID *uuid.UUID       `json:"account_wallet_id,omitempty"`
 		AccountWallet   *AccountResponse `json:"account_wallet,omitempty"`
+
+		MemberProfilePassbookAllowUserInput bool   `json:"member_profile_passbook_allow_user_input"`
+		MemberProfilePassbookORUnique       bool   `json:"member_profile_passbook_or_unique"`
+		MemberProfilePassbookPrefix         string `json:"member_profile_passbook_prefix"`
+		MemberProfilePassbookORStart        int    `json:"member_profile_passbook_or_start"`
+		MemberProfilePassbookORCurrent      int    `json:"member_profile_passbook_or_current"`
+		MemberProfilePassbookPadding        int    `json:"member_profile_passbook_padding"`
 	}
 )
