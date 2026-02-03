@@ -11,13 +11,9 @@ type License struct {
 	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 
 	// Audit
-	CreatedAt   time.Time      `gorm:"not null;default:now()" json:"created_at"`
-	CreatedByID uuid.UUID      `gorm:"type:uuid" json:"created_by_id"`
-	CreatedBy   *User          `gorm:"foreignKey:CreatedByID;constraint:OnDelete:SET NULL;" json:"created_by,omitempty"`
-	UpdatedAt   time.Time      `gorm:"not null;default:now()" json:"updated_at"`
-	UpdatedByID uuid.UUID      `gorm:"type:uuid" json:"updated_by_id"`
-	UpdatedBy   *User          `gorm:"foreignKey:UpdatedByID;constraint:OnDelete:SET NULL;" json:"updated_by,omitempty"`
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	CreatedAt time.Time      `gorm:"not null;default:now()" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"not null;default:now()" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
 
 	// License Core
 	Name        string     `gorm:"type:varchar(255);not null" json:"name"`
