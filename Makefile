@@ -102,7 +102,6 @@ resurrect:
 	@bash -c '\
 	start=$$(date +%s); \
 	echo "=== RESURRECT ==="; \
-	go clean -cache -modcache -testcache -fuzzcache; \
 	git pull; \
 	go run . db-reset; \
 	go run . db-migrate; \
