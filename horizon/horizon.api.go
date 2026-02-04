@@ -222,6 +222,8 @@ func (h *APIImpl) Init() error {
 		"https://cooperatives-development.fly.dev",
 		"https://cooperatives-staging.fly.dev",
 		"https://cooperatives-production.fly.dev",
+
+		"https://cooperatives-development-production-0fc5.up.railway.app",
 	}
 
 	if !h.secured {
