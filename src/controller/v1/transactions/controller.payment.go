@@ -616,7 +616,7 @@ func PaymentController(service *horizon.HorizonService) {
 		}
 		if req.IsReferenceNumberChecked {
 			if err := event.IncrementOfficialReceipt(
-				context, service, tx, req.ReferenceNumber, types.GeneralLedgerSourceWithdraw, userOrg); err != nil {
+				context, service, tx, req.ReferenceNumber, types.GeneralLedgerSourceDeposit, userOrg); err != nil {
 				return ctx.JSON(http.StatusConflict, echo.Map{"error": endTx(err).Error()})
 			}
 		}
