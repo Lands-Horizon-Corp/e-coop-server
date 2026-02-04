@@ -198,6 +198,13 @@ func CreateGeneralLedgerEntry(
 		}
 	}
 
+	if userOrg.SettingsAllowWithdrawNegativeBalance && data.Account != nil {
+		minAmount := decimal.NewFromFloat(0)
+		if newBalance.LessThan(minAmount) {
+			return eris.New("general ledger: maintaining balance violation")
+		}
+	}
+
 	data.Balance, _ = newBalance.Float64()
 
 	// Create ledger entry
