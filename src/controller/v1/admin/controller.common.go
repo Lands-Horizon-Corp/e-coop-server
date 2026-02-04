@@ -2,6 +2,7 @@ package admin
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/labstack/echo/v4"
@@ -29,6 +30,7 @@ func CommonController(service *horizon.HorizonService) {
 		if countryCode == "" {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid country_code"})
 		}
+		countryCode = strings.ToUpper(strings.TrimSpace(countryCode))
 		result := []GovernmentIDResponse{}
 		switch countryCode {
 		case "USA": // United States
