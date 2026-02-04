@@ -2,7 +2,6 @@ package horizon
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -58,12 +57,14 @@ func NewHorizonService(lifetime bool) *HorizonService {
 		service.Logger.Fatal("failed to load configuration", zap.Error(err))
 	}
 	service.secured = helpers.CleanString(service.Config.AppEnv) == "staging"
-	service.Broker = NewMessageBrokerImpl(
-		service.Config.NatsHost,
-		service.Config.NatsClientPort,
-		service.Config.NatsClient,
-		service.Config.NatsUsername,
-		service.Config.NatsPassword)
+	service.Broker = NewSoketiPublisherImpl(
+		service.Config.SoketiHost,
+		service.Config.SoketiPort,
+		service.Config.SoketiAppID,
+		service.Config.SoketiAppKey,
+		service.Config.SoketiAppSecret,
+		service.Config.SoketiAppClient,
+	)
 
 	service.Cache = NewCacheImpl(
 		service.Config.RedisHost,
@@ -136,18 +137,6 @@ func (h *HorizonService) Run(ctx context.Context) error {
 	helpers.PrintASCIIArt()
 	h.printUIEndpoints()
 	h.Logger.Info("Horizon App is starting...")
-
-	if h.Broker != nil {
-		h.printStatus("Broker", "init")
-		if err := helpers.Retry(ctx, retry, delay, func() error {
-			return h.Broker.Run()
-		}); err != nil {
-			h.printStatus("Broker", "fail")
-			h.Logger.Error("Broker error", zap.Error(err))
-			return err
-		}
-		h.printStatus("Broker", "ok")
-	}
 
 	if h.Schedule != nil {
 		h.printStatus("Cron", "init")
@@ -256,21 +245,8 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 					h.Logger.Info("Live mode stopped")
 					return
 				case <-ticker.C:
-					payload := struct {
-						Status    string    `json:"status"`
-						Timestamp time.Time `json:"timestamp"`
-					}{
-						Status:    "ok",
-						Timestamp: time.Now().UTC(),
-					}
-					data, err := json.Marshal(payload)
-					if err != nil {
-						h.Logger.Error("Failed to marshal live-mode payload", zap.Error(err))
-						continue
-					}
-
-					if err := h.Broker.Dispatch([]string{"live-mode"}, string(data)); err != nil {
-						panic(err)
+					if err := h.Broker.Publish("horizon.live", map[string]any{"status": "ok", "timestamp": time.Now().UTC()}); err != nil {
+						h.Logger.Error("Failed to publish live-mode event", zap.Error(err))
 					}
 				}
 			}
@@ -287,11 +263,6 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 	}
 	if h.Schedule != nil {
 		if err := h.Schedule.Stop(); err != nil {
-			return err
-		}
-	}
-	if h.Broker != nil {
-		if err := h.Broker.Stop(); err != nil {
 			return err
 		}
 	}
@@ -362,7 +333,6 @@ func (h *HorizonService) printUIEndpoints() {
 			[]string{"RedisInsight", fmt.Sprintf("http://%s:%d", h.Config.RedisInsightHost, h.Config.RedisInsightPort)},
 			[]string{"PgAdmin", fmt.Sprintf("http://%s:%d", h.Config.PgAdminHost, h.Config.PgAdminPort)},
 			[]string{"Storage Console", fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort)},
-			[]string{"NATS Monitor", fmt.Sprintf("http://%s:%d", h.Config.NatsHost, h.Config.NatsMonitorPort)},
 		)
 	log.Println(t)
 }

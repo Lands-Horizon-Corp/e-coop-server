@@ -18,14 +18,13 @@ type ConfigImpl struct {
 	AppToken       string
 	AppName        string
 
-	// NATS
-	NatsHost          string
-	NatsClientPort    int
-	NatsMonitorPort   int
-	NatsWebsocketPort int
-	NatsClient        string
-	NatsUsername      string
-	NatsPassword      string
+	// Soketi
+	SoketiHost      string
+	SoketiPort      int
+	SoketiAppID     string
+	SoketiAppKey    string
+	SoketiAppSecret string
+	SoketiAppClient string
 
 	// Postgres
 	PostgresUser         string
@@ -124,10 +123,12 @@ func NewConfigImpl() (*ConfigImpl, error) {
 	v.SetDefault("APP_TOKEN", "default-token")
 	v.SetDefault("APP_NAME", "myapp")
 
-	v.SetDefault("NATS_HOST", "127.0.0.1")
-	v.SetDefault("NATS_CLIENT_PORT", 4222)
-	v.SetDefault("NATS_MONITOR_PORT", 8222)
-	v.SetDefault("NATS_WEBSOCKET_PORT", 8080)
+	v.SetDefault("SOKETI_HOST", "127.0.0.1")
+	v.SetDefault("SOKETI_PORT", 6001)
+	v.SetDefault("SOKETI_APP_ID", "")
+	v.SetDefault("SOKETI_APP_KEY", "")
+	v.SetDefault("SOKETI_APP_SECRET", "")
+	v.SetDefault("SOKETI_APP_CLIENT", "")
 
 	v.SetDefault("POSTGRES_USER", "dev")
 	v.SetDefault("POSTGRES_PASSWORD", "devpass")
@@ -220,13 +221,12 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		AppToken:       v.GetString("APP_TOKEN"),
 		AppName:        v.GetString("APP_NAME"),
 
-		NatsHost:          v.GetString("NATS_HOST"),
-		NatsClientPort:    v.GetInt("NATS_CLIENT_PORT"),
-		NatsMonitorPort:   v.GetInt("NATS_MONITOR_PORT"),
-		NatsWebsocketPort: v.GetInt("NATS_WEBSOCKET_PORT"),
-		NatsClient:        v.GetString("NATS_CLIENT"),
-		NatsUsername:      v.GetString("NATS_USERNAME"),
-		NatsPassword:      v.GetString("NATS_PASSWORD"),
+		SoketiHost:      v.GetString("SOKETI_HOST"),
+		SoketiPort:      v.GetInt("SOKETI_PORT"),
+		SoketiAppID:     v.GetString("SOKETI_APP_ID"),
+		SoketiAppKey:    v.GetString("SOKETI_APP_KEY"),
+		SoketiAppSecret: v.GetString("SOKETI_APP_SECRET"),
+		SoketiAppClient: v.GetString("SOKETI_APP_CLIENT"),
 
 		PostgresUser:         v.GetString("POSTGRES_USER"),
 		PostgresPassword:     v.GetString("POSTGRES_PASSWORD"),
