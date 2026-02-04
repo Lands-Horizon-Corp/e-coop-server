@@ -25,6 +25,7 @@ type ConfigImpl struct {
 	SoketiAppKey    string
 	SoketiAppSecret string
 	SoketiAppClient string
+	SoketiURL       string
 
 	// Postgres
 	PostgresUser         string
@@ -227,6 +228,7 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		SoketiAppKey:    v.GetString("SOKETI_APP_KEY"),
 		SoketiAppSecret: v.GetString("SOKETI_APP_SECRET"),
 		SoketiAppClient: v.GetString("SOKETI_APP_CLIENT"),
+		SoketiURL:       v.GetString("SOKETI_URL"),
 
 		PostgresUser:         v.GetString("POSTGRES_USER"),
 		PostgresPassword:     v.GetString("POSTGRES_PASSWORD"),
@@ -319,6 +321,15 @@ func NewConfigImpl() (*ConfigImpl, error) {
 	}
 	if cfg.AdminDatabaseURL == "" {
 		cfg.AdminDatabaseURL = cfg.DatabaseURL
+	}
+
+	if cfg.SoketiURL == "" {
+		cfg.SoketiURL = fmt.Sprintf(
+			"http://%s:%d/apps/%s/events",
+			cfg.SoketiHost,
+			cfg.SoketiPort,
+			cfg.SoketiAppID,
+		)
 	}
 	return cfg, nil
 }

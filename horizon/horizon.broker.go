@@ -14,24 +14,16 @@ import (
 )
 
 type MessageBrokerImpl struct {
-	host      string
-	port      int
-	appID     string
+	url       string
 	appKey    string
 	appSecret string
 	appClient string
 	http      *http.Client
 }
 
-func NewSoketiPublisherImpl(
-	host string,
-	port int,
-	appID, appKey, appSecret, appClient string,
-) *MessageBrokerImpl {
+func NewSoketiPublisherImpl(url, appKey, appSecret, appClient string) *MessageBrokerImpl {
 	return &MessageBrokerImpl{
-		host:      host,
-		port:      port,
-		appID:     appID,
+		url:       url,
 		appKey:    appKey,
 		appSecret: appSecret,
 		appClient: appClient,
@@ -41,6 +33,7 @@ func NewSoketiPublisherImpl(
 	}
 }
 
+// Dispatch sends a payload to multiple channels
 func (s *MessageBrokerImpl) Dispatch(channels []string, payload any) error {
 	body := map[string]any{
 		"name":     s.appClient,
@@ -50,6 +43,7 @@ func (s *MessageBrokerImpl) Dispatch(channels []string, payload any) error {
 	return s.send(body)
 }
 
+// Publish sends a payload to a single channel
 func (s *MessageBrokerImpl) Publish(channel string, payload any) error {
 	body := map[string]any{
 		"name":     s.appClient,
@@ -59,24 +53,20 @@ func (s *MessageBrokerImpl) Publish(channel string, payload any) error {
 	return s.send(body)
 }
 
+// send handles the HTTP request with signing
 func (s *MessageBrokerImpl) send(body map[string]any) error {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return eris.Wrap(err, "failed to marshal payload")
 	}
 
-	path := fmt.Sprintf("/apps/%s/events", s.appID)
-	query := s.sign(path, jsonBody)
+	// Sign the request
+	query := s.sign("/apps/events", jsonBody)
 
-	url := fmt.Sprintf(
-		"http://%s:%d%s?%s",
-		s.host,
-		s.port,
-		path,
-		query,
-	)
+	// Append query to the full URL
+	fullURL := fmt.Sprintf("%s?%s", s.url, query)
 
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, fullURL, bytes.NewReader(jsonBody))
 	if err != nil {
 		return eris.Wrap(err, "failed to create request")
 	}
@@ -96,6 +86,7 @@ func (s *MessageBrokerImpl) send(body map[string]any) error {
 	return nil
 }
 
+// sign generates the authentication query parameters
 func (s *MessageBrokerImpl) sign(path string, body []byte) string {
 	timestamp := fmt.Sprintf("%d", time.Now().Unix())
 

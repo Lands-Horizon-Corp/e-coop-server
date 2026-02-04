@@ -58,9 +58,7 @@ func NewHorizonService(lifetime bool) *HorizonService {
 	}
 	service.secured = helpers.CleanString(service.Config.AppEnv) == "staging"
 	service.Broker = NewSoketiPublisherImpl(
-		service.Config.SoketiHost,
-		service.Config.SoketiPort,
-		service.Config.SoketiAppID,
+		service.Config.SoketiURL,
 		service.Config.SoketiAppKey,
 		service.Config.SoketiAppSecret,
 		service.Config.SoketiAppClient,
