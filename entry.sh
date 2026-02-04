@@ -1,13 +1,13 @@
 #!/bin/sh
 
-./app cache-clean
+# ./app cache-clean
 
-./app security-enforce-blocklist
+# ./app security-enforce-blocklist
 
-./app db-reset
+# ./app db-reset
 
-./app db-migrate
+# ./app db-migrate
 
-./app db-seed
+# ./app db-seed
 
 ./app server
