@@ -534,6 +534,7 @@ func BranchController(service *horizon.HorizonService) {
 
 		return ctx.JSON(http.StatusOK, branch)
 	})
+
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/branch-settings",
 		Method:       "PUT",
@@ -542,7 +543,6 @@ func BranchController(service *horizon.HorizonService) {
 		ResponseType: types.BranchSettingResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
-
 		var settingsReq types.BranchSettingRequest
 		if err := ctx.Bind(&settingsReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -552,7 +552,6 @@ func BranchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
 		}
-
 		if err := service.Validator.Struct(settingsReq); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
@@ -561,7 +560,6 @@ func BranchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil || userOrg.BranchID == nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -580,21 +578,21 @@ func BranchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions to update branch settings"})
 		}
+		tx, endTx := service.Database.StartTransaction(context)
+		if tx.Error != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
+		}
 
-		var branchSetting *types.BranchSetting
-		branchSetting, err = core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
+		branchSetting, err := core.BranchSettingManager(service).FindOneWithLock(context, tx, &types.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
 		if err != nil {
-			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity:    "update error",
-				Description: "The uer doesn't have branch settings please call the admi PUT /branch-settings: " + err.Error(),
-				Module:      "branch",
-			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "The uer doesn't have branch settings please call the admin: " + err.Error()})
-
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "User does not have branch settings. Please contact admin: " + endTx(err).Error()})
 		}
-		branchSetting.UpdatedAt = time.Now().UTC()
+
+		now := time.Now().UTC()
+		branchSetting.UpdatedAt = now
+
 		branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
 		branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
 		branchSetting.WithdrawORStart = settingsReq.WithdrawORStart
@@ -648,6 +646,7 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting.CheckVoucherGeneralORStart = settingsReq.CheckVoucherGeneralORStart
 		branchSetting.CheckVoucherGeneralORCurrent = settingsReq.CheckVoucherGeneralORCurrent
 		branchSetting.CheckVoucherGeneralPadding = settingsReq.CheckVoucherGeneralPadding
+
 		branchSetting.DefaultMemberTypeID = settingsReq.DefaultMemberTypeID
 		branchSetting.DefaultMemberGenderID = settingsReq.DefaultMemberGenderID
 		branchSetting.LoanAppliedEqualToBalance = settingsReq.LoanAppliedEqualToBalance
@@ -661,30 +660,32 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting.MemberProfilePassbookORCurrent = settingsReq.MemberProfilePassbookORCurrent
 		branchSetting.MemberProfilePassbookPadding = settingsReq.MemberProfilePassbookPadding
 
-		if err := core.BranchSettingManager(service).UpdateByID(context, branchSetting.ID, branchSetting); err != nil {
+		if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings for PUT /branch-settings: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + endTx(err).Error()})
 		}
 
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
+		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update success",
 			Description: fmt.Sprintf("Updated branch settings for branch ID: %s", userOrg.BranchID),
 			Module:      "branch",
 		})
-
+		newBranchSettings, err := core.BranchSettingManager(service).GetByIDRaw(context, branchSetting.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get latest branch settings: " + endTx(err).Error()})
+		}
 		event.OrganizationAdminsNotification(ctx, service, event.NotificationEvent{
 			Title:       "Branch Settings Updated",
 			Description: "Branch settings have been successfully updated",
 		})
-		newBranchSettings, err := core.BranchSettingManager(service).GetByIDRaw(context, branchSetting.ID)
-		if err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get latest branch settings: " + err.Error()})
 
-		}
 		return ctx.JSON(http.StatusOK, newBranchSettings)
 	})
 
@@ -743,8 +744,11 @@ func BranchController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-
-		branchSetting, err := core.BranchSettingManager(service).FindOne(context, &types.BranchSetting{
+		tx, endTx := service.Database.StartTransaction(context)
+		if tx.Error != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to start database transaction: " + endTx(tx.Error).Error()})
+		}
+		branchSetting, err := core.BranchSettingManager(service).FindOneWithLock(context, tx, &types.BranchSetting{
 			BranchID: *userOrg.BranchID,
 		})
 		if err != nil {
@@ -753,7 +757,7 @@ func BranchController(service *horizon.HorizonService) {
 				Description: fmt.Sprintf("Branch settings not found for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found: " + err.Error()})
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Branch settings not found: " + endTx(err).Error()})
 		}
 
 		branchSetting.CurrencyID = settingsReq.CurrencyID
@@ -763,23 +767,23 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting.CashOnHandAccountID = &settingsReq.CashOnHandAccountID
 		branchSetting.UpdatedAt = time.Now().UTC()
 
-		if err := core.BranchSettingManager(service).UpdateByID(context, branchSetting.ID, branchSetting); err != nil {
+		if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update error",
 				Description: fmt.Sprintf("Failed to update branch settings currency for PUT /branch-settings/currency: %v", err),
 				Module:      "branch",
 			})
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + err.Error()})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings currency: " + endTx(err).Error()})
 		}
 
 		for _, id := range settingsReq.UnbalancedAccountDeleteIDs {
-			if err := core.UnbalancedAccountManager(service).Delete(context, id); err != nil {
+			if err := core.UnbalancedAccountManager(service).DeleteWithTx(context, tx, id); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "update-error",
 					Description: "Failed to delete unbalanced account: " + err.Error(),
 					Module:      "UnbalancedAccount",
 				})
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete unbalanced account: " + err.Error()})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete unbalanced account: " + endTx(err).Error()})
 			}
 		}
 
@@ -787,7 +791,7 @@ func BranchController(service *horizon.HorizonService) {
 			if accountReq.ID != nil {
 				existingAccount, err := core.UnbalancedAccountManager(service).GetByID(context, *accountReq.ID)
 				if err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + err.Error()})
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get unbalanced account: " + endTx(err).Error()})
 				}
 
 				existingAccount.Name = accountReq.Name
@@ -801,8 +805,8 @@ func BranchController(service *horizon.HorizonService) {
 
 				existingAccount.UpdatedAt = time.Now().UTC()
 				existingAccount.UpdatedByID = userOrg.UserID
-				if err := core.UnbalancedAccountManager(service).UpdateByID(context, existingAccount.ID, existingAccount); err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + err.Error()})
+				if err := core.UnbalancedAccountManager(service).UpdateByIDWithTx(context, tx, existingAccount.ID, existingAccount); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update charges rate scheme account: " + endTx(err).Error()})
 				}
 			} else {
 				newUnbalancedAccount := &types.UnbalancedAccount{
@@ -822,10 +826,14 @@ func BranchController(service *horizon.HorizonService) {
 					MemberProfileIDForShortage: accountReq.MemberProfileIDForShortage,
 					MemberProfileIDForOverage:  accountReq.MemberProfileIDForOverage,
 				}
-				if err := core.UnbalancedAccountManager(service).Create(context, newUnbalancedAccount); err != nil {
-					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + err.Error()})
+				if err := core.UnbalancedAccountManager(service).CreateWithTx(context, tx, newUnbalancedAccount); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create unbalanced account: " + endTx(err).Error()})
 				}
 			}
+		}
+
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update success",
