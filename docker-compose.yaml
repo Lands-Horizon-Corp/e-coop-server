@@ -16,6 +16,7 @@ services:
       - ./config:/docker-entrypoint-initdb.d
     networks:
       - app-network
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin
@@ -39,7 +40,7 @@ services:
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
     command: >
       redis-server
-      --requirepass "${REDIS_PASSWORD}"   
+      --requirepass "${REDIS_PASSWORD}"
       --bind 0.0.0.0
     ports:
       - "6379:6379"
@@ -83,17 +84,30 @@ services:
     networks:
       - app-network
 
-  nats:
-    image: nats:latest
-    container_name: nats
+  soketi:
+    image: quay.io/soketi/soketi:latest
+    container_name: soketi
     restart: always
+    environment:
+      SOKETI_DEBUG: "1"
+      SOKETI_METRICS_SERVER_PORT: "9601"
+
+      # App credentials
+      SOKETI_DEFAULT_APP_ID: "${SOKETI_APP_ID}"
+      SOKETI_DEFAULT_APP_KEY: "${SOKETI_APP_KEY}"
+      SOKETI_DEFAULT_APP_SECRET: "${SOKETI_APP_SECRET}"
+
+      # Redis adapter
+      SOKETI_ADAPTER_DRIVER: redis
+      SOKETI_REDIS_HOST: redis
+      SOKETI_REDIS_PORT: 6379
+      SOKETI_REDIS_PASSWORD: "${REDIS_PASSWORD}"
+
     ports:
-      - "${NATS_CLIENT_PORT}:${NATS_CLIENT_PORT}"
-      - "${NATS_MONITOR_PORT}:${NATS_MONITOR_PORT}"
-      - "8080:8080"
-    volumes:
-      - ./config/nats.conf:/container/nats.conf
-    command: "-c /container/nats.conf"
+      - "${SOKETI_PORT}:6001"
+      - "9601:9601"
+    depends_on:
+      - redis
     networks:
       - app-network
 
