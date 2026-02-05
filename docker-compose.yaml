@@ -85,27 +85,25 @@ services:
       - app-network
 
   soketi:
-    image: quay.io/soketi/soketi:latest
+    image: quay.io/soketi/soketi:latest-16-alpine
     container_name: soketi
     restart: always
-    environment:
-      SOKETI_DEBUG: "1"
-      SOKETI_METRICS_SERVER_PORT: "9601"
-      SOKETI_DEFAULT_APP_ID: "${SOKETI_APP_ID}"
-      SOKETI_DEFAULT_APP_KEY: "${SOKETI_APP_KEY}"
-      SOKETI_DEFAULT_APP_SECRET: "${SOKETI_APP_SECRET}"
-      SOKETI_ADAPTER_DRIVER: redis
-      SOKETI_REDIS_HOST: redis
-      SOKETI_REDIS_PORT: 6379
-      SOKETI_REDIS_PASSWORD: "${REDIS_PASSWORD}"
-
-    ports:
-      - "${SOKETI_PORT}:6001"
-      - "9601:9601"
     depends_on:
       - redis
     networks:
       - app-network
+    ports:
+      - "${SOKETI_PORT}:${SOKETI_PORT}"
+      - "${SOKET_UI_PORT}:${SOKET_UI_PORT}"
+    environment:
+      SOKETI_DEBUG: "1"
+      SOKETI_DEFAULT_APP_ID: "${SOKETI_APP_ID}"
+      SOKETI_DEFAULT_APP_KEY: "${SOKETI_APP_KEY}"
+      SOKETI_DEFAULT_APP_SECRET: "${SOKETI_APP_SECRET}"
+      SOKETI_DB_REDIS_HOST: "${REDIS_HOST}"
+      SOKETI_DB_REDIS_PORT: "${REDIS_PORT}"
+      SOKETI_DB_REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      SOKETI_DB_REDIS_USERNAME: "${REDIS_USERNAME}"
 
 volumes:
   pgdata:
