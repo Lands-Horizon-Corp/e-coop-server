@@ -243,7 +243,7 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 					h.Logger.Info("Live mode stopped")
 					return
 				case <-ticker.C:
-					if err := h.Broker.Publish("horizon.live", map[string]any{"status": "ok", "timestamp": time.Now().UTC()}); err != nil {
+					if err := h.Broker.Publish("horizon", map[string]any{"status": "ok", "timestamp": time.Now().UTC()}); err != nil {
 						h.Logger.Error("Failed to publish live-mode event", zap.Error(err))
 					}
 				}
