@@ -231,6 +231,10 @@ func (h *APIImpl) Init() error {
 		"https://e-coop-client-development.up.railway.app",
 		"https://e-coop-client-production.up.railway.app",
 		"https://e-coop-client-staging.up.railway.app",
+
+		"https://e-coop-member-portal-development.up.railway.app/",
+		"https://e-coop-member-portal-production.up.railway.app/",
+		"https://e-coop-member-portal-staging.up.railway.app/",
 	}
 
 	if !h.secured {
