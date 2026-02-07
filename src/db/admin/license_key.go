@@ -16,7 +16,7 @@ func LicenseManager(service *horizon.HorizonService) *registry.Registry[
 	types.License, types.LicenseResponse, types.LicenseRequest] {
 
 	return registry.GetRegistry(registry.RegistryParams[types.License, types.LicenseResponse, types.LicenseRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "UsedBy"},
+		Preloads: []string{},
 		Database: service.AdminDatabase.Client(),
 
 		Dispatch: func(topics registry.Topics, payload any) error {
