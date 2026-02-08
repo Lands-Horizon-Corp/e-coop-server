@@ -120,6 +120,7 @@ func NewHorizonService(lifetime bool) *HorizonService {
 		service.Config.SMTPUsername,
 		service.Config.SMTPPassword,
 		service.Config.SMTPFrom,
+		service.Config.AppClientName,
 		service.secured)
 	if lifetime {
 		service.API = NewAPIImpl(
