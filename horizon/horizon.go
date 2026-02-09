@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/ui"
 	"github.com/go-playground/validator/v10"
 	"github.com/jaswdr/faker"
 	"github.com/rotisserie/eris"
@@ -289,49 +288,38 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 }
 
 func (h *HorizonService) printStatus(service string, status string) {
+	h.printStatusUI(service, status)
 	switch status {
 	case "init":
 		h.Logger.Info("Initializing service", zap.String("service", service))
-		_ = os.Stdout.Sync()
 	case "ok":
 		h.Logger.Info("Service initialized successfully", zap.String("service", service))
-		_ = os.Stdout.Sync()
 	case "fail":
 		h.Logger.Error("Failed to initialize service", zap.String("service", service))
-		_ = os.Stdout.Sync()
 	}
+	_ = os.Stdout.Sync()
 }
 
 func (h *HorizonService) printUIEndpoints() {
 	if h.secured {
 		return
 	}
-	headerStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212")).
-		Align(lipgloss.Center)
-	cellStyle := lipgloss.NewStyle().
-		Padding(0, 1)
-	urlStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("39"))
-	t := table.New().
-		Headers("Service", "URL").
-		Border(lipgloss.RoundedBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("240"))).
-		StyleFunc(func(row, col int) lipgloss.Style {
-			if row == 0 {
-				return headerStyle
-			}
-			if col == 1 {
-				return urlStyle
-			}
-			return cellStyle
-		}).
-		Rows(
-			[]string{"Mailpit", fmt.Sprintf("http://%s:%d", h.Config.MailpitUIHost, h.Config.MailpitUIPort)},
-			[]string{"RedisInsight", fmt.Sprintf("http://%s:%d", h.Config.RedisInsightHost, h.Config.RedisInsightPort)},
-			[]string{"PgAdmin", fmt.Sprintf("http://%s:%d", h.Config.PgAdminHost, h.Config.PgAdminPort)},
-			[]string{"Storage Console", fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort)},
-		)
-	log.Println(t)
+	ui.PrintEndpoints("🌐 Local UI Endpoints", map[string]string{
+		"Mailpit":         fmt.Sprintf("http://%s:%d", h.Config.MailpitUIHost, h.Config.MailpitUIPort),
+		"RedisInsight":    fmt.Sprintf("http://%s:%d", h.Config.RedisInsightHost, h.Config.RedisInsightPort),
+		"PgAdmin":         fmt.Sprintf("http://%s:%d", h.Config.PgAdminHost, h.Config.PgAdminPort),
+		"Storage Console": fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort),
+	})
+}
+
+func (h *HorizonService) printStatusUI(service, status string) {
+	theme := ui.DefaultTheme()
+	section := ui.Section{
+		Title: "⚙️ Service Status",
+		Rows: []ui.Row{
+			{Label: "Service", Value: service},
+			{Label: "Status", Value: status},
+		},
+	}
+	fmt.Println(ui.RenderSection(theme, section))
 }

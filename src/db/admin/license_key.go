@@ -8,6 +8,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/ui"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 )
@@ -69,6 +70,9 @@ func LicenseManager(service *horizon.HorizonService) *registry.Registry[
 		},
 	})
 }
+func LicenseSection(l *types.License) ui.Section {
+	return ui.SectionFrom("🔑 License", l)
+}
 
 func licenseSeed(ctx context.Context, service *horizon.HorizonService) error {
 	now := time.Now().UTC()
@@ -102,6 +106,8 @@ func licenseSeed(ctx context.Context, service *horizon.HorizonService) error {
 		if err := LicenseManager(service).Create(ctx, license); err != nil {
 			return eris.Wrapf(err, "failed to seed license %s", license.Name)
 		}
+		fmt.Println(ui.RenderSection(ui.DefaultTheme(), LicenseSection(license)))
 	}
+
 	return nil
 }
