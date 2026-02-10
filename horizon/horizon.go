@@ -131,69 +131,68 @@ func NewHorizonService(lifetime bool) *HorizonService {
 }
 
 func (h *HorizonService) Run(ctx context.Context) error {
-	log.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
-	helpers.PrintASCIIArt()
+	ui.Separator()
+	ui.Logo()
 	h.printUIEndpoints()
 	h.Logger.Info("Horizon App is starting...")
-
 	if h.Schedule != nil {
-		h.printStatus("Cron", "init")
+		h.printStatusUI("Cron", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.Schedule.Run()
 		}); err != nil {
-			h.printStatus("Cron", "fail")
+			h.printStatusUI("Cron", "fail")
 			h.Logger.Error("Cron error", zap.Error(err))
 			return err
 		}
-		h.printStatus("Cron", "ok")
+		h.printStatusUI("Cron", "ok")
 	}
 
 	if h.Cache != nil {
-		h.printStatus("Cache", "init")
+		h.printStatusUI("Cache", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.Cache.Run(ctx)
 		}); err != nil {
-			h.printStatus("Cache", "fail")
+			h.printStatusUI("Cache", "fail")
 			h.Logger.Error("Cache error", zap.Error(err))
 			return err
 		}
-		h.printStatus("Cache", "ok")
+		h.printStatusUI("Cache", "ok")
 	}
 
 	if h.Storage != nil {
-		h.printStatus("Storage", "init")
+		h.printStatusUI("Storage", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.Storage.Run(ctx)
 		}); err != nil {
-			h.printStatus("Storage", "fail")
+			h.printStatusUI("Storage", "fail")
 			h.Logger.Error("Storage error", zap.Error(err))
 			return err
 		}
-		h.printStatus("Storage", "ok")
+		h.printStatusUI("Storage", "ok")
 	}
 
 	if h.Database != nil {
-		h.printStatus("Database", "init")
+		h.printStatusUI("Database", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.Database.Run(ctx)
 		}); err != nil {
-			h.printStatus("Database", "fail")
+			h.printStatusUI("Database", "fail")
 			h.Logger.Error("Database error", zap.Error(err))
 			return err
 		}
-		h.printStatus("Database", "ok")
+		h.printStatusUI("Database", "ok")
 	}
 
 	if h.AdminDatabase != nil {
-		h.printStatus("AdminDatabase", "init")
+		h.printStatusUI("AdminDatabase", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.AdminDatabase.Run(ctx)
 		}); err != nil {
-			h.printStatus("AdminDatabase", "fail")
+			h.printStatusUI("AdminDatabase", "fail")
 			h.Logger.Error("AdminDatabase error", zap.Error(err))
 			return err
 		}
-		h.printStatus("AdminDatabase", "ok")
+		h.printStatusUI("AdminDatabase", "ok")
 	}
 
 	if h.OTP != nil {
@@ -206,18 +205,20 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return eris.New("OTP service requires a security service")
 		}
 	}
+
 	if h.API != nil {
-		h.printStatus("Request", "init")
+		h.printStatusUI("Request", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.API.Init()
 		}); err != nil {
-			h.printStatus("Request", "fail")
+			h.printStatusUI("Request", "fail")
 			h.Logger.Error("Request error init", zap.Error(err))
 			return err
 		}
-		h.printStatus("Request", "ok")
+		h.printStatusUI("Request", "ok")
 	}
-	log.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
+
+	ui.Separator()
 	return nil
 }
 
@@ -226,11 +227,11 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.API.Run()
 		}); err != nil {
-			h.printStatus("Request", "fail")
+			h.printStatusUI("Request", "fail")
 			h.Logger.Error("Request error server", zap.Error(err))
 			return err
 		}
-		h.printStatus("Request", "ok")
+		h.printStatusUI("Request", "ok")
 	}
 	if h.Broker != nil {
 		go func() {
@@ -287,19 +288,6 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (h *HorizonService) printStatus(service string, status string) {
-	h.printStatusUI(service, status)
-	switch status {
-	case "init":
-		h.Logger.Info("Initializing service", zap.String("service", service))
-	case "ok":
-		h.Logger.Info("Service initialized successfully", zap.String("service", service))
-	case "fail":
-		h.Logger.Error("Failed to initialize service", zap.String("service", service))
-	}
-	_ = os.Stdout.Sync()
-}
-
 func (h *HorizonService) printUIEndpoints() {
 	if h.secured {
 		return
@@ -321,5 +309,5 @@ func (h *HorizonService) printStatusUI(service, status string) {
 			{Label: "Status", Value: status},
 		},
 	}
-	fmt.Println(ui.RenderSection(theme, section))
+	log.Println("\n", ui.RenderSection(theme, section))
 }

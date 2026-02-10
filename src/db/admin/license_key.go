@@ -3,6 +3,7 @@ package core_admin
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
@@ -106,7 +107,7 @@ func licenseSeed(ctx context.Context, service *horizon.HorizonService) error {
 		if err := LicenseManager(service).Create(ctx, license); err != nil {
 			return eris.Wrapf(err, "failed to seed license %s", license.Name)
 		}
-		fmt.Println(ui.RenderSection(ui.DefaultTheme(), LicenseSection(license)))
+		log.Println(ui.RenderSection(ui.DefaultTheme(), LicenseSection(license)))
 	}
 
 	return nil

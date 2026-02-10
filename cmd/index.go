@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/ui"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -14,7 +14,7 @@ func Execute() {
 This tool provides commands for database management, cache operations, 
 and server operations for your financial cooperative system.`,
 		Run: func(_ *cobra.Command, _ []string) {
-			helpers.PrintASCIIArt()
+			ui.Logo()
 		},
 	}
 	command.AddCommand(&cobra.Command{
