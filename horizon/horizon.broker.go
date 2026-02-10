@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -77,7 +78,11 @@ func (s *MessageBrokerImpl) send(body map[string]any) error {
 	if err != nil {
 		return eris.Wrap(err, "failed to send event to soketi")
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Println(eris.Wrap(err, "failed to close response body"))
+		}
+	}()
 
 	if resp.StatusCode >= 300 {
 		return eris.Errorf("soketi returned status %d", resp.StatusCode)
