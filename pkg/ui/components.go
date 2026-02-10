@@ -36,23 +36,17 @@ func renderStruct(t Theme, v reflect.Value, typ reflect.Type) string {
 	rows := []string{
 		RenderTitle(t, "📦 "+typ.Name()),
 	}
-
 	for i := 0; i < v.NumField(); i++ {
 		field := typ.Field(i)
-
-		// skip unexported
 		if field.PkgPath != "" {
 			continue
 		}
-
 		value := fmt.Sprint(v.Field(i).Interface())
-
 		rows = append(rows, RenderRow(t, Row{
 			Label: field.Name,
 			Value: value,
 		}))
 	}
-
 	return RenderBox(t, rows...)
 }
 
@@ -60,24 +54,20 @@ func renderMap(t Theme, v reflect.Value) string {
 	rows := []string{
 		RenderTitle(t, "🗺️ Map"),
 	}
-
 	for _, key := range v.MapKeys() {
 		rows = append(rows, RenderRow(t, Row{
 			Label: fmt.Sprint(key.Interface()),
 			Value: fmt.Sprint(v.MapIndex(key).Interface()),
 		}))
 	}
-
 	return RenderBox(t, rows...)
 }
 
 func renderSlice(t Theme, v reflect.Value) string {
 	out := ""
-
 	for i := 0; i < v.Len(); i++ {
 		out += RenderAny(t, v.Index(i).Interface()) + "\n"
 	}
-
 	return out
 }
 
@@ -88,7 +78,6 @@ func RenderAny(t Theme, v any) string {
 	if s, ok := v.(fmt.Stringer); ok {
 		return RenderBox(t, RenderRow(t, Row{"Value", s.String()}))
 	}
-
 	val := reflect.ValueOf(v)
 	typ := reflect.TypeOf(v)
 	for val.Kind() == reflect.Ptr {
@@ -98,18 +87,13 @@ func RenderAny(t Theme, v any) string {
 		val = val.Elem()
 		typ = typ.Elem()
 	}
-
 	switch val.Kind() {
-
 	case reflect.Struct:
 		return renderStruct(t, val, typ)
-
 	case reflect.Map:
 		return renderMap(t, val)
-
 	case reflect.Slice, reflect.Array:
 		return renderSlice(t, val)
-
 	default:
 		return RenderBox(t, RenderRow(t, Row{"Value", fmt.Sprint(v)}))
 	}
@@ -117,16 +101,14 @@ func RenderAny(t Theme, v any) string {
 
 func PrintEndpoints(title string, endpoints map[string]string) {
 	theme := DefaultTheme()
-
 	headerStyle := theme.Title.
 		Bold(true).
-		Align(lipgloss.Center) // header styling
-
+		Align(lipgloss.Center)
 	cellStyle := lipgloss.NewStyle().
-		Padding(0, 1) // normal cell style
+		Padding(0, 1)
 
 	urlStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("39")) // color for URL column
+		Foreground(lipgloss.Color("39"))
 
 	t := table.New().
 		Headers("Service", "URL").
@@ -136,9 +118,9 @@ func PrintEndpoints(title string, endpoints map[string]string) {
 		).
 		StyleFunc(func(row, col int) lipgloss.Style {
 			switch {
-			case row == -1: // ✅ HEADER ROW
+			case row == -1:
 				return headerStyle
-			case col == 1: // URL column
+			case col == 1:
 				return urlStyle
 			default:
 				return cellStyle
