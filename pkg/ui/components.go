@@ -117,30 +117,40 @@ func RenderAny(t Theme, v any) string {
 
 func PrintEndpoints(title string, endpoints map[string]string) {
 	theme := DefaultTheme()
+
 	headerStyle := theme.Title.
-		Align(lipgloss.Center)
+		Bold(true).
+		Align(lipgloss.Center) // header styling
+
 	cellStyle := lipgloss.NewStyle().
-		Padding(0, 1)
+		Padding(0, 1) // normal cell style
+
 	urlStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("39"))
+		Foreground(lipgloss.Color("39")) // color for URL column
+
 	t := table.New().
 		Headers("Service", "URL").
 		Border(lipgloss.RoundedBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("240"))).
+		BorderStyle(
+			lipgloss.NewStyle().Foreground(lipgloss.Color("240")),
+		).
 		StyleFunc(func(row, col int) lipgloss.Style {
-			if row == 0 {
+			switch {
+			case row == -1: // ✅ HEADER ROW
 				return headerStyle
-			}
-			if col == 1 {
+			case col == 1: // URL column
 				return urlStyle
+			default:
+				return cellStyle
 			}
-			return cellStyle
 		})
+
 	for name, url := range endpoints {
 		t.Row(name, url)
 	}
 
 	log.Println(
+		"\n\n",
 		theme.Box.Render(
 			lipgloss.JoinVertical(
 				lipgloss.Left,
