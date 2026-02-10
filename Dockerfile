@@ -31,6 +31,7 @@ RUN apk add --no-cache ffmpeg bash
 # Copy built binary and seeder
 COPY --from=builder /app/app .
 COPY --from=builder /app/seeder ./seeder
+COPY --from=builder /app/templates ./templates
 
 # Copy entrypoint script
 COPY entry.sh /entry.sh

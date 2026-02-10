@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Soketi Realtime Test</title>
+</head>
+<body>
+  <h1>Soketi Realtime Tests</h1>
+  <ul id="events"></ul>
+
+  <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
+  <script>
+    // Soketi credentials
+    const APP_KEY = "8KxrqyQiVuoIbVryU8tTPcoJW9RtAVI8Khqrb5rv3Wb8eW8foXGmxwC0jbgEJvGd";
+    const SOKETI_HOST = "127.0.0.1"; // Soketi host
+    const SOKETI_PORT = 6001;        // Soketi port
+
+    // Initialize Pusher client for Soketi
+    const pusher = new Pusher(APP_KEY, {
+      cluster: "mt1",
+      wsHost: SOKETI_HOST,
+      wsPort: SOKETI_PORT,
+      forceTLS: false,             // disable HTTPS (use ws://)
+      enabledTransports: ["ws"],   // only WebSocket transport
+      disableStats: true,          // no Pusher stats
+    });
+
+    // Subscribe to your channel
+    const channel = pusher.subscribe("horizon.live");
+
+    // Bind to your custom event
+    channel.bind("ecoop", function(data) {
+      console.log("Realtime Event:", data);
+      const ul = document.getElementById("events");
+      const li = document.createElement("li");
+      li.textContent = JSON.stringify(data);
+      ul.appendChild(li);
+    });
+
+    // Connection events
+    pusher.connection.bind("connected", () => {
+      console.log("✅ Connected to Soketi");
+    });
+
+    pusher.connection.bind("error", (err) => {
+      console.error("❌ Connection error:", err);
+    });
+  </script>
+</body>
+</html>

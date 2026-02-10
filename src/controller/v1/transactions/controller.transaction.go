@@ -54,7 +54,7 @@ func TransactionController(service *horizon.HorizonService) {
 				Module:      "Transaction",
 			})
 			return ctx.JSON(http.StatusBadRequest, echo.Map{
-				"error": "Validation failed",
+				"error": "Validation failed: " + err.Error(),
 			})
 		}
 

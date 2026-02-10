@@ -3,11 +3,13 @@ package core_admin
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/ui"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/rotisserie/eris"
 )
@@ -16,7 +18,7 @@ func LicenseManager(service *horizon.HorizonService) *registry.Registry[
 	types.License, types.LicenseResponse, types.LicenseRequest] {
 
 	return registry.GetRegistry(registry.RegistryParams[types.License, types.LicenseResponse, types.LicenseRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "UsedBy"},
+		Preloads: []string{},
 		Database: service.AdminDatabase.Client(),
 
 		Dispatch: func(topics registry.Topics, payload any) error {
@@ -69,6 +71,9 @@ func LicenseManager(service *horizon.HorizonService) *registry.Registry[
 		},
 	})
 }
+func LicenseSection(l *types.License) ui.Section {
+	return ui.SectionFrom("🔑 License", l)
+}
 
 func licenseSeed(ctx context.Context, service *horizon.HorizonService) error {
 	now := time.Now().UTC()
@@ -102,6 +107,8 @@ func licenseSeed(ctx context.Context, service *horizon.HorizonService) error {
 		if err := LicenseManager(service).Create(ctx, license); err != nil {
 			return eris.Wrapf(err, "failed to seed license %s", license.Name)
 		}
+		log.Println(ui.RenderSection(ui.DefaultTheme(), LicenseSection(license)))
 	}
+
 	return nil
 }

@@ -15,10 +15,12 @@ import (
 )
 
 type SMTPRequest struct {
-	To      string
-	Subject string
-	Body    string
-	Vars    map[string]string
+	Name     string
+	To       string
+	Subject  string
+	Body     string
+	Vars     map[string]string
+	FromName string
 }
 
 type SMTPImpl struct {
@@ -28,21 +30,28 @@ type SMTPImpl struct {
 	password string
 	from     string
 
-	secured bool
+	secured     bool
+	defaultName string
 }
 
-func NewSMTPImpl(host string, port int, username, password string, from string, secured bool) *SMTPImpl {
+func NewSMTPImpl(host string, port int, username, password, from, defaultName string, secured bool) *SMTPImpl {
 	return &SMTPImpl{
-		host:     host,
-		port:     port,
-		username: username,
-		password: password,
-		from:     from,
-		secured:  secured,
+		host:        host,
+		port:        port,
+		username:    username,
+		password:    password,
+		from:        from,
+		secured:     secured,
+		defaultName: defaultName,
 	}
 }
 
 func (h *SMTPImpl) Format(req SMTPRequest) (*SMTPRequest, error) {
+	if req.Vars == nil {
+		req.Vars = make(map[string]string)
+	}
+	req.Vars["Name"] = req.Name
+
 	var tmplBody string
 	if err := helpers.IsValidFilePath(req.Body); err == nil {
 		content, err := os.ReadFile(req.Body)
@@ -66,19 +75,23 @@ func (h *SMTPImpl) Format(req SMTPRequest) (*SMTPRequest, error) {
 	return &req, nil
 }
 
-func (h *SMTPImpl) Send(context context.Context, req SMTPRequest) error {
+func (h *SMTPImpl) Send(ctx context.Context, req SMTPRequest) error {
 	if !helpers.IsValidEmail(req.To) {
-		return eris.New("Recipient email format is invalid")
+		return eris.New("recipient email format is invalid")
 	}
 	if !helpers.IsValidEmail(h.from) {
-		return eris.New("Admin email format is invalid")
+		return eris.New("admin email format is invalid")
 	}
+
+	// Sanitize body and format template
 	req.Body = helpers.Sanitize(req.Body)
 	finalBody, err := h.Format(req)
 	if err != nil {
 		return eris.Wrap(err, "failed to inject variables into body")
 	}
 	req.Body = finalBody.Body
+
+	// Mock mode logging
 	if !h.secured {
 		log.Printf(
 			"[SMTP MOCK MODE] Sending email\nTo: %s\nSubject: %s\nBody:\n%s\n",
@@ -87,20 +100,31 @@ func (h *SMTPImpl) Send(context context.Context, req SMTPRequest) error {
 			req.Body,
 		)
 	}
-	sintizer := func(s string) string {
+
+	// Sanitize headers
+	sanitize := func(s string) string {
 		return strings.ReplaceAll(strings.ReplaceAll(s, "\r", ""), "\n", "")
 	}
-	safeFrom := sintizer(h.from)
-	safeTo := sintizer(req.To)
-	safeSubject := sintizer(req.Subject)
+
+	// Determine sender display name
+	displayName := req.FromName
+	if displayName == "" {
+		displayName = h.defaultName
+	}
+
+	safeFrom := fmt.Sprintf("%s <%s>", displayName, sanitize(h.from))
+	safeSubject := sanitize(req.Subject)
+	safeTo := sanitize(req.To) // just the raw recipient email
+
 	addr := fmt.Sprintf("%s:%d", h.host, h.port)
+
+	// Auth for secured SMTP
 	var auth smtp.Auth
 	if h.secured && h.username != "" && h.password != "" {
 		auth = smtp.PlainAuth("", h.username, h.password, h.host)
-	} else {
-		auth = nil
 	}
 
+	// Build email message
 	msg := fmt.Sprintf(
 		"From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n%s",
 		safeFrom,
@@ -108,14 +132,16 @@ func (h *SMTPImpl) Send(context context.Context, req SMTPRequest) error {
 		safeSubject,
 		req.Body,
 	)
+
 	if err := smtp.SendMail(
 		addr,
 		auth,
-		safeFrom,
+		h.from,
 		[]string{safeTo},
 		[]byte(msg),
 	); err != nil {
 		return eris.Wrap(err, "smtp send failed")
 	}
+
 	return nil
 }

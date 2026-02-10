@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/ui"
 	"github.com/go-playground/validator/v10"
 	"github.com/jaswdr/faker"
 	"github.com/rotisserie/eris"
@@ -120,6 +119,7 @@ func NewHorizonService(lifetime bool) *HorizonService {
 		service.Config.SMTPUsername,
 		service.Config.SMTPPassword,
 		service.Config.SMTPFrom,
+		service.Config.AppClientName,
 		service.secured)
 	if lifetime {
 		service.API = NewAPIImpl(
@@ -131,69 +131,68 @@ func NewHorizonService(lifetime bool) *HorizonService {
 }
 
 func (h *HorizonService) Run(ctx context.Context) error {
-	log.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
-	helpers.PrintASCIIArt()
+	ui.Separator()
+	ui.Logo()
 	h.printUIEndpoints()
 	h.Logger.Info("Horizon App is starting...")
-
 	if h.Schedule != nil {
-		h.printStatus("Cron", "init")
+		h.printStatusUI("Cron", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.Schedule.Run()
 		}); err != nil {
-			h.printStatus("Cron", "fail")
+			h.printStatusUI("Cron", "fail")
 			h.Logger.Error("Cron error", zap.Error(err))
 			return err
 		}
-		h.printStatus("Cron", "ok")
+		h.printStatusUI("Cron", "ok")
 	}
 
 	if h.Cache != nil {
-		h.printStatus("Cache", "init")
+		h.printStatusUI("Cache", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.Cache.Run(ctx)
 		}); err != nil {
-			h.printStatus("Cache", "fail")
+			h.printStatusUI("Cache", "fail")
 			h.Logger.Error("Cache error", zap.Error(err))
 			return err
 		}
-		h.printStatus("Cache", "ok")
+		h.printStatusUI("Cache", "ok")
 	}
 
 	if h.Storage != nil {
-		h.printStatus("Storage", "init")
+		h.printStatusUI("Storage", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.Storage.Run(ctx)
 		}); err != nil {
-			h.printStatus("Storage", "fail")
+			h.printStatusUI("Storage", "fail")
 			h.Logger.Error("Storage error", zap.Error(err))
 			return err
 		}
-		h.printStatus("Storage", "ok")
+		h.printStatusUI("Storage", "ok")
 	}
 
 	if h.Database != nil {
-		h.printStatus("Database", "init")
+		h.printStatusUI("Database", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.Database.Run(ctx)
 		}); err != nil {
-			h.printStatus("Database", "fail")
+			h.printStatusUI("Database", "fail")
 			h.Logger.Error("Database error", zap.Error(err))
 			return err
 		}
-		h.printStatus("Database", "ok")
+		h.printStatusUI("Database", "ok")
 	}
 
 	if h.AdminDatabase != nil {
-		h.printStatus("AdminDatabase", "init")
+		h.printStatusUI("AdminDatabase", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.AdminDatabase.Run(ctx)
 		}); err != nil {
-			h.printStatus("AdminDatabase", "fail")
+			h.printStatusUI("AdminDatabase", "fail")
 			h.Logger.Error("AdminDatabase error", zap.Error(err))
 			return err
 		}
-		h.printStatus("AdminDatabase", "ok")
+		h.printStatusUI("AdminDatabase", "ok")
 	}
 
 	if h.OTP != nil {
@@ -206,18 +205,20 @@ func (h *HorizonService) Run(ctx context.Context) error {
 			return eris.New("OTP service requires a security service")
 		}
 	}
+
 	if h.API != nil {
-		h.printStatus("Request", "init")
+		h.printStatusUI("Request", "init")
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.API.Init()
 		}); err != nil {
-			h.printStatus("Request", "fail")
+			h.printStatusUI("Request", "fail")
 			h.Logger.Error("Request error init", zap.Error(err))
 			return err
 		}
-		h.printStatus("Request", "ok")
+		h.printStatusUI("Request", "ok")
 	}
-	log.Println("≿━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━༺❀༻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━≾")
+
+	ui.Separator()
 	return nil
 }
 
@@ -226,11 +227,11 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 		if err := helpers.Retry(ctx, retry, delay, func() error {
 			return h.API.Run()
 		}); err != nil {
-			h.printStatus("Request", "fail")
+			h.printStatusUI("Request", "fail")
 			h.Logger.Error("Request error server", zap.Error(err))
 			return err
 		}
-		h.printStatus("Request", "ok")
+		h.printStatusUI("Request", "ok")
 	}
 	if h.Broker != nil {
 		go func() {
@@ -243,7 +244,7 @@ func (h *HorizonService) RunLifeTime(ctx context.Context) error {
 					h.Logger.Info("Live mode stopped")
 					return
 				case <-ticker.C:
-					if err := h.Broker.Publish("horizon.live", map[string]any{"status": "ok", "timestamp": time.Now().UTC()}); err != nil {
+					if err := h.Broker.Publish("horizon", map[string]any{"status": "ok", "timestamp": time.Now().UTC()}); err != nil {
 						h.Logger.Error("Failed to publish live-mode event", zap.Error(err))
 					}
 				}
@@ -287,50 +288,26 @@ func (h *HorizonService) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (h *HorizonService) printStatus(service string, status string) {
-	switch status {
-	case "init":
-		h.Logger.Info("Initializing service", zap.String("service", service))
-		_ = os.Stdout.Sync()
-	case "ok":
-		h.Logger.Info("Service initialized successfully", zap.String("service", service))
-		_ = os.Stdout.Sync()
-	case "fail":
-		h.Logger.Error("Failed to initialize service", zap.String("service", service))
-		_ = os.Stdout.Sync()
-	}
-}
-
 func (h *HorizonService) printUIEndpoints() {
 	if h.secured {
 		return
 	}
-	headerStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212")).
-		Align(lipgloss.Center)
-	cellStyle := lipgloss.NewStyle().
-		Padding(0, 1)
-	urlStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("39"))
-	t := table.New().
-		Headers("Service", "URL").
-		Border(lipgloss.RoundedBorder()).
-		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("240"))).
-		StyleFunc(func(row, col int) lipgloss.Style {
-			if row == 0 {
-				return headerStyle
-			}
-			if col == 1 {
-				return urlStyle
-			}
-			return cellStyle
-		}).
-		Rows(
-			[]string{"Mailpit", fmt.Sprintf("http://%s:%d", h.Config.MailpitUIHost, h.Config.MailpitUIPort)},
-			[]string{"RedisInsight", fmt.Sprintf("http://%s:%d", h.Config.RedisInsightHost, h.Config.RedisInsightPort)},
-			[]string{"PgAdmin", fmt.Sprintf("http://%s:%d", h.Config.PgAdminHost, h.Config.PgAdminPort)},
-			[]string{"Storage Console", fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort)},
-		)
-	log.Println(t)
+	ui.PrintEndpoints("🌐 Local UI Endpoints", map[string]string{
+		"Mailpit":         fmt.Sprintf("http://%s:%d", h.Config.MailpitUIHost, h.Config.MailpitUIPort),
+		"RedisInsight":    fmt.Sprintf("http://%s:%d", h.Config.RedisInsightHost, h.Config.RedisInsightPort),
+		"PgAdmin":         fmt.Sprintf("http://%s:%d", h.Config.PgAdminHost, h.Config.PgAdminPort),
+		"Storage Console": fmt.Sprintf("http://127.0.0.1:%d", h.Config.StorageConsolePort),
+	})
+}
+
+func (h *HorizonService) printStatusUI(service, status string) {
+	theme := ui.DefaultTheme()
+	section := ui.Section{
+		Title: "⚙️ Service Status",
+		Rows: []ui.Row{
+			{Label: "Service", Value: service},
+			{Label: "Status", Value: status},
+		},
+	}
+	log.Println("\n", ui.RenderSection(theme, section))
 }

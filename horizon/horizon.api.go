@@ -214,6 +214,10 @@ func (h *APIImpl) Init() error {
 		"https://ecoop-suite.com",
 		"https://www.ecoop-suite.com",
 
+		"https://e-coop-member-portal-development.up.railway.app",
+		"https://e-coop-member-portal-production.up.railway.app",
+		"https://e-coop-member-portal-staging.up.railway.app",
+
 		"https://development.ecoop-suite.com",
 		"https://www.development.ecoop-suite.com",
 		"https://staging.ecoop-suite.com",
@@ -224,6 +228,17 @@ func (h *APIImpl) Init() error {
 		"https://cooperatives-production.fly.dev",
 
 		"https://cooperatives-development-production-0fc5.up.railway.app",
+		"https://e-coop-server-development.up.railway.app",
+		"https://e-coop-server-production.up.railway.app",
+		"https://e-coop-server-staging.up.railway.app",
+
+		"https://e-coop-client-development.up.railway.app",
+		"https://e-coop-client-production.up.railway.app",
+		"https://e-coop-client-staging.up.railway.app",
+
+		"https://e-coop-member-portal-development.up.railway.app/",
+		"https://e-coop-member-portal-production.up.railway.app/",
+		"https://e-coop-member-portal-staging.up.railway.app/",
 	}
 
 	if !h.secured {
