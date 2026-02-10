@@ -239,7 +239,38 @@ func (h *APIImpl) Init() error {
 		"https://e-coop-member-portal-development.up.railway.app/",
 		"https://e-coop-member-portal-production.up.railway.app/",
 		"https://e-coop-member-portal-staging.up.railway.app/",
-	}
+
+		"https://e-coop-suite-development.up.railway.app",
+		"https://e-coop-suite-staging.up.railway.app",
+		"https://e-coop-suite-production.up.railway.app",
+		"https://development.ecoop-suite.com",
+		"https://staging.ecoop-suite.com",
+		"https://www.ecoop-suite.com",
+		"https://ecoop-suite.com",
+		"https://ecoop-suite.netlify.app",
+
+		"https://e-coop-core-development.up.railway.app",
+		"https://e-coop-core-staging.up.railway.app",
+		"https://e-coop-core-production.up.railway.app",
+		"https://development.e-coop-core.com",
+		"https://staging.e-coop-core.com",
+		"https://www.e-coop-core.com",
+		"https://e-coop-core.com",
+
+		"https://e-coop-core-mobile-development.up.railway.app",
+		"https://e-coop-core-mobile-staging.up.railway.app",
+		"https://e-coop-core-mobile-production.up.railway.app",
+		"https://development.e-coop-core-mobile.com",
+		"https://staging.e-coop-core-mobile.com",
+		"https://www.e-coop-core-mobile.com",
+		"https://e-coop-core-mobile.com",
+		"https://e-coop-member-development.up.railway.app",
+		"https://e-coop-member-staging.up.railway.app",
+		"https://e-coop-member-production.up.railway.app",
+		"https://development.e-coop-member.com",
+		"https://staging.e-coop-member.com",
+		"https://www.e-coop-member.com",
+		"https://e-coop-member.com"}
 
 	if !h.secured {
 		origins = append(origins,

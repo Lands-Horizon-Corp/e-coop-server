@@ -624,7 +624,7 @@ func PaymentController(service *horizon.HorizonService) {
 			TransactionID:        nil,
 			MemberProfileID:      req.MemberProfileID,
 			MemberJointAccountID: req.MemberJointAccountID,
-			ReferenceNumber:      req.BankReferenceNumber,
+			ReferenceNumber:      req.ReferenceNumber,
 
 			Source:                types.GeneralLedgerSourceDeposit,
 			Amount:                req.Amount,
