@@ -34,7 +34,6 @@ func NewSoketiPublisherImpl(url, appKey, appSecret, appClient string) *MessageBr
 	}
 }
 
-// Dispatch sends a payload to multiple channels
 func (s *MessageBrokerImpl) Dispatch(channels []string, payload any) error {
 	body := map[string]any{
 		"name":     s.appClient,
@@ -44,7 +43,6 @@ func (s *MessageBrokerImpl) Dispatch(channels []string, payload any) error {
 	return s.send(body)
 }
 
-// Publish sends a payload to a single channel
 func (s *MessageBrokerImpl) Publish(channel string, payload any) error {
 	body := map[string]any{
 		"name":     s.appClient,
@@ -54,17 +52,12 @@ func (s *MessageBrokerImpl) Publish(channel string, payload any) error {
 	return s.send(body)
 }
 
-// send handles the HTTP request with signing
 func (s *MessageBrokerImpl) send(body map[string]any) error {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return eris.Wrap(err, "failed to marshal payload")
 	}
-
-	// Sign the request
 	query := s.sign("/apps/events", jsonBody)
-
-	// Append query to the full URL
 	fullURL := fmt.Sprintf("%s?%s", s.url, query)
 
 	req, err := http.NewRequest(http.MethodPost, fullURL, bytes.NewReader(jsonBody))
@@ -91,7 +84,6 @@ func (s *MessageBrokerImpl) send(body map[string]any) error {
 	return nil
 }
 
-// sign generates the authentication query parameters
 func (s *MessageBrokerImpl) sign(path string, body []byte) string {
 	timestamp := fmt.Sprintf("%d", time.Now().Unix())
 

@@ -40,13 +40,13 @@ type ExtendedSecurityHeaders struct {
 
 type Route struct {
 	Route        string `json:"route"`
-	Request      string `json:"request,omitempty"`  // TypeScript interface for request
-	Response     string `json:"response,omitempty"` // TypeScript interface for response
-	RequestType  any    // Go type for request (used internally)
-	ResponseType any    // Go type for response (used internally)
-	Method       string `json:"method"`            // HTTP method (GET, POST, etc.)
-	Note         string `json:"note"`              // Additional documentation
-	Private      bool   `json:"private,omitempty"` // Excluded from public docs
+	Request      string `json:"request,omitempty"`
+	Response     string `json:"response,omitempty"`
+	RequestType  any
+	ResponseType any
+	Method       string `json:"method"`
+	Note         string `json:"note"`
+	Private      bool   `json:"private,omitempty"`
 }
 
 type APIImpl struct {
@@ -63,13 +63,13 @@ type APIInterfaces struct {
 	Value string `json:"value"`
 }
 type GroupedRoute struct {
-	Key    string  `json:"key"`    // Base path segment (e.g. "users")
-	Routes []Route `json:"routes"` // Routes under this group
+	Key    string  `json:"key"`
+	Routes []Route `json:"routes"`
 }
 type API struct {
-	GroupedRoutes []GroupedRoute  `json:"grouped_routes"` // Routes grouped by base path
-	Requests      []APIInterfaces `json:"requests"`       // Unique request interfaces
-	Responses     []APIInterfaces `json:"responses"`      // Unique response interfaces
+	GroupedRoutes []GroupedRoute  `json:"grouped_routes"`
+	Requests      []APIInterfaces `json:"requests"`
+	Responses     []APIInterfaces `json:"responses"`
 }
 
 func getProductionSecurityConfig() SecurityHeaderConfig {
@@ -280,13 +280,13 @@ func (h *APIImpl) Init() error {
 	h.service.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			allowedMethods := map[string]bool{
-				http.MethodGet:     true, // Read operations
-				http.MethodPost:    true, // Create operations
-				http.MethodPut:     true, // Update/replace operations
-				http.MethodPatch:   true, // Partial update operations
-				http.MethodDelete:  true, // Delete operations
-				http.MethodHead:    true, // Header-only requests
-				http.MethodOptions: true, // CORS preflight requests
+				http.MethodGet:     true,
+				http.MethodPost:    true,
+				http.MethodPut:     true,
+				http.MethodPatch:   true,
+				http.MethodDelete:  true,
+				http.MethodHead:    true,
+				http.MethodOptions: true,
 			}
 
 			if !allowedMethods[c.Request().Method] {

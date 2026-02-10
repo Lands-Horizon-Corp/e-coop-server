@@ -9,7 +9,6 @@ import (
 )
 
 type ConfigImpl struct {
-	// App
 	AppPort        int
 	AppMetricsPort int
 	AppEnv         string
@@ -18,7 +17,6 @@ type ConfigImpl struct {
 	AppToken       string
 	AppName        string
 
-	// Soketi
 	SoketiHost      string
 	SoketiPort      int
 	SoketiAppID     string
@@ -27,7 +25,6 @@ type ConfigImpl struct {
 	SoketiAppClient string
 	SoketiURL       string
 
-	// Postgres
 	PostgresUser         string
 	PostgresPassword     string
 	PostgresDB           string
@@ -45,13 +42,11 @@ type ConfigImpl struct {
 	AdminPostgresHost     string
 	AdminDatabaseURL      string
 
-	// Redis
 	RedisHost     string
 	RedisPort     int
 	RedisPassword string
 	RedisUsername string
 
-	// Storage
 	StorageDriver    string
 	StoragePort      int
 	StorageAccessKey string
@@ -61,7 +56,6 @@ type ConfigImpl struct {
 	StorageRegion    string
 	StorageMaxSize   int64
 
-	// Security / Password
 	PasswordMemory     uint32
 	PasswordIterations uint32
 	PasswordParallel   uint8
@@ -71,7 +65,6 @@ type ConfigImpl struct {
 	OTPSecret          string
 	QRSecret           string
 
-	// SMTP
 	SMTPHost         string
 	SMTPPort         int
 	SMTPUsername     string
@@ -79,20 +72,17 @@ type ConfigImpl struct {
 	SMTPFrom         string
 	SMTPTestReceiver string
 
-	// Twilio
 	TwilioAccountSID    string
 	TwilioAuthToken     string
 	TwilioSender        string
 	TwilioTestRecv      string
 	TwilioMaxCharacters int32
 
-	// Linode deploy
 	LinodeHost          string
 	LinodeUser          string
 	LinodeKnownHost     string
 	LinodeSSHPrivateKey string
 
-	// UI Ports
 	PgAdminPort        int
 	PgAdminEmail       string
 	PgAdminPassword    string
@@ -107,15 +97,12 @@ type ConfigImpl struct {
 func NewConfigImpl() (*ConfigImpl, error) {
 	v := viper.New()
 
-	// Load .env file if present
 	v.SetConfigFile(".env")
-	_ = v.ReadInConfig() // ignore if missing
+	_ = v.ReadInConfig()
 
-	// Automatically read ENV variables
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	// Set defaults (same as your previous envDefault)
 	v.SetDefault("APP_PORT", 8000)
 	v.SetDefault("APP_METRICS_PORT", 8001)
 	v.SetDefault("APP_ENV", "development")
@@ -277,11 +264,10 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		SMTPFrom:         v.GetString("SMTP_FROM"),
 		SMTPTestReceiver: v.GetString("SMTP_TEST_RECIEVER"),
 
-		TwilioAccountSID: v.GetString("TWILIO_ACCOUNT_SID"),
-		TwilioAuthToken:  v.GetString("TWILIO_AUTH_TOKEN"),
-		TwilioSender:     v.GetString("TWILIO_SENDER"),
-		TwilioTestRecv:   v.GetString("TWILIO_TEST_RECIEVER"),
-		// #nosec G115 - config values are validated and controlled by environment
+		TwilioAccountSID:    v.GetString("TWILIO_ACCOUNT_SID"),
+		TwilioAuthToken:     v.GetString("TWILIO_AUTH_TOKEN"),
+		TwilioSender:        v.GetString("TWILIO_SENDER"),
+		TwilioTestRecv:      v.GetString("TWILIO_TEST_RECIEVER"),
 		TwilioMaxCharacters: int32(v.GetInt64("TWILIO_MAX_CHARACTERS")),
 
 		LinodeHost:          v.GetString("LINODE_HOST"),
