@@ -270,7 +270,9 @@ func (h *APIImpl) Init() error {
 		"https://development.e-coop-member.com",
 		"https://staging.e-coop-member.com",
 		"https://www.e-coop-member.com",
-		"https://e-coop-member.com"}
+		"https://e-coop-member.com",
+		"http://localhost:6767",
+	}
 
 	if !h.secured {
 		origins = append(origins,
