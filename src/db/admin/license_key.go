@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/ui"
@@ -71,44 +70,26 @@ func LicenseManager(service *horizon.HorizonService) *registry.Registry[
 		},
 	})
 }
-func LicenseSection(l *types.License) ui.Section {
-	return ui.SectionFrom("🔑 License", l)
-}
 
 func licenseSeed(ctx context.Context, service *horizon.HorizonService) error {
 	now := time.Now().UTC()
-	licenses := []*types.License{
-		{
-			Name:        "Starter License",
-			Description: "Starter license for testing purposes.",
+	baseName := "License Key"
+	for i := 1; i <= 60; i++ {
+		number := fmt.Sprintf("%03d", i)
+		name := fmt.Sprintf("%s %s", baseName, number)
+		license := &types.License{
+			Name:        name,
+			Description: fmt.Sprintf("%s number %s", baseName, number),
+			LicenseKey:  fmt.Sprintf("STARTER-LICENSE-%s", number),
 			CreatedAt:   now,
 			UpdatedAt:   now,
-		},
-		{
-			Name:        "Pro License",
-			Description: "Pro license with full features.",
-			CreatedAt:   now,
-			UpdatedAt:   now,
-		},
-		{
-			Name:        "Enterprise License",
-			Description: "Enterprise license for large organizations.",
-			CreatedAt:   now,
-			UpdatedAt:   now,
-		},
-	}
-
-	for _, license := range licenses {
-		key, err := helpers.GenerateLicenseKey()
-		if err != nil {
-			return eris.Wrapf(err, "failed to generate license key for %s", license.Name)
 		}
-		license.LicenseKey = key
+
 		if err := LicenseManager(service).Create(ctx, license); err != nil {
-			return eris.Wrapf(err, "failed to seed license %s", license.Name)
+			return eris.Wrapf(err, "failed to seed license %s", name)
 		}
-		log.Println(ui.RenderSection(ui.DefaultTheme(), LicenseSection(license)))
-	}
 
+		log.Println(ui.RenderSection(ui.DefaultTheme(), ui.SectionFrom("🔑 License", license)))
+	}
 	return nil
 }
