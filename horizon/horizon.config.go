@@ -46,6 +46,7 @@ type ConfigImpl struct {
 	RedisPort     int
 	RedisPassword string
 	RedisUsername string
+	RedisURL      string
 
 	StorageDriver    string
 	StoragePort      int
@@ -140,6 +141,7 @@ func NewConfigImpl() (*ConfigImpl, error) {
 	v.SetDefault("REDIS_PORT", 6379)
 	v.SetDefault("REDIS_PASSWORD", "password")
 	v.SetDefault("REDIS_USERNAME", "default")
+	v.SetDefault("REDIS_URL", "")
 
 	v.SetDefault("STORAGE_DRIVER", "minio")
 	v.SetDefault("STORAGE_API_PORT", 9000)
@@ -238,6 +240,7 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		RedisPort:     v.GetInt("REDIS_PORT"),
 		RedisPassword: v.GetString("REDIS_PASSWORD"),
 		RedisUsername: v.GetString("REDIS_USERNAME"),
+		RedisURL:      v.GetString("REDIS_URL"),
 
 		StorageDriver:    v.GetString("STORAGE_DRIVER"),
 		StoragePort:      v.GetInt("STORAGE_API_PORT"),
@@ -317,5 +320,23 @@ func NewConfigImpl() (*ConfigImpl, error) {
 			cfg.SoketiAppID,
 		)
 	}
+	if cfg.RedisURL == "" {
+		if cfg.RedisUsername != "" && cfg.RedisPassword != "" {
+			cfg.RedisURL = fmt.Sprintf(
+				"redis://%s:%s@%s:%d",
+				cfg.RedisUsername,
+				cfg.RedisPassword,
+				cfg.RedisHost,
+				cfg.RedisPort,
+			)
+		} else {
+			cfg.RedisURL = fmt.Sprintf(
+				"redis://%s:%d",
+				cfg.RedisHost,
+				cfg.RedisPort,
+			)
+		}
+	}
+
 	return cfg, nil
 }

@@ -3,7 +3,6 @@ package horizon
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -12,22 +11,16 @@ import (
 )
 
 type CacheImpl struct {
-	host     string
-	password string
-	username string
-	port     int
-	client   *redis.Client
-	prefix   string
+	url    string
+	client *redis.Client
+	prefix string
 }
 
-func NewCacheImpl(host, password, username string, port int) *CacheImpl {
+func NewCacheImpl(url string) *CacheImpl {
 	return &CacheImpl{
-		host:     host,
-		password: password,
-		username: username,
-		port:     port,
-		client:   nil,
-		prefix:   "",
+		url:    url,
+		client: nil,
+		prefix: "",
 	}
 }
 
@@ -43,12 +36,12 @@ func (h *CacheImpl) Flush(ctx context.Context) error {
 }
 
 func (h *CacheImpl) Run(ctx context.Context) error {
-	h.client = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", h.host, h.port),
-		Username: h.username,
-		Password: h.password,
-		DB:       0,
-	})
+	opt, err := redis.ParseURL(h.url)
+	if err != nil {
+		return eris.Wrap(err, "failed to parse redis url")
+	}
+
+	h.client = redis.NewClient(opt)
 
 	if err := h.client.Ping(ctx).Err(); err != nil {
 		return eris.Wrap(err, "failed to ping Redis server")
