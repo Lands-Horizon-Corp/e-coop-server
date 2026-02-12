@@ -3,6 +3,7 @@ package horizon
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"strconv"
 	"time"
 
@@ -17,6 +18,7 @@ type CacheImpl struct {
 }
 
 func NewCacheImpl(url string) *CacheImpl {
+	log.Println("Redis URL: ", url)
 	return &CacheImpl{
 		url:    url,
 		client: nil,

@@ -23,6 +23,7 @@ type MessageBrokerImpl struct {
 }
 
 func NewSoketiPublisherImpl(url, appKey, appSecret, appClient string) *MessageBrokerImpl {
+	log.Println("Soketi URL: ", url)
 	return &MessageBrokerImpl{
 		url:       url,
 		appKey:    appKey,
