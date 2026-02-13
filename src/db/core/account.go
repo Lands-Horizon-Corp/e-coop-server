@@ -3,6 +3,8 @@ package core
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
@@ -3139,6 +3141,46 @@ func accountSeed(context context.Context,
 	userOrganization.IsSeeded = true
 	if err := UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 		return eris.Wrap(err, "failed to update user organization with default payment type")
+	}
+	var allAccounts []*types.Account
+	if err := tx.Where("organization_id = ? AND branch_id = ?", organizationID, branchID).Find(&allAccounts).Error; err != nil {
+		return eris.Wrap(err, "failed to fetch accounts for reindexing")
+	}
+	order := map[types.GeneralLedgerType]int{
+		types.GLTypeAssets:      1,
+		types.GLTypeLiabilities: 2,
+		types.GLTypeEquity:      3,
+		types.GLTypeRevenue:     4,
+		types.GLTypeExpenses:    5,
+	}
+	getOrder := func(g types.GeneralLedgerType) int {
+		if v, ok := order[g]; ok {
+			return v
+		}
+		return 999
+	}
+	sort.Slice(allAccounts, func(i, j int) bool {
+		oi := getOrder(allAccounts[i].GeneralLedgerType)
+		oj := getOrder(allAccounts[j].GeneralLedgerType)
+		if oi != oj {
+			return oi < oj
+		}
+		if allAccounts[i].Index != allAccounts[j].Index {
+			return allAccounts[i].Index < allAccounts[j].Index
+		}
+		return strings.ToLower(allAccounts[i].Name) < strings.ToLower(allAccounts[j].Name)
+	})
+	for idx, acc := range allAccounts {
+		acc.Index = float64(idx + 1)
+		acc.UpdatedAt = now
+		acc.UpdatedByID = userID
+
+		if err := CreateAccountHistoryBeforeUpdate(context, service, tx, acc.ID, userID); err != nil {
+			return eris.Wrapf(err, "failed to create account history before reindexing for %s", acc.Name)
+		}
+		if err := AccountManager(service).UpdateByIDWithTx(context, tx, acc.ID, acc); err != nil {
+			return eris.Wrapf(err, "failed to update account index for %s", acc.Name)
+		}
 	}
 	return nil
 }
