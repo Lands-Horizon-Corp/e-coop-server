@@ -3,6 +3,7 @@ package account
 import (
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
@@ -487,6 +488,9 @@ func AccountController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve accounts: " + err.Error()})
 		}
+		sort.Slice(accounts, func(i, j int) bool {
+			return accounts[i].Index < accounts[j].Index
+		})
 		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModels(accounts))
 	})
 
