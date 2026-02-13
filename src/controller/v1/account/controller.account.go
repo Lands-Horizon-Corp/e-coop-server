@@ -1913,7 +1913,7 @@ func AccountController(service *horizon.HorizonService) {
 
 	// PUT api/v1/live/account/order
 	service.API.RegisterWebRoute(horizon.Route{
-		Route:        "api/v1/live/account/order",
+		Route:        "api/v1/account/live/order",
 		Method:       "PUT",
 		Note:         "Move an account to the bottom of the index order.",
 		RequestType:  types.IDSRequest{},
