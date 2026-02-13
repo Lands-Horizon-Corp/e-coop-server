@@ -301,6 +301,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 					if entry.JournalVoucherID != journalVoucher.ID {
 						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update entry that doesn't belong to this journal voucher: " + endTx(eris.New("invalid journal voucher entry")).Error()})
 					}
+					fmt.Println("old: ", entry.AccountID, " new: ", entryReq.AccountID)
 					entry.AccountID = entryReq.AccountID
 					entry.MemberProfileID = entryReq.MemberProfileID
 					entry.EmployeeUserID = entryReq.EmployeeUserID
@@ -310,9 +311,11 @@ func JournalVoucherController(service *horizon.HorizonService) {
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = userOrg.UserID
 					entry.LoanTransactionID = entryReq.LoanTransactionID
+
 					if err := core.JournalVoucherEntryManager(service).UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + endTx(err).Error()})
 					}
+					fmt.Println("saved: ", entry.AccountID)
 				} else {
 					entry := &types.JournalVoucherEntry{
 						AccountID:         entryReq.AccountID,
