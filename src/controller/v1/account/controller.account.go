@@ -1964,13 +1964,6 @@ func AccountController(service *horizon.HorizonService) {
 			account.Index = float64(index)
 			account.UpdatedAt = time.Now().UTC()
 			account.UpdatedByID = userOrg.UserID
-			if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
-				event.Footstep(ctx, service, event.FootstepEvent{
-					Activity:    "update-warning",
-					Description: "Account history creation before order update failed (live/account/order): " + err.Error(),
-					Module:      "Account",
-				})
-			}
 			if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
 				event.Footstep(ctx, service, event.FootstepEvent{
 					Activity:    "order-update-error",
