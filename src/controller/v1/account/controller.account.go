@@ -531,6 +531,21 @@ func AccountController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
 		}
+		var accountIndex float64
+		if req.Index == -1 {
+			calculatedIndex, err := core.CalculateAccountIndex(context, service, userOrg.OrganizationID, *userOrg.BranchID, req.GeneralLedgerType, req.Name)
+			if err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "create-error",
+					Description: "Account creation failed (/account), index calculation error: " + err.Error(),
+					Module:      "Account",
+				})
+				return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to calculate account index: " + err.Error()})
+			}
+			accountIndex = calculatedIndex
+		} else {
+			accountIndex = req.Index
+		}
 
 		tx, endTx := service.Database.StartTransaction(context)
 		account := &types.Account{
@@ -549,7 +564,7 @@ func AccountController(service *horizon.HorizonService) {
 			Description:                           req.Description,
 			MinAmount:                             req.MinAmount,
 			MaxAmount:                             req.MaxAmount,
-			Index:                                 req.Index,
+			Index:                                 accountIndex,
 			Type:                                  req.Type,
 			IsInternal:                            req.IsInternal,
 			CashOnHand:                            req.CashOnHand,
@@ -619,6 +634,7 @@ func AccountController(service *horizon.HorizonService) {
 			InterestAmortization:        req.InterestAmortization,
 			IsTaxable:                   req.IsTaxable,
 		}
+
 		if err := core.AccountManager(service).CreateWithTx(context, tx, account); err != nil {
 			return eris.Wrapf(err, "failed to seed account %s", account.Name)
 		}

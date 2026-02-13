@@ -3538,3 +3538,43 @@ func AccountDeleteCheckIncludingDeleted(ctx context.Context, service *horizon.Ho
 
 	return nil
 }
+
+func CalculateAccountIndex(ctx context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID, glType types.GeneralLedgerType, accountName string) (float64, error) {
+	var accounts []types.Account
+	if err := service.Database.Client().
+		Where("organization_id = ?", organizationID).
+		Where("branch_id = ?", branchID).
+		Where("general_ledger_type = ?", glType).
+		Order("name ASC").
+		Find(&accounts).Error; err != nil {
+		return 0, eris.Wrap(err, "failed to fetch accounts for index calculation")
+	}
+	if len(accounts) == 0 {
+		return 10, nil
+	}
+	if len(accounts) <= 2 {
+		return float64(len(accounts)*10 + 10), nil
+	}
+	insertPosition := 0
+	for i, acc := range accounts {
+		if accountName < acc.Name {
+			insertPosition = i
+			break
+		}
+		insertPosition = i + 1
+	}
+	var newIndex float64
+	if insertPosition == 0 {
+		newIndex = accounts[0].Index / 2
+	} else if insertPosition >= len(accounts) {
+		newIndex = accounts[len(accounts)-1].Index + 10
+	} else {
+		prevIndex := accounts[insertPosition-1].Index
+		nextIndex := accounts[insertPosition].Index
+		newIndex = (prevIndex + nextIndex) / 2
+		if newIndex == prevIndex || newIndex == nextIndex {
+			newIndex = nextIndex + 10
+		}
+	}
+	return newIndex, nil
+}
