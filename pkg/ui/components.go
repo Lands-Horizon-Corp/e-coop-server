@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
@@ -64,11 +65,11 @@ func renderMap(t Theme, v reflect.Value) string {
 }
 
 func renderSlice(t Theme, v reflect.Value) string {
-	out := ""
+	var out strings.Builder
 	for i := 0; i < v.Len(); i++ {
-		out += RenderAny(t, v.Index(i).Interface()) + "\n"
+		out.WriteString(RenderAny(t, v.Index(i).Interface()) + "\n")
 	}
-	return out
+	return out.String()
 }
 
 func RenderAny(t Theme, v any) string {

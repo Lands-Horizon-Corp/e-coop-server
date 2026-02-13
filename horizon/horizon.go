@@ -63,11 +63,7 @@ func NewHorizonService(lifetime bool) *HorizonService {
 		service.Config.SoketiAppClient,
 	)
 
-	service.Cache = NewCacheImpl(
-		service.Config.RedisHost,
-		service.Config.RedisPassword,
-		service.Config.RedisUsername,
-		service.Config.RedisPort)
+	service.Cache = NewCacheImpl(service.Config.RedisURL)
 
 	service.Security = NewSecurityImpl(
 		service.Config.PasswordMemory,

@@ -196,13 +196,21 @@ func JournalVoucherController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to commit transaction: " + err.Error()})
 		}
+		newJournalVoucher, err := core.JournalVoucherManager(service).GetByID(context, journalVoucher.ID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher: " + err.Error()})
+
+		}
+		sort.Slice(newJournalVoucher.JournalVoucherEntries, func(i, j int) bool {
+			return newJournalVoucher.JournalVoucherEntries[i].CreatedAt.After(newJournalVoucher.JournalVoucherEntries[j].CreatedAt)
+		})
 
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "create-success",
 			Description: "Created journal voucher (/journal-voucher): " + journalVoucher.CashVoucherNumber,
 			Module:      "JournalVoucher",
 		})
-		return ctx.JSON(http.StatusCreated, core.JournalVoucherManager(service).ToModel(journalVoucher))
+		return ctx.JSON(http.StatusCreated, newJournalVoucher)
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{
@@ -310,6 +318,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 					entry.UpdatedAt = time.Now().UTC()
 					entry.UpdatedByID = userOrg.UserID
 					entry.LoanTransactionID = entryReq.LoanTransactionID
+
 					if err := core.JournalVoucherEntryManager(service).UpdateByIDWithTx(context, tx, entry.ID, entry); err != nil {
 						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update journal voucher entry: " + endTx(err).Error()})
 					}

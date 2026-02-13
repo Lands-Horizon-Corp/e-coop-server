@@ -2,6 +2,7 @@ package horizon
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/rotisserie/eris"
@@ -19,6 +20,7 @@ type DatabaseImpl struct {
 }
 
 func NewDatabaseImpl(dsn string, maxIdle, maxOpen int, maxLifetime time.Duration) *DatabaseImpl {
+	log.Println("Database DSN: ", dsn)
 	return &DatabaseImpl{
 		dsn:         dsn,
 		maxIdleConn: maxIdle,

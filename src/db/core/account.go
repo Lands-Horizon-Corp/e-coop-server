@@ -3,6 +3,8 @@ package core
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
@@ -3140,6 +3142,46 @@ func accountSeed(context context.Context,
 	if err := UserOrganizationManager(service).UpdateByIDWithTx(context, tx, userOrganization.ID, userOrganization); err != nil {
 		return eris.Wrap(err, "failed to update user organization with default payment type")
 	}
+	var allAccounts []*types.Account
+	if err := tx.Where("organization_id = ? AND branch_id = ?", organizationID, branchID).Find(&allAccounts).Error; err != nil {
+		return eris.Wrap(err, "failed to fetch accounts for reindexing")
+	}
+	order := map[types.GeneralLedgerType]int{
+		types.GLTypeAssets:      1,
+		types.GLTypeLiabilities: 2,
+		types.GLTypeEquity:      3,
+		types.GLTypeRevenue:     4,
+		types.GLTypeExpenses:    5,
+	}
+	getOrder := func(g types.GeneralLedgerType) int {
+		if v, ok := order[g]; ok {
+			return v
+		}
+		return 999
+	}
+	sort.Slice(allAccounts, func(i, j int) bool {
+		oi := getOrder(allAccounts[i].GeneralLedgerType)
+		oj := getOrder(allAccounts[j].GeneralLedgerType)
+		if oi != oj {
+			return oi < oj
+		}
+		if allAccounts[i].Index != allAccounts[j].Index {
+			return allAccounts[i].Index < allAccounts[j].Index
+		}
+		return strings.ToLower(allAccounts[i].Name) < strings.ToLower(allAccounts[j].Name)
+	})
+	for idx, acc := range allAccounts {
+		acc.Index = float64(idx + 1)
+		acc.UpdatedAt = now
+		acc.UpdatedByID = userID
+
+		if err := CreateAccountHistoryBeforeUpdate(context, service, tx, acc.ID, userID); err != nil {
+			return eris.Wrapf(err, "failed to create account history before reindexing for %s", acc.Name)
+		}
+		if err := AccountManager(service).UpdateByIDWithTx(context, tx, acc.ID, acc); err != nil {
+			return eris.Wrapf(err, "failed to update account index for %s", acc.Name)
+		}
+	}
 	return nil
 }
 
@@ -3495,4 +3537,44 @@ func AccountDeleteCheckIncludingDeleted(ctx context.Context, service *horizon.Ho
 	}
 
 	return nil
+}
+
+func CalculateAccountIndex(ctx context.Context, service *horizon.HorizonService, organizationID, branchID uuid.UUID, glType types.GeneralLedgerType, accountName string) (float64, error) {
+	var accounts []types.Account
+	if err := service.Database.Client().
+		Where("organization_id = ?", organizationID).
+		Where("branch_id = ?", branchID).
+		Where("general_ledger_type = ?", glType).
+		Order("name ASC").
+		Find(&accounts).Error; err != nil {
+		return 0, eris.Wrap(err, "failed to fetch accounts for index calculation")
+	}
+	if len(accounts) == 0 {
+		return 10, nil
+	}
+	if len(accounts) <= 2 {
+		return float64(len(accounts)*10 + 10), nil
+	}
+	insertPosition := 0
+	for i, acc := range accounts {
+		if accountName < acc.Name {
+			insertPosition = i
+			break
+		}
+		insertPosition = i + 1
+	}
+	var newIndex float64
+	if insertPosition == 0 {
+		newIndex = accounts[0].Index / 2
+	} else if insertPosition >= len(accounts) {
+		newIndex = accounts[len(accounts)-1].Index + 10
+	} else {
+		prevIndex := accounts[insertPosition-1].Index
+		nextIndex := accounts[insertPosition].Index
+		newIndex = (prevIndex + nextIndex) / 2
+		if newIndex == prevIndex || newIndex == nextIndex {
+			newIndex = nextIndex + 10
+		}
+	}
+	return newIndex, nil
 }

@@ -46,8 +46,8 @@ func Logo() {
 	`
 	blueStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("33")).Bold(true)
 	greenStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("28"))
-	lines := strings.Split(art, "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(art, "\n")
+	for line := range lines {
 		var styled strings.Builder
 		for _, r := range line {
 			switch r {

@@ -265,7 +265,6 @@ func startServer() horizon.CommandConfig {
 			account.BrowseReferenceController(service)
 			account.IncludeNegativeAccountController(service)
 
-			// Reports
 			reports.GeneratedReportsController(service)
 			reports.GeneralLedgerController(service)
 			reports.GeneralLedgerGroupingController(service)
@@ -273,7 +272,6 @@ func startServer() horizon.CommandConfig {
 			reports.GeneratedSavingsInterestController(service)
 			reports.GeneratedSavingsInterestEntryController(service)
 
-			// Loans
 			loan.LoanStatusController(service)
 			loan.LoanPurposeController(service)
 			loan.LoanTransactionController(service)
@@ -283,18 +281,15 @@ func startServer() horizon.CommandConfig {
 			loan.AutomaticLoanDeductionController(service)
 			loan.LoanTagController(service)
 
-			// Time Deposit
 			time_deposit.TimeDepositTypeController(service)
 			time_deposit.TimeDepositComputationController(service)
 			time_deposit.TimeDepositComputationPreMatureController(service)
 
-			// Charges
 			charges.ChargesRateSchemeController(service)
 			charges.ChargesRateByRangeOrMinimumAmountController(service)
 			charges.ChargesRateSchemeModeOfPaymentController(service)
 			charges.ChargesRateByTermController(service)
 
-			// Funds
 			funds.FundsController(service)
 			funds.BatchFundingController(service)
 			funds.MutualFundsController(service)

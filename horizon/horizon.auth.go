@@ -38,17 +38,14 @@ func NewAuthImpl[T ClaimWithID](
 	}
 }
 
-// mainKey returns the Redis key for a user session's claim.
 func (h *AuthImpl[T]) mainKey(userID, token string) string {
 	return fmt.Sprintf("%s:csrf:%s:%s", h.name, userID, token)
 }
 
-// tokenToUserKey returns the Redis key for mapping a token to a user ID.
 func (h *AuthImpl[T]) tokenToUserKey(token string) string {
 	return fmt.Sprintf("%s:csrf_token_to_user:%s", h.name, token)
 }
 
-// getTokenFromContext extracts the CSRF token from the request header or cookie.
 func (h *AuthImpl[T]) getTokenFromContext(c echo.Context) string {
 	if token := c.Request().Header.Get(h.csrfHeader); token != "" {
 		return token
@@ -59,7 +56,6 @@ func (h *AuthImpl[T]) getTokenFromContext(c echo.Context) string {
 	return ""
 }
 
-// GetCSRF retrieves and validates the CSRF claim for the current session.
 func (h *AuthImpl[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
 	var zeroT T
 	token := h.getTokenFromContext(c)
@@ -85,7 +81,6 @@ func (h *AuthImpl[T]) GetCSRF(ctx context.Context, c echo.Context) (T, error) {
 	return claim, nil
 }
 
-// SetCSRF creates a new CSRF token, stores the claim, sets headers and cookies.
 func (h *AuthImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expiry time.Duration) error {
 	token, err := helpers.GenerateToken()
 	if err != nil {
@@ -124,7 +119,6 @@ func (h *AuthImpl[T]) SetCSRF(ctx context.Context, c echo.Context, claim T, expi
 	return nil
 }
 
-// ClearCSRF removes the CSRF token and claim, and clears the cookie.
 func (h *AuthImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	token := h.getTokenFromContext(c)
 	if token == "" {
@@ -150,7 +144,6 @@ func (h *AuthImpl[T]) ClearCSRF(ctx context.Context, c echo.Context) {
 	})
 }
 
-// IsLoggedInOnOtherDevice checks if the current user has valid CSRF tokens on other devices.
 func (h *AuthImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Context) (bool, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -181,7 +174,6 @@ func (h *AuthImpl[T]) IsLoggedInOnOtherDevice(ctx context.Context, c echo.Contex
 	return false, nil
 }
 
-// GetLoggedInUsers returns all other users (excluding the current user) with at least one valid session.
 func (h *AuthImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T, error) {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -206,7 +198,7 @@ func (h *AuthImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T
 		}
 		token := parts[3]
 		if token == currentToken {
-			continue // Skip current session
+			continue
 		}
 
 		val, err := h.cache.Get(ctx, key)
@@ -222,7 +214,6 @@ func (h *AuthImpl[T]) GetLoggedInUsers(ctx context.Context, c echo.Context) ([]T
 	return uniqueUsers, nil
 }
 
-// LogoutAllUsers logs out all sessions for the current user.
 func (h *AuthImpl[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -246,7 +237,6 @@ func (h *AuthImpl[T]) LogoutAllUsers(ctx context.Context, c echo.Context) error 
 	return nil
 }
 
-// VerifyCSRF validates a CSRF token and returns the associated claim if valid.
 func (h *AuthImpl[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
 	var zeroT T
 	if token == "" {
@@ -271,7 +261,6 @@ func (h *AuthImpl[T]) VerifyCSRF(ctx context.Context, token string) (T, error) {
 	return claim, nil
 }
 
-// LogoutOtherDevices logs out all other sessions for the user except the current one.
 func (h *AuthImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) error {
 	currentClaim, err := h.GetCSRF(ctx, c)
 	if err != nil {
@@ -289,8 +278,6 @@ func (h *AuthImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) er
 			continue
 		}
 		token := parts[3]
-
-		// Delete both session key and token mapping
 		if err := h.cache.Delete(ctx, key); err != nil {
 			return eris.Wrapf(err, "failed to delete session key: %s", key)
 		}
@@ -311,12 +298,10 @@ func (h *AuthImpl[T]) LogoutOtherDevices(ctx context.Context, c echo.Context) er
 	return nil
 }
 
-// Key returns the Redis key for token-to-user mapping.
 func (h *AuthImpl[T]) Key(token string) string {
 	return h.tokenToUserKey(token)
 }
 
-// Name returns the service's configured name.
 func (h *AuthImpl[T]) Name() string {
 	return h.name
 }
