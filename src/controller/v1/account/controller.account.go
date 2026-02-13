@@ -1890,4 +1890,82 @@ func AccountController(service *horizon.HorizonService) {
 		}
 		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModels(loanAccounts))
 	})
+
+	// PUT api/v1/live/account/order
+	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "api/v1/live/account/order",
+		Method:       "PUT",
+		Note:         "Move an account to the bottom of the index order.",
+		RequestType:  types.IDSRequest{},
+		ResponseType: types.AccountResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		var reqBody types.IDSRequest
+		if err := ctx.Bind(&reqBody); err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "order-update-error",
+				Description: "Failed account order update (live/account/order) | invalid request body: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body: " + err.Error()})
+		}
+		if len(reqBody.IDs) == 0 {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "order-update-error",
+				Description: "Failed account order update (live/account/order) | no IDs provided",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "No IDs provided."})
+		}
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "order-update-error",
+				Description: "Failed account order update (live/account/order) | user org error: " + err.Error(),
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to fetch user organization: " + err.Error()})
+		}
+
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
+			event.Footstep(ctx, service, event.FootstepEvent{
+				Activity:    "order-update-error",
+				Description: "Unauthorized account order update attempt (live/account/order)",
+				Module:      "Account",
+			})
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized."})
+		}
+		var updatedAccounts []*types.Account
+		for index, id := range reqBody.IDs {
+			account, err := core.AccountManager(service).GetByID(context, id)
+			if err != nil {
+				return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Account not found: " + err.Error()})
+			}
+			account.Index = float64(index)
+			account.UpdatedAt = time.Now().UTC()
+			account.UpdatedByID = userOrg.UserID
+			if err := core.CreateAccountHistoryBeforeUpdate(context, service, nil, account.ID, userOrg.UserID); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "update-warning",
+					Description: "Account history creation before order update failed (live/account/order): " + err.Error(),
+					Module:      "Account",
+				})
+			}
+			if err := core.AccountManager(service).UpdateByID(context, account.ID, account); err != nil {
+				event.Footstep(ctx, service, event.FootstepEvent{
+					Activity:    "order-update-error",
+					Description: "Failed account order update (live/account/order) | db error: " + err.Error(),
+					Module:      "Account",
+				})
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update account order: " + err.Error()})
+			}
+			updatedAccounts = append(updatedAccounts, account)
+		}
+		event.Footstep(ctx, service, event.FootstepEvent{
+			Activity:    "order-update-success",
+			Description: fmt.Sprintf("Moved %d accounts to bottom (live/account/order)", len(reqBody.IDs)),
+			Module:      "Account",
+		})
+		return ctx.JSON(http.StatusOK, core.AccountManager(service).ToModels(updatedAccounts))
+	})
 }
