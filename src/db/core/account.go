@@ -3564,13 +3564,17 @@ func CalculateAccountIndex(ctx context.Context, service *horizon.HorizonService,
 		insertPosition = i + 1
 	}
 	var newIndex float64
-	if insertPosition == 0 {
+	switch {
+	case insertPosition == 0:
 		newIndex = accounts[0].Index / 2
-	} else if insertPosition >= len(accounts) {
+
+	case insertPosition >= len(accounts):
 		newIndex = accounts[len(accounts)-1].Index + 10
-	} else {
+
+	default:
 		prevIndex := accounts[insertPosition-1].Index
 		nextIndex := accounts[insertPosition].Index
+
 		newIndex = (prevIndex + nextIndex) / 2
 		if newIndex == prevIndex || newIndex == nextIndex {
 			newIndex = nextIndex + 10

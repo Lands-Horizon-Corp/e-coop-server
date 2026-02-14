@@ -271,7 +271,7 @@ func NewConfigImpl() (*ConfigImpl, error) {
 		TwilioAuthToken:     v.GetString("TWILIO_AUTH_TOKEN"),
 		TwilioSender:        v.GetString("TWILIO_SENDER"),
 		TwilioTestRecv:      v.GetString("TWILIO_TEST_RECIEVER"),
-		TwilioMaxCharacters: int32(v.GetInt64("TWILIO_MAX_CHARACTERS")),
+		TwilioMaxCharacters: int32(v.GetInt32("TWILIO_MAX_CHARACTERS")),
 
 		LinodeHost:          v.GetString("LINODE_HOST"),
 		LinodeUser:          v.GetString("LINODE_USER"),
