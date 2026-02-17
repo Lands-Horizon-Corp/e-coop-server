@@ -46,7 +46,7 @@ type (
 		Description    string                 `json:"description"`
 		FeedMedias     []*FeedMediaResponse   `json:"feed_medias,omitempty"`
 		FeedComments   []*FeedCommentResponse `json:"feed_comments,omitempty"`
-		UserLikes      []*UserResponse        `json:"user_likes,omitempty"`
+		UserLikes      []*FeedLikeResponse    `json:"user_likes,omitempty"`
 		IsLiked        bool                   `json:"is_liked"`
 	}
 
