@@ -208,6 +208,7 @@ func startServer() horizon.CommandConfig {
 			user.UserRatingController(service)
 			user.InvitationCodeController(service)
 			user.KYCController(service)
+			user.FeedController(service)
 
 			member_profile.MemberGenderController(service)
 			member_profile.MemberCenterController(service)

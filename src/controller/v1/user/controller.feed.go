@@ -217,4 +217,48 @@ func FeedController(service *horizon.HorizonService) {
 		})
 		return ctx.NoContent(http.StatusNoContent)
 	})
+
+	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/feed/:feed_id/like",
+		Method:       "PUT",
+		Note:         "Toggles a like on a feed post. If already liked, it will unlike.",
+		ResponseType: map[string]interface{}{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		feedID, err := helpers.EngineUUIDParam(ctx, "feed_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feed ID"})
+		}
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		}
+		feed, err := core.FeedManager(service).GetByID(context, *feedID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feed not found"})
+		}
+		var existingLike types.FeedLike
+		db := service.Database.Client().WithContext(context)
+		result := db.Where("feed_id = ? AND user_id = ?", feed.ID, userOrg.UserID).First(&existingLike)
+
+		if result.Error == nil {
+			if err := core.FeedLikeManager(service).Delete(context, existingLike.ID); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to unlike"})
+			}
+			return ctx.JSON(http.StatusOK, map[string]string{"message": "Unliked", "status": "unliked"})
+		}
+		newLike := &types.FeedLike{
+			FeedID:         feed.ID,
+			UserID:         userOrg.UserID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			CreatedByID:    userOrg.UserID,
+			UpdatedByID:    userOrg.UserID,
+		}
+
+		if err := core.FeedLikeManager(service).Create(context, newLike); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to like"})
+		}
+		return ctx.JSON(http.StatusOK, map[string]string{"message": "Liked", "status": "liked"})
+	})
 }
