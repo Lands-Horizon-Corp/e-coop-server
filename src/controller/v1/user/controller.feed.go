@@ -33,6 +33,14 @@ func FeedController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch feeds: " + err.Error()})
 		}
+		for i := range feeds.Data {
+			for _, like := range feeds.Data[i].UserLikes {
+				if like.UserID == userOrg.UserID {
+					feeds.Data[i].IsLiked = true
+					break
+				}
+			}
+		}
 		return ctx.JSON(http.StatusOK, feeds)
 	})
 
@@ -260,5 +268,76 @@ func FeedController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to like"})
 		}
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Liked", "status": "liked"})
+	})
+
+	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/feed/:feed_id/comment",
+		Method:       "POST",
+		Note:         "Adds a comment to a specific feed post.",
+		RequestType:  types.FeedCommentRequest{},
+		ResponseType: types.FeedCommentResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		feedID, err := helpers.EngineUUIDParam(ctx, "feed_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feed ID"})
+		}
+
+		req, err := core.FeedCommentManager(service).Validate(ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		}
+
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		}
+		feed, err := core.FeedManager(service).GetByID(context, *feedID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feed not found"})
+		}
+		comment := &types.FeedComment{
+			FeedID:         feed.ID,
+			UserID:         userOrg.UserID,
+			Comment:        req.Comment,
+			MediaID:        req.MediaID,
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			CreatedByID:    userOrg.UserID,
+			UpdatedByID:    userOrg.UserID,
+			CreatedAt:      time.Now().UTC(),
+			UpdatedAt:      time.Now().UTC(),
+		}
+		if err := core.FeedCommentManager(service).Create(context, comment); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post comment"})
+		}
+		return ctx.JSON(http.StatusCreated, core.FeedCommentManager(service).ToModel(comment))
+	})
+
+	service.API.RegisterWebRoute(horizon.Route{
+		Route:  "/api/v1/feed/comment/:comment_id",
+		Method: "DELETE",
+		Note:   "Deletes a comment. Users can only delete their own comments.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		commentID, err := helpers.EngineUUIDParam(ctx, "comment_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid comment ID"})
+		}
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		}
+		comment, err := core.FeedCommentManager(service).GetByID(context, *commentID)
+		if err != nil {
+			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Comment not found"})
+		}
+		if comment.UserID != userOrg.UserID {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "You can only delete your own comments"})
+		}
+		if err := core.FeedCommentManager(service).Delete(context, *commentID); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete comment"})
+		}
+		return ctx.NoContent(http.StatusNoContent)
 	})
 }

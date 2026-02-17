@@ -32,22 +32,24 @@ type (
 	}
 
 	FeedResponse struct {
-		ID             uuid.UUID              `json:"id"`
-		CreatedAt      string                 `json:"created_at"`
-		CreatedByID    uuid.UUID              `json:"created_by_id"`
-		CreatedBy      *UserResponse          `json:"created_by,omitempty"`
-		UpdatedAt      string                 `json:"updated_at"`
-		UpdatedByID    uuid.UUID              `json:"updated_by_id"`
-		UpdatedBy      *UserResponse          `json:"updated_by,omitempty"`
-		OrganizationID uuid.UUID              `json:"organization_id"`
-		Organization   *OrganizationResponse  `json:"organization,omitempty"`
-		BranchID       uuid.UUID              `json:"branch_id"`
-		Branch         *BranchResponse        `json:"branch,omitempty"`
-		Description    string                 `json:"description"`
-		FeedMedias     []*FeedMediaResponse   `json:"feed_medias,omitempty"`
-		FeedComments   []*FeedCommentResponse `json:"feed_comments,omitempty"`
-		UserLikes      []*FeedLikeResponse    `json:"user_likes,omitempty"`
-		IsLiked        bool                   `json:"is_liked"`
+		ID               uuid.UUID              `json:"id"`
+		CreatedAt        string                 `json:"created_at"`
+		CreatedByID      uuid.UUID              `json:"created_by_id"`
+		CreatedBy        *UserResponse          `json:"created_by,omitempty"`
+		UpdatedAt        string                 `json:"updated_at"`
+		UpdatedByID      uuid.UUID              `json:"updated_by_id"`
+		UpdatedBy        *UserResponse          `json:"updated_by,omitempty"`
+		OrganizationID   uuid.UUID              `json:"organization_id"`
+		Organization     *OrganizationResponse  `json:"organization,omitempty"`
+		BranchID         uuid.UUID              `json:"branch_id"`
+		Branch           *BranchResponse        `json:"branch,omitempty"`
+		Description      string                 `json:"description"`
+		FeedMedias       []*FeedMediaResponse   `json:"feed_medias,omitempty"`
+		FeedComments     []*FeedCommentResponse `json:"feed_comments,omitempty"`
+		UserLikes        []*FeedLikeResponse    `json:"user_likes,omitempty"`
+		NumberOfLikes    int                    `json:"number_of_likes"`
+		NumberOfComments int                    `json:"number_of_comments"`
+		IsLiked          bool                   `json:"is_liked"`
 	}
 
 	FeedRequest struct {
