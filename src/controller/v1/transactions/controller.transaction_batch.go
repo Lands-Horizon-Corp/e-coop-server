@@ -829,4 +829,6 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
+	// /transaction-batch/:transaction-batch/history/total
+	// GET
 }

@@ -133,6 +133,7 @@ func MemberProfileManager(service *horizon.HorizonService) *registry.Registry[
 				MemberDepartmentID:             data.MemberDepartmentID,
 				MemberDepartment:               MemberDepartmentManager(service).ToModel(data.MemberDepartment),
 				BirthPlace:                     data.BirthPlace,
+				Sex:                            data.Sex,
 			}
 		},
 
