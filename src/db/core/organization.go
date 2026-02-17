@@ -257,17 +257,23 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, conf
 	if err != nil {
 		return eris.Wrap(err, "")
 	}
-	if len(subscriptions) == 0 {
-		return eris.New("no subscription plan found")
-	}
-	sub := subscriptions[0]
-	categories, err := CategoryManager(service).List(ctx)
-	if err != nil {
-		return eris.Wrap(err, "")
-	}
 	currency, err := CurrencyFindByAlpha2(ctx, service, config.CurrencyAlpha2)
 	if err != nil {
 		return eris.Wrap(err, "failed to find currency")
+	}
+	sub := types.SubscriptionPlan{}
+	for _, s := range subscriptions {
+		if s.CurrencyID != nil && *s.CurrencyID == currency.ID {
+			sub = *s
+			break
+		}
+	}
+	if len(subscriptions) == 0 {
+		return eris.New("no subscription plan found")
+	}
+	categories, err := CategoryManager(service).List(ctx)
+	if err != nil {
+		return eris.Wrap(err, "")
 	}
 	logoMedia, err := createImageMedia(ctx, service, []string{config.OrgLogoPath}, "Organization Logo")
 	if err != nil {
@@ -384,40 +390,38 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, conf
 		if err := BranchSettingManager(service).Create(ctx, branchSetting); err != nil {
 			return eris.Wrap(err, "failed to create branch settings")
 		}
-		if idx == 0 {
-			developerKey, err := service.Security.GenerateUUIDv5(fmt.Sprintf("%s-%s-%s", owner.ID, organization.ID, branch.ID))
-			if err != nil {
-				return eris.Wrap(err, "failed to generate developer key")
-			}
-			ownerOrganization := &types.UserOrganization{
-				CreatedAt:              time.Now().UTC(),
-				CreatedByID:            owner.ID,
-				UpdatedAt:              time.Now().UTC(),
-				UpdatedByID:            owner.ID,
-				BranchID:               &branch.ID,
-				OrganizationID:         organization.ID,
-				UserID:                 owner.ID,
-				UserType:               types.UserOrganizationTypeOwner,
-				Description:            "Founder and owner of the organization",
-				ApplicationDescription: "Owner of the cooperative",
-				ApplicationStatus:      "accepted",
-				DeveloperSecretKey:     developerKey + "-owner-horizon",
-				PermissionName:         "Owner",
-				PermissionDescription:  "Full administrative permissions over the cooperative",
-				Permissions:            []string{"read", "write", "manage", "delete", "admin"},
-				Status:                 types.UserOrganizationStatusOnline,
-				LastOnlineAt:           time.Now().UTC(),
-			}
-			if err := UserOrganizationManager(service).Create(ctx, ownerOrganization); err != nil {
-				return eris.Wrap(err, "failed to create owner association")
-			}
-			tx, endTx := service.Database.StartTransaction(ctx)
-			if err := OrganizationSeeder(ctx, service, tx, owner.ID, organization.ID, branch.ID); err != nil {
-				return endTx(err)
-			}
-			if err := endTx(nil); err != nil {
-				return err
-			}
+		developerKey, err := service.Security.GenerateUUIDv5(fmt.Sprintf("%s-%s-%s", owner.ID, organization.ID, branch.ID))
+		if err != nil {
+			return eris.Wrap(err, "failed to generate developer key")
+		}
+		ownerOrganization := &types.UserOrganization{
+			CreatedAt:              time.Now().UTC(),
+			CreatedByID:            owner.ID,
+			UpdatedAt:              time.Now().UTC(),
+			UpdatedByID:            owner.ID,
+			BranchID:               &branch.ID,
+			OrganizationID:         organization.ID,
+			UserID:                 owner.ID,
+			UserType:               types.UserOrganizationTypeOwner,
+			Description:            "Founder and owner of the organization",
+			ApplicationDescription: "Owner of the cooperative",
+			ApplicationStatus:      "accepted",
+			DeveloperSecretKey:     developerKey + "-owner-horizon",
+			PermissionName:         "Owner",
+			PermissionDescription:  "Full administrative permissions over the cooperative",
+			Permissions:            []string{"read", "write", "manage", "delete", "admin"},
+			Status:                 types.UserOrganizationStatusOnline,
+			LastOnlineAt:           time.Now().UTC(),
+		}
+		if err := UserOrganizationManager(service).Create(ctx, ownerOrganization); err != nil {
+			return eris.Wrap(err, "failed to create owner association")
+		}
+		tx, endTx := service.Database.StartTransaction(ctx)
+		if err := OrganizationSeeder(ctx, service, tx, owner.ID, organization.ID, branch.ID); err != nil {
+			return endTx(err)
+		}
+		if err := endTx(nil); err != nil {
+			return err
 		}
 		invitationCodes := []types.UserOrganizationType{
 			types.UserOrganizationTypeMember,

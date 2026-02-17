@@ -14,20 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-/*
-SELECT * FROM USERS
-
-	table users {
-		name
-		age
-		media_id
-	}
-
-	table media {
-		storage_key
-		bucket_name
-	}
-*/
 func BankManager(service *horizon.HorizonService) *registry.Registry[
 	types.Bank, types.BankResponse, types.BankRequest] {
 	return registry.GetRegistry(registry.RegistryParams[types.Bank, types.BankResponse, types.BankRequest]{

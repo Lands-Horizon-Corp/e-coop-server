@@ -128,7 +128,7 @@ func newSubscriptionPlan(name, description string, cost, discount, yearlyDiscoun
 		p.MaxAPICallsPerMonth = 10000
 		p.IsRecommended = false
 	case "starter":
-		p.MaxBranches = 3
+		p.MaxBranches = 4
 		p.MaxEmployees = 25
 		p.MaxMembersPerBranch = 25
 		p.HasAPIAccess = true
@@ -138,7 +138,7 @@ func newSubscriptionPlan(name, description string, cost, discount, yearlyDiscoun
 		p.MaxAPICallsPerMonth = 1000
 		p.IsRecommended = false
 	case "free":
-		p.MaxBranches = 1
+		p.MaxBranches = 4
 		p.MaxEmployees = 3
 		p.MaxMembersPerBranch = 10
 		p.HasAPIAccess = false

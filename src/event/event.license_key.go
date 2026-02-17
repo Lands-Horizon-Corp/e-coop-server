@@ -146,7 +146,7 @@ func DeactivateLicense(
 	}
 	reverseKey := fmt.Sprintf("license:secret:%s", secretKey)
 	if err := service.Cache.Delete(ctx, reverseKey); err != nil {
-		fmt.Printf("Warning: failed to delete reverse mapping: %v\n", err)
+		return eris.Wrap(err, "Warning: failed to delete reverse mapping")
 	}
 	return nil
 }

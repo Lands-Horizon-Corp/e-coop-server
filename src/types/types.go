@@ -194,6 +194,10 @@ func Models() ([]any, []any) {
 		AccountTransactionEntry{},
 		MemberAccountingLedger{},
 		Area{},
+		FeedMedia{},
+		Feed{},
+		FeedLike{},
+		FeedComment{},
 	}
 	second := []any{}
 	return first, second
