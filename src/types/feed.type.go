@@ -51,6 +51,7 @@ type (
 	}
 
 	FeedRequest struct {
-		Description string `json:"description" validate:"required,min=1,max=255"`
+		Description string      `json:"description" validate:"required,min=1,max=255"`
+		MediaIDs    []uuid.UUID `json:"media_ids"`
 	}
 )
