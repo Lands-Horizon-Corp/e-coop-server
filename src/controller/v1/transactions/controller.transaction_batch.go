@@ -829,6 +829,28 @@ func TransactionBatchController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusOK, paginated)
 	})
 
-	// /transaction-batch/:transaction-batch/history/total
-	// GET
+	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/transaction-batch/:transaction-batch/history/total",
+		Method:       "GET",
+		ResponseType: types.TransactionBatchHistoryTotal{},
+		Note:         "Returns the total history of a transaction batch, including all transactions and their amounts, for a specific transaction batch ID.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		transactionBatchID, err := helpers.EngineUUIDParam(ctx, "transaction_batch_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid transaction_batch_id: " + err.Error()})
+		}
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+		transactionBatchTotal, err := event.TransactionBatchHistoryTotalSummary(context, service, userOrg, transactionBatchID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve transaction batch history total: " + err.Error()})
+		}
+		return ctx.JSON(http.StatusOK, transactionBatchTotal)
+	})
 }
