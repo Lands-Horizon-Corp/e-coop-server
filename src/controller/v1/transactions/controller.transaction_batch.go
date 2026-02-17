@@ -830,7 +830,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{
-		Route:        "/api/v1/transaction-batch/:transaction-batch/history/total",
+		Route:        "/api/v1/transaction-batch/:transaction_batch_id/history/total",
 		Method:       "GET",
 		ResponseType: types.TransactionBatchHistoryTotal{},
 		Note:         "Returns the total history of a transaction batch, including all transactions and their amounts, for a specific transaction batch ID.",
