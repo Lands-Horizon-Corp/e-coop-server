@@ -69,16 +69,41 @@ func FeedController(service *horizon.HorizonService) {
 		RequestType:  types.FeedRequest{},
 		ResponseType: types.FeedResponse{},
 	}, func(ctx echo.Context) error {
+
+		fmt.Println("=== START /api/v1/feed ===")
+
 		context := ctx.Request().Context()
+		fmt.Println("Context acquired")
+
 		req, err := core.FeedManager(service).Validate(ctx)
+		fmt.Printf("Validate result: req=%+v err=%v\n", req, err)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
+
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		fmt.Printf("UserOrg result: userOrg=%+v err=%v\n", userOrg, err)
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
+
+		if userOrg == nil {
+			fmt.Println("ERROR: userOrg is nil")
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "userOrg is nil"})
+		}
+
+		fmt.Printf("UserOrg.UserID: %v\n", userOrg.UserID)
+		fmt.Printf("UserOrg.BranchID: %v\n", userOrg.BranchID)
+		fmt.Printf("UserOrg.OrganizationID: %v\n", userOrg.OrganizationID)
+
 		tx, endTx := service.Database.StartTransaction(context)
+		fmt.Println("Transaction started")
+
+		if userOrg.BranchID == nil {
+			fmt.Println("ERROR: userOrg.BranchID is nil")
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "BranchID is nil"})
+		}
+
 		feed := &types.Feed{
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
@@ -88,46 +113,77 @@ func FeedController(service *horizon.HorizonService) {
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		}
+
+		fmt.Printf("Feed to create: %+v\n", feed)
+
 		if err := core.FeedManager(service).CreateWithTx(context, tx, feed); err != nil {
+			fmt.Printf("CreateWithTx error: %v\n", err)
+
 			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity: "create-error", Module: "Feed",
+				Activity:    "create-error",
+				Module:      "Feed",
 				Description: "Feed creation failed: " + err.Error(),
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
+
+		fmt.Printf("Feed created with ID: %v\n", feed.ID)
+
 		if len(req.MediaIDs) > 0 {
-			var feedMedias []*types.FeedMedia
-			for _, mID := range req.MediaIDs {
-				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, &types.FeedMedia{
+			fmt.Printf("MediaIDs length: %d\n", len(req.MediaIDs))
+
+			for i, mID := range req.MediaIDs {
+				fmt.Printf("Processing Media index=%d value=%v\n", i, mID)
+
+				if mID == nil {
+					fmt.Printf("WARNING: MediaID at index %d is nil\n", i)
+					continue
+				}
+
+				err := core.FeedMediaManager(service).CreateWithTx(context, tx, &types.FeedMedia{
 					FeedID:         feed.ID,
 					MediaID:        *mID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
 					CreatedByID:    userOrg.UserID,
 					UpdatedByID:    userOrg.UserID,
-				}); err != nil {
+				})
+
+				if err != nil {
+					fmt.Printf("Create FeedMedia error: %v\n", err)
+
 					event.Footstep(ctx, service, event.FootstepEvent{
-						Activity: "create-error", Module: "Feed",
+						Activity:    "create-error",
+						Module:      "Feed",
 						Description: "Failed to associate media with feed: " + endTx(err).Error(),
 					})
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				}
 			}
-			if err := tx.Create(&feedMedias).Error; err != nil {
-				return err
-			}
 		}
+
+		fmt.Println("Committing transaction...")
 		if err := endTx(nil); err != nil {
+			fmt.Printf("Commit error: %v\n", err)
+
 			event.Footstep(ctx, service, event.FootstepEvent{
-				Activity: "create-error", Module: "Feed",
+				Activity:    "create-error",
+				Module:      "Feed",
 				Description: "Transaction commit failed: " + err.Error(),
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
+
+		fmt.Println("Transaction committed successfully")
+
 		event.Footstep(ctx, service, event.FootstepEvent{
-			Activity: "create-success", Module: "Feed",
+			Activity:    "create-success",
+			Module:      "Feed",
 			Description: fmt.Sprintf("Created feed: %s", feed.ID),
 		})
+
+		fmt.Println("=== END /api/v1/feed SUCCESS ===")
+
 		return ctx.JSON(http.StatusCreated, core.FeedManager(service).ToModel(feed))
 	})
 
