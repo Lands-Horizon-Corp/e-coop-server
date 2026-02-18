@@ -173,7 +173,7 @@ func LicenseKeyController(service *horizon.HorizonService) {
 		if err := service.Validator.Struct(reqBody); err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed: " + err.Error()})
 		}
-		license, err := event.VerifyLicenseByFingerprint(context, service, reqBody.SecretKey, reqBody.Fingerprint)
+		license, err := event.VerifyLicenseByFingerprint(context, service, reqBody.SecretKey, reqBody.Fingerprint, reqBody.Counter)
 		if err != nil {
 			if cacheErr := service.Cache.ZAdd(context, "blocked_ips_registry", timestamp, clientIP); cacheErr != nil {
 				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update blocked IP registry: " + cacheErr.Error()})

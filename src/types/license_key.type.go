@@ -63,6 +63,7 @@ type LicenseActivateResponse struct {
 type LicenseVerifyRequest struct {
 	SecretKey   string `json:"secret_key" validate:"required"`
 	Fingerprint string `json:"fingerprint" validate:"required,min=10"`
+	Counter     int    `json:"counter" validate:"required,min=1"`
 }
 
 type LicenseDeactivateRequest struct {
