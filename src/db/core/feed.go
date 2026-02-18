@@ -21,6 +21,12 @@ func FeedManager(service *horizon.HorizonService) *registry.Registry[
 			if data == nil {
 				return nil
 			}
+			if data.UserLikes == nil {
+				data.UserLikes = []*types.FeedLike{}
+			}
+			if data.FeedComments == nil {
+				data.FeedComments = []*types.FeedComment{}
+			}
 			return &types.FeedResponse{
 				ID:               data.ID,
 				CreatedAt:        data.CreatedAt.Format(time.RFC3339),
