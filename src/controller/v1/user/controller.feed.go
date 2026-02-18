@@ -265,7 +265,7 @@ func FeedController(service *horizon.HorizonService) {
 		}
 
 		if err := core.FeedLikeManager(service).Create(context, newLike); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to like"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to like feed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Liked", "status": "liked"})
 	})
