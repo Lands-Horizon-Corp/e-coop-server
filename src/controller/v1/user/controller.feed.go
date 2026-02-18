@@ -100,7 +100,7 @@ func FeedController(service *horizon.HorizonService) {
 			for _, mID := range req.MediaIDs {
 				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, &types.FeedMedia{
 					FeedID:         feed.ID,
-					MediaID:        mID,
+					MediaID:        *mID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
 					CreatedByID:    userOrg.UserID,
