@@ -56,22 +56,38 @@ func MemberProfileController(service *horizon.HorizonService) {
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			Status:         types.MemberStatusVerified,
-		})
+		}, "MemberType", "Media")
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
 		}
 		femaleCount, maleCount := 0, 0
+		memberTypeCount := []types.MemberTypeCountResponse{}
 		for _, member := range totalMembers {
 			if member.Sex == types.MemberFemale {
 				femaleCount++
 			} else if member.Sex == types.MemberMale {
 				maleCount++
 			}
+			found := false
+			for i, count := range memberTypeCount {
+				if &count.MemberTypeID == member.MemberTypeID {
+					memberTypeCount[i].Count++
+					found = true
+					break
+				}
+			}
+			if !found {
+				memberTypeCount = append(memberTypeCount, types.MemberTypeCountResponse{
+					MemberTypeID: *member.MemberTypeID,
+					Count:        1,
+				})
+			}
 		}
 		return ctx.JSON(http.StatusOK, types.MemberProfileDashboardSummaryResponse{
 			TotalMembers:       int64(len(totalMembers)),
 			TotalMaleMembers:   int64(maleCount),
 			TotalFemaleMembers: int64(femaleCount),
+			MemberTypeCounts:   memberTypeCount,
 		})
 	})
 
