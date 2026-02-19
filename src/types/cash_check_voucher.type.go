@@ -52,7 +52,7 @@ type (
 
 		Status                     CashCheckVoucherStatus `gorm:"type:varchar(20)" json:"status,omitempty"` // enum as string
 		Description                string                 `gorm:"type:text" json:"description,omitempty"`
-		CashVoucherNumber          string                 `gorm:"type:varchar(255)" json:"cash_voucher_number"`
+		CashVoucherNumber          string                 `gorm:"type:varchar(255);default:''" json:"cash_voucher_number"`
 		TotalDebit                 float64                `gorm:"type:decimal" json:"total_debit,omitempty"`
 		TotalCredit                float64                `gorm:"type:decimal" json:"total_credit,omitempty"`
 		PrintCount                 int                    `gorm:"default:0" json:"print_count,omitempty"`
