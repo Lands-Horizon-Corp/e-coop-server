@@ -290,33 +290,32 @@ func FeedController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-		feed, err := core.FeedManager(service).GetByID(context, *feedID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feed not found"})
-		}
-		var existingLike types.FeedLike
-		db := service.Database.Client().WithContext(context)
-		result := db.Where("feed_id = ? AND user_id = ?", feed.ID, userOrg.UserID).First(&existingLike)
 
-		if result.Error == nil {
-			if err := core.FeedLikeManager(service).Delete(context, existingLike.ID); err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to unlike"})
+		feedLikes, err := core.FeedLikeManager(service).Find(context, &types.FeedLike{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			FeedID:         *feedID,
+			UserID:         userOrg.UserID,
+		}, "")
+		if len(feedLikes) > 0 {
+			for _, like := range feedLikes {
+				if err := core.FeedLikeManager(service).Delete(context, like.ID); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Error unliking: " + err.Error()})
+				}
 			}
-			return ctx.JSON(http.StatusOK, map[string]string{"message": "Unliked", "status": "unliked"})
 		}
 		newLike := &types.FeedLike{
-			FeedID:         feed.ID,
+			FeedID:         *feedID,
 			UserID:         userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CreatedByID:    userOrg.UserID,
 			UpdatedByID:    userOrg.UserID,
 		}
-
 		if err := core.FeedLikeManager(service).Create(context, newLike); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to like feed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, map[string]string{"message": "Liked", "status": "liked"})
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{
