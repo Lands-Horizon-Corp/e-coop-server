@@ -279,7 +279,7 @@ func TBCashCount(
 	totalCashDec := decimal.Zero
 
 	for _, cashCount := range cashCounts {
-		amountDec := decimal.NewFromFloat(cashCount.Amount)
+		amountDec := decimal.NewFromFloat(cashCount.BillAmount)
 		quantityDec := decimal.NewFromFloat(float64(cashCount.Quantity))
 
 		lineTotal := amountDec.Mul(quantityDec)
@@ -287,7 +287,7 @@ func TBCashCount(
 		// 🔎 Debug print
 		fmt.Printf(
 			"Amount: %f | Quantity: %d | LineTotal: %s\n",
-			cashCount.Amount,
+			cashCount.BillAmount,
 			cashCount.Quantity,
 			lineTotal.String(),
 		)
