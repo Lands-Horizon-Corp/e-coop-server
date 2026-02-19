@@ -18,6 +18,45 @@ import (
 func FeedController(service *horizon.HorizonService) {
 
 	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/feed/my/search",
+		Method:       "GET",
+		Note:         "Returns a paginated list of feeds.",
+		ResponseType: types.FeedResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authentication failed"})
+		}
+		feeds, err := core.FeedManager(service).NormalPagination(context, ctx, &types.Feed{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			CreatedByID:    userOrg.UserID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch feeds: " + err.Error()})
+		}
+		for i := range feeds.Data {
+			for _, like := range feeds.Data[i].UserLikes {
+				if like.UserID == userOrg.UserID {
+					feeds.Data[i].IsLiked = true
+					break
+				}
+			}
+			slices.SortFunc(feeds.Data[i].FeedComments, func(a, b *types.FeedCommentResponse) int {
+				if a.CreatedAt > b.CreatedAt {
+					return -1
+				}
+				if a.CreatedAt < b.CreatedAt {
+					return 1
+				}
+				return 0
+			})
+		}
+		return ctx.JSON(http.StatusOK, feeds)
+	})
+
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feed/search",
 		Method:       "GET",
 		Note:         "Returns a paginated list of feeds.",
