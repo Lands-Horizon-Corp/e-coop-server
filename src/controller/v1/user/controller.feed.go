@@ -303,6 +303,8 @@ func FeedController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Error unliking: " + err.Error()})
 				}
 			}
+			return ctx.NoContent(http.StatusNoContent)
+
 		}
 		newLike := &types.FeedLike{
 			FeedID:         *feedID,
