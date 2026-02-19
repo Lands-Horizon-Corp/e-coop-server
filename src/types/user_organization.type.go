@@ -85,6 +85,15 @@ type (
 
 		SettingsPaymentTypeDefaultValueID *uuid.UUID   `gorm:"type:uuid;index" json:"settings_payment_type_default_value_id,omitempty"`
 		SettingsPaymentTypeDefaultValue   *PaymentType `gorm:"foreignKey:SettingsPaymentTypeDefaultValueID;constraint:OnDelete:SET NULL;" json:"settings_payment_type_default_value,omitempty"`
+
+		CheckVoucherGeneralAutoIncrement bool `gorm:"not null;default:false" json:"check_voucher_general_auto_increment"`
+		LoanVoucherAutoIncrement         bool `gorm:"not null;default:false" json:"loan_voucher_auto_increment"`
+		AdjustmentEntryAutoIncrement     bool `gorm:"not null;default:false" json:"adjustment_entry_auto_increment"`
+		JournalVoucherAutoIncrement      bool `gorm:"not null;default:false" json:"journal_voucher_auto_increment"`
+		CashCheckVoucherAutoIncrement    bool `gorm:"not null;default:false" json:"cash_check_voucher_auto_increment"`
+		DepositAutoIncrement             bool `gorm:"not null;default:false" json:"deposit_auto_increment"`
+		WithdrawAutoIncrement            bool `gorm:"not null;default:false" json:"withdraw_auto_increment"`
+		PaymentAutoIncrement             bool `gorm:"not null;default:false" json:"payment_auto_increment"`
 	}
 
 	EmployeeCreateRequest struct {
@@ -188,6 +197,15 @@ type (
 		SettingsAccountingDepositDefaultValueID  *uuid.UUID `json:"settings_accounting_deposit_default_value_id,omitempty"`
 		SettingsAccountingWithdrawDefaultValueID *uuid.UUID `json:"settings_accounting_withdraw_default_value_id,omitempty"`
 		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
+
+		CheckVoucherGeneralAutoIncrement bool `json:"check_voucher_general_auto_increment"`
+		LoanVoucherAutoIncrement         bool `json:"loan_voucher_auto_increment"`
+		AdjustmentEntryAutoIncrement     bool `json:"adjustment_entry_auto_increment"`
+		JournalVoucherAutoIncrement      bool `json:"journal_voucher_auto_increment"`
+		CashCheckVoucherAutoIncrement    bool `json:"cash_check_voucher_auto_increment"`
+		DepositAutoIncrement             bool `json:"deposit_auto_increment"`
+		WithdrawAutoIncrement            bool `json:"withdraw_auto_increment"`
+		PaymentAutoIncrement             bool `json:"payment_auto_increment"`
 	}
 
 	UserOrganizationSelfSettingsRequest struct {
@@ -213,6 +231,15 @@ type (
 		SettingsAccountingDepositDefaultValueID  *uuid.UUID `json:"settings_accounting_deposit_default_value_id,omitempty"`
 		SettingsAccountingWithdrawDefaultValueID *uuid.UUID `json:"settings_accounting_withdraw_default_value_id,omitempty"`
 		SettingsPaymentTypeDefaultValueID        *uuid.UUID `json:"settings_payment_type_default_value_id,omitempty"`
+
+		CheckVoucherGeneralAutoIncrement bool `json:"check_voucher_general_auto_increment"`
+		LoanVoucherAutoIncrement         bool `json:"loan_voucher_auto_increment"`
+		AdjustmentEntryAutoIncrement     bool `json:"adjustment_entry_auto_increment"`
+		JournalVoucherAutoIncrement      bool `json:"journal_voucher_auto_increment"`
+		CashCheckVoucherAutoIncrement    bool `json:"cash_check_voucher_auto_increment"`
+		DepositAutoIncrement             bool `json:"deposit_auto_increment"`
+		WithdrawAutoIncrement            bool `json:"withdraw_auto_increment"`
+		PaymentAutoIncrement             bool `json:"payment_auto_increment"`
 	}
 
 	UserOrganizationResponse struct {
@@ -270,6 +297,15 @@ type (
 
 		SettingsPaymentTypeDefaultValueID *uuid.UUID           `json:"settings_payment_type_default_value_id"`
 		SettingsPaymentTypeDefaultValue   *PaymentTypeResponse `json:"settings_payment_type_default_value,omitempty"`
+
+		CheckVoucherGeneralAutoIncrement bool `json:"check_voucher_general_auto_increment"`
+		LoanVoucherAutoIncrement         bool `json:"loan_voucher_auto_increment"`
+		AdjustmentEntryAutoIncrement     bool `json:"adjustment_entry_auto_increment"`
+		JournalVoucherAutoIncrement      bool `json:"journal_voucher_auto_increment"`
+		CashCheckVoucherAutoIncrement    bool `json:"cash_check_voucher_auto_increment"`
+		DepositAutoIncrement             bool `json:"deposit_auto_increment"`
+		WithdrawAutoIncrement            bool `json:"withdraw_auto_increment"`
+		PaymentAutoIncrement             bool `json:"payment_auto_increment"`
 	}
 
 	UserOrganizationPermissionPayload struct {

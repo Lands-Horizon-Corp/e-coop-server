@@ -1262,6 +1262,14 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
 		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
+		userOrg.CheckVoucherGeneralAutoIncrement = req.CheckVoucherGeneralAutoIncrement
+		userOrg.LoanVoucherAutoIncrement = req.LoanVoucherAutoIncrement
+		userOrg.AdjustmentEntryAutoIncrement = req.AdjustmentEntryAutoIncrement
+		userOrg.JournalVoucherAutoIncrement = req.JournalVoucherAutoIncrement
+		userOrg.CashCheckVoucherAutoIncrement = req.CashCheckVoucherAutoIncrement
+		userOrg.DepositAutoIncrement = req.DepositAutoIncrement
+		userOrg.WithdrawAutoIncrement = req.WithdrawAutoIncrement
+		userOrg.PaymentAutoIncrement = req.PaymentAutoIncrement
 
 		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
@@ -1335,6 +1343,14 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 		userOrg.TimeMachineTime = req.TimeMachineTime
 
+		userOrg.CheckVoucherGeneralAutoIncrement = req.CheckVoucherGeneralAutoIncrement
+		userOrg.LoanVoucherAutoIncrement = req.LoanVoucherAutoIncrement
+		userOrg.AdjustmentEntryAutoIncrement = req.AdjustmentEntryAutoIncrement
+		userOrg.JournalVoucherAutoIncrement = req.JournalVoucherAutoIncrement
+		userOrg.CashCheckVoucherAutoIncrement = req.CashCheckVoucherAutoIncrement
+		userOrg.DepositAutoIncrement = req.DepositAutoIncrement
+		userOrg.WithdrawAutoIncrement = req.WithdrawAutoIncrement
+		userOrg.PaymentAutoIncrement = req.PaymentAutoIncrement
 		if err := core.UserOrganizationManager(service).UpdateByID(context, userOrg.ID, userOrg); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",

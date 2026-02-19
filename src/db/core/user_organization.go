@@ -111,6 +111,15 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 				SettingsAccountingWithdrawDefaultValue:   AccountManager(service).ToModel(data.SettingsAccountingWithdrawDefaultValue),
 				SettingsPaymentTypeDefaultValueID:        data.SettingsPaymentTypeDefaultValueID,
 				SettingsPaymentTypeDefaultValue:          PaymentTypeManager(service).ToModel(data.SettingsPaymentTypeDefaultValue),
+
+				CheckVoucherGeneralAutoIncrement: data.CheckVoucherGeneralAutoIncrement,
+				LoanVoucherAutoIncrement:         data.LoanVoucherAutoIncrement,
+				AdjustmentEntryAutoIncrement:     data.AdjustmentEntryAutoIncrement,
+				JournalVoucherAutoIncrement:      data.JournalVoucherAutoIncrement,
+				CashCheckVoucherAutoIncrement:    data.CashCheckVoucherAutoIncrement,
+				DepositAutoIncrement:             data.DepositAutoIncrement,
+				WithdrawAutoIncrement:            data.WithdrawAutoIncrement,
+				PaymentAutoIncrement:             data.PaymentAutoIncrement,
 			}
 		},
 		Created: func(data *types.UserOrganization) registry.Topics {
