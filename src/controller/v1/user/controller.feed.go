@@ -70,15 +70,24 @@ func FeedController(service *horizon.HorizonService) {
 		ResponseType: types.FeedResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+
+		fmt.Println("DEBUG: Starting request validation...")
 		req, err := core.FeedManager(service).Validate(ctx)
 		if err != nil {
+			fmt.Printf("DEBUG: Validation failed: %v\n", err)
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
+
+		fmt.Println("DEBUG: Fetching user organization...")
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
+			fmt.Printf("DEBUG: Auth failed: %v\n", err)
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
+
+		fmt.Println("DEBUG: Starting database transaction...")
 		tx, endTx := service.Database.StartTransaction(context)
+
 		feed := &types.Feed{
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
@@ -88,16 +97,21 @@ func FeedController(service *horizon.HorizonService) {
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		}
+
+		fmt.Println("DEBUG: Attempting to create feed record...")
 		if err := core.FeedManager(service).CreateWithTx(context, tx, feed); err != nil {
+			fmt.Printf("DEBUG: CreateWithTx failed: %v\n", err)
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity: "create-error", Module: "Feed",
 				Description: "Feed creation failed: " + err.Error(),
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
+
 		if len(req.MediaIDs) > 0 {
-			var feedMedias []*types.FeedMedia
-			for _, mID := range req.MediaIDs {
+			fmt.Printf("DEBUG: Processing %d media IDs...\n", len(req.MediaIDs))
+			for i, mID := range req.MediaIDs {
+				fmt.Printf("DEBUG: Associating media index %d (ID: %v)\n", i, *mID)
 				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, &types.FeedMedia{
 					FeedID:         feed.ID,
 					MediaID:        *mID,
@@ -106,6 +120,7 @@ func FeedController(service *horizon.HorizonService) {
 					CreatedByID:    userOrg.UserID,
 					UpdatedByID:    userOrg.UserID,
 				}); err != nil {
+					fmt.Printf("DEBUG: FeedMedia association failed at index %d: %v\n", i, err)
 					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity: "create-error", Module: "Feed",
 						Description: "Failed to associate media with feed: " + endTx(err).Error(),
@@ -113,24 +128,26 @@ func FeedController(service *horizon.HorizonService) {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				}
 			}
-			if err := tx.Create(&feedMedias).Error; err != nil {
-				return err
-			}
 		}
+
+		fmt.Println("DEBUG: Committing transaction...")
 		if err := endTx(nil); err != nil {
+			fmt.Printf("DEBUG: Transaction commit failed: %v\n", err)
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity: "create-error", Module: "Feed",
 				Description: "Transaction commit failed: " + err.Error(),
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
+
+		fmt.Println("DEBUG: Success! Recording footstep...")
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity: "create-success", Module: "Feed",
 			Description: fmt.Sprintf("Created feed: %s", feed.ID),
 		})
+
 		return ctx.JSON(http.StatusCreated, core.FeedManager(service).ToModel(feed))
 	})
-
 	// PUT: Update Feed
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feed/:feed_id",
