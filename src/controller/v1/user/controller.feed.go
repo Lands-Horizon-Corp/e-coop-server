@@ -11,6 +11,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/db/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -141,10 +142,11 @@ func FeedController(service *horizon.HorizonService) {
 		return ctx.JSON(http.StatusCreated, core.FeedManager(service).ToModel(feed))
 	})
 	// PUT: Update Feed
+
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feed/:feed_id",
 		Method:       "PUT",
-		Note:         "Updates an existing feed description.",
+		Note:         "Updates an existing feed and its media associations.",
 		RequestType:  types.FeedRequest{},
 		ResponseType: types.FeedResponse{},
 	}, func(ctx echo.Context) error {
@@ -163,26 +165,64 @@ func FeedController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-		feed, err := core.FeedManager(service).GetByID(context, *feedID)
+
+		// 1. Fetch existing feed with preloaded media
+		feed, err := core.FeedManager(service).GetByID(context, *feedID, "FeedMedias")
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feed not found"})
 		}
 
+		tx, endTx := service.Database.StartTransaction(context)
 		feed.Description = req.Description
 		feed.UpdatedAt = time.Now().UTC()
 		feed.UpdatedByID = userOrg.UserID
-
-		if err := core.FeedManager(service).UpdateByID(context, feed.ID, feed); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		if err := core.FeedManager(service).UpdateByIDWithTx(context, tx, feed.ID, feed); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": endTx(err).Error()})
+		}
+		existingMap := make(map[uuid.UUID]bool)
+		for _, m := range feed.FeedMedias {
+			existingMap[m.MediaID] = true
+		}
+		incomingMap := make(map[uuid.UUID]bool)
+		for _, m := range req.FeedMedias {
+			incomingMap[m.MediaID] = true
+			if !existingMap[m.MediaID] {
+				newMedia := &types.FeedMedia{
+					FeedID:         feed.ID,
+					MediaID:        m.MediaID,
+					OrganizationID: userOrg.OrganizationID,
+					BranchID:       *userOrg.BranchID,
+					CreatedByID:    userOrg.UserID,
+					UpdatedByID:    userOrg.UserID,
+				}
+				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, newMedia); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": endTx(err).Error()})
+				}
+			}
+		}
+		for _, m := range feed.FeedMedias {
+			if !incomingMap[m.MediaID] {
+				if err := core.FeedMediaManager(service).DeleteWithTx(context, tx, m.ID); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": endTx(err).Error()})
+				}
+			}
+		}
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction failed"})
+		}
+		updatedFeed, err := core.FeedManager(service).GetByID(context, feed.ID)
+		if err != nil {
+			updatedFeed = feed
 		}
 
 		event.Footstep(ctx, service, event.FootstepEvent{
-			Activity: "update-success", Module: "Feed",
-			Description: "Updated feed: " + feed.ID.String(),
+			Activity:    "update-success",
+			Module:      "Feed",
+			Description: fmt.Sprintf("Updated feed and media: %s", feed.ID),
 		})
-		return ctx.JSON(http.StatusOK, core.FeedManager(service).ToModel(feed))
-	})
 
+		return ctx.JSON(http.StatusOK, core.FeedManager(service).ToModel(updatedFeed))
+	})
 	// DELETE: Single Feed
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/feed/:feed_id",
