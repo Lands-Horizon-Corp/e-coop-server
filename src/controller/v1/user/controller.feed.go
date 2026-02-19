@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
@@ -40,6 +41,15 @@ func FeedController(service *horizon.HorizonService) {
 					break
 				}
 			}
+			slices.SortFunc(feeds.Data[i].FeedComments, func(a, b *types.FeedCommentResponse) int {
+				if a.CreatedAt > b.CreatedAt {
+					return -1
+				}
+				if a.CreatedAt < b.CreatedAt {
+					return 1
+				}
+				return 0
+			})
 		}
 		return ctx.JSON(http.StatusOK, feeds)
 	})
@@ -71,21 +81,14 @@ func FeedController(service *horizon.HorizonService) {
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 
-		fmt.Println("DEBUG: Starting request validation...")
 		req, err := core.FeedManager(service).Validate(ctx)
 		if err != nil {
-			fmt.Printf("DEBUG: Validation failed: %v\n", err)
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
-
-		fmt.Println("DEBUG: Fetching user organization...")
 		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
 		if err != nil {
-			fmt.Printf("DEBUG: Auth failed: %v\n", err)
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-
-		fmt.Println("DEBUG: Starting database transaction...")
 		tx, endTx := service.Database.StartTransaction(context)
 
 		feed := &types.Feed{
@@ -97,10 +100,7 @@ func FeedController(service *horizon.HorizonService) {
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
 		}
-
-		fmt.Println("DEBUG: Attempting to create feed record...")
 		if err := core.FeedManager(service).CreateWithTx(context, tx, feed); err != nil {
-			fmt.Printf("DEBUG: CreateWithTx failed: %v\n", err)
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity: "create-error", Module: "Feed",
 				Description: "Feed creation failed: " + err.Error(),
@@ -109,9 +109,7 @@ func FeedController(service *horizon.HorizonService) {
 		}
 
 		if len(req.MediaIDs) > 0 {
-			fmt.Printf("DEBUG: Processing %d media IDs...\n", len(req.MediaIDs))
-			for i, mID := range req.MediaIDs {
-				fmt.Printf("DEBUG: Associating media index %d (ID: %v)\n", i, *mID)
+			for _, mID := range req.MediaIDs {
 				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, &types.FeedMedia{
 					FeedID:         feed.ID,
 					MediaID:        *mID,
@@ -120,7 +118,6 @@ func FeedController(service *horizon.HorizonService) {
 					CreatedByID:    userOrg.UserID,
 					UpdatedByID:    userOrg.UserID,
 				}); err != nil {
-					fmt.Printf("DEBUG: FeedMedia association failed at index %d: %v\n", i, err)
 					event.Footstep(ctx, service, event.FootstepEvent{
 						Activity: "create-error", Module: "Feed",
 						Description: "Failed to associate media with feed: " + endTx(err).Error(),
@@ -129,18 +126,13 @@ func FeedController(service *horizon.HorizonService) {
 				}
 			}
 		}
-
-		fmt.Println("DEBUG: Committing transaction...")
 		if err := endTx(nil); err != nil {
-			fmt.Printf("DEBUG: Transaction commit failed: %v\n", err)
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity: "create-error", Module: "Feed",
 				Description: "Transaction commit failed: " + err.Error(),
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-
-		fmt.Println("DEBUG: Success! Recording footstep...")
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity: "create-success", Module: "Feed",
 			Description: fmt.Sprintf("Created feed: %s", feed.ID),
