@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
@@ -261,9 +262,11 @@ func TBBatchFunding(
 }
 
 func TBCashCount(
-	context context.Context, service *horizon.HorizonService,
+	context context.Context,
+	service *horizon.HorizonService,
 	transactionBatchID, orgID, branchID uuid.UUID,
 ) (float64, error) {
+
 	cashCounts, err := core.CashCountManager(service).Find(context, &types.CashCount{
 		TransactionBatchID: transactionBatchID,
 		OrganizationID:     orgID,
@@ -274,11 +277,25 @@ func TBCashCount(
 	}
 
 	totalCashDec := decimal.Zero
+
 	for _, cashCount := range cashCounts {
 		amountDec := decimal.NewFromFloat(cashCount.Amount)
 		quantityDec := decimal.NewFromFloat(float64(cashCount.Quantity))
-		totalCashDec = totalCashDec.Add(amountDec.Mul(quantityDec))
+
+		lineTotal := amountDec.Mul(quantityDec)
+
+		// 🔎 Debug print
+		fmt.Printf(
+			"Amount: %f | Quantity: %d | LineTotal: %s\n",
+			cashCount.Amount,
+			cashCount.Quantity,
+			lineTotal.String(),
+		)
+
+		totalCashDec = totalCashDec.Add(lineTotal)
 	}
+
+	fmt.Printf("TOTAL CASH: %s\n", totalCashDec.String())
 
 	return totalCashDec.InexactFloat64(), nil
 }
