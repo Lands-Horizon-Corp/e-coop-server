@@ -44,6 +44,7 @@ type (
 		GrandTotal              float64 `gorm:"type:decimal"`
 		PettyCash               float64 `gorm:"type:decimal"`
 		LoanReleases            float64 `gorm:"type:decimal"`
+		CashCheckVoucherTotal   float64 `gorm:"type:decimal"`
 		TimeDepositWithdrawal   float64 `gorm:"type:decimal"`
 		SavingsWithdrawal       float64 `gorm:"type:decimal"`
 		TotalCashHandled        float64 `gorm:"type:decimal"`
@@ -145,6 +146,7 @@ type (
 		GrandTotal                    float64 `json:"grand_total"`
 		PettyCash                     float64 `json:"petty_cash"`
 		LoanReleases                  float64 `json:"loan_releases"`
+		CashCheckVoucherTotal         float64 `json:"cash_check_voucher_total"`
 		TimeDepositWithdrawal         float64 `json:"time_deposit_withdrawal"`
 		SavingsWithdrawal             float64 `json:"savings_withdrawal"`
 		TotalCashHandled              float64 `json:"total_cash_handled"`
@@ -232,6 +234,7 @@ type (
 		CashCountTotal                float64    `json:"cash_count_total,omitempty"`
 		GrandTotal                    float64    `json:"grand_total,omitempty"`
 		PettyCash                     float64    `json:"petty_cash,omitempty"`
+		CashCheckVoucherTotal         float64    `json:"cash_check_voucher_total,omitempty"`
 		LoanReleases                  float64    `json:"loan_releases,omitempty"`
 		TimeDepositWithdrawal         float64    `json:"time_deposit_withdrawal,omitempty"`
 		SavingsWithdrawal             float64    `json:"savings_withdrawal,omitempty"`

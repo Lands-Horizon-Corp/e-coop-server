@@ -71,6 +71,7 @@ func TransactionBatchManager(service *horizon.HorizonService) *registry.Registry
 				GrandTotal:                    data.GrandTotal,
 				PettyCash:                     data.PettyCash,
 				LoanReleases:                  data.LoanReleases,
+				CashCheckVoucherTotal:         data.CashCheckVoucherTotal,
 				TimeDepositWithdrawal:         data.TimeDepositWithdrawal,
 				SavingsWithdrawal:             data.SavingsWithdrawal,
 				TotalCashHandled:              data.TotalCashHandled,

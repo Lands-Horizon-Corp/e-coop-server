@@ -32,6 +32,8 @@ type RecordTransactionRequest struct {
 	BankID                *uuid.UUID `json:"bank_id"`
 	ProofOfPaymentMediaID *uuid.UUID `json:"proof_of_payment_media_id"`
 	LoanTransactionID     *uuid.UUID `json:"loan_transaction_id"`
+
+	GeneralLedgerType types.GeneralLedgerType `json:"general_ledger_type"`
 }
 
 func RecordTransaction(

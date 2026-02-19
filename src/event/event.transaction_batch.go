@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/db/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
@@ -175,6 +176,7 @@ func TransactionBatchBalancing(context context.Context, service *horizon.Horizon
 		return endTx(eris.Wrap(err, "failed to calculate total withdrawals"))
 	}
 
+	// Less (Disbursements)
 	less := decimal.Zero
 	savingsWithdrawal := decimal.NewFromFloat(totalWithdraw.Balance).Mul(decimal.NewFromInt(-1))
 	transactionBatch.SavingsWithdrawal = savingsWithdrawal.InexactFloat64()
@@ -186,7 +188,20 @@ func TransactionBatchBalancing(context context.Context, service *horizon.Horizon
 	}
 	transactionBatch.PettyCash = disbursementTransaction
 	less = less.Add(decimal.NewFromFloat(transactionBatch.PettyCash))
+	loanReleases, err := TBLoanReleases(context, service, transactionBatch.OrganizationID, transactionBatch.BranchID, transactionBatch)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate loan releases"))
+	}
+	transactionBatch.LoanReleases = loanReleases.Credit
+	less = less.Add(decimal.NewFromFloat(loanReleases.Credit))
+	cashCheckVoucher, err := TBCashCheckVoucher(context, service, *transactionBatchID, transactionBatch.OrganizationID, transactionBatch.BranchID)
+	if err != nil {
+		return endTx(eris.Wrap(err, "failed to calculate cash check voucher"))
+	}
+	transactionBatch.LoanReleases = cashCheckVoucher.Credit
+	less = less.Add(decimal.NewFromFloat(cashCheckVoucher.Credit))
 
+	// Summary
 	totalSupposed := decimal.NewFromFloat(transactionBatch.TotalCashHandled).Sub(less)
 	transactionBatch.TotalSupposedRemmitance = totalSupposed.InexactFloat64()
 
@@ -235,12 +250,22 @@ func TransactionBatchBalancing(context context.Context, service *horizon.Horizon
 	if err := endTx(nil); err != nil {
 		return eris.Wrap(err, "failed to end transaction")
 	}
-
-	// LoanReleases reelased loan of cash on hand
-	// Transaction batch per User
-	// Cash check voucher credit side sum
-	// Make account singleton
 	return nil
+}
+
+func TBCashCheckVoucher(context context.Context, service *horizon.HorizonService, transactionBatchID, orgID, branchID uuid.UUID) (usecase.BalanceResponse, error) {
+	deposits, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
+		TransactionBatchID: &transactionBatchID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             types.GeneralLedgerSourceCheckVoucher,
+	})
+	if err != nil {
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find deposits")
+	}
+	return usecase.CalculateBalance(usecase.Balance{
+		GeneralLedgers: deposits,
+	})
 }
 
 func TBBatchFunding(
@@ -265,27 +290,31 @@ func TBBatchFunding(
 	return totalBatchDec.InexactFloat64(), nil
 }
 
-// func TBLoanReleases(
-// 	context context.Context, service *horizon.HorizonService,
-// 	transactionBatchID, orgID, branchID uuid.UUID,
-// ) (float64, error) {
-// 	batchFunding, err := core.LoanTransactionApproved(service).Find(context, &types.BatchFunding{
-// 		TransactionBatchID: transactionBatchID,
-// 		OrganizationID:     orgID,
-// 		BranchID:           branchID,
-// 	})
-// 	if err != nil {
-// 		return 0, eris.Wrap(err, "failed to find batch fundings")
-// 	}
-
-// 	totalBatchDec := decimal.Zero
-// 	for _, funding := range batchFunding {
-// 		amountDec := decimal.NewFromFloat(funding.Amount)
-// 		totalBatchDec = totalBatchDec.Add(amountDec)
-// 	}
-
-// 	return totalBatchDec.InexactFloat64(), nil
-// }
+func TBLoanReleases(
+	context context.Context,
+	service *horizon.HorizonService,
+	orgID, branchID uuid.UUID,
+	tbatch *types.TransactionBatch,
+) (usecase.BalanceResponse, error) {
+	deposits, err := core.GeneralLedgerManager(service).Find(context, &types.GeneralLedger{
+		TransactionBatchID: &tbatch.ID,
+		OrganizationID:     orgID,
+		BranchID:           branchID,
+		Source:             types.GeneralLedgerSourceLoan,
+	})
+	if err != nil {
+		return usecase.BalanceResponse{}, eris.Wrap(err, "failed to find deposits")
+	}
+	filtered := make([]*types.GeneralLedger, 0, len(deposits))
+	for _, d := range deposits {
+		if helpers.UUIDPtrEqual(d.AccountID, &tbatch.UnbalancedAccount.CashOnHandAccountID) {
+			filtered = append(filtered, d)
+		}
+	}
+	return usecase.CalculateBalance(usecase.Balance{
+		GeneralLedgers: filtered,
+	})
+}
 
 func TBCashCount(
 	context context.Context,
