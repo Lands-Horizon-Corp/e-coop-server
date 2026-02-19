@@ -209,6 +209,7 @@ func startServer() horizon.CommandConfig {
 			user.InvitationCodeController(service)
 			user.KYCController(service)
 			user.FeedController(service)
+			user.FeedCommentController(service)
 
 			member_profile.MemberGenderController(service)
 			member_profile.MemberCenterController(service)
