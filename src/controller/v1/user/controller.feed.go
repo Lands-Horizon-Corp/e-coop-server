@@ -108,11 +108,11 @@ func FeedController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
 
-		if len(req.MediaIDs) > 0 {
-			for _, mID := range req.MediaIDs {
+		if len(req.FeedMedias) > 0 {
+			for _, m := range req.FeedMedias {
 				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, &types.FeedMedia{
 					FeedID:         feed.ID,
-					MediaID:        *mID,
+					MediaID:        m.MediaID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
 					CreatedByID:    userOrg.UserID,
