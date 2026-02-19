@@ -12,6 +12,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 func MemberProfileController(service *horizon.HorizonService) {
@@ -640,11 +641,26 @@ func MemberProfileController(service *horizon.HorizonService) {
 					Passbook: req.Passbook,
 				})
 				if err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
+						Activity:    "create-error",
+						Description: "Quick create member profile failed: failed to check passbook uniqueness: " + endTx(err).Error(),
+						Module:      "MemberProfile",
+					})
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check passbook uniqueness"})
 				}
 				if len(memberProfiles) > 0 {
+					endTx(eris.New("member profile with the same passbook already exists"))
+					event.Footstep(ctx, service, event.FootstepEvent{
+						Activity:    "create-error",
+						Description: "Quick create member profile failed: member profile with the same passbook already exists",
+						Module:      "MemberProfile",
+					})
 					return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Member profile with the same passbook already exists"})
 				}
+			}
+			branchSetting.MemberProfilePassbookORCurrent++
+			if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + endTx(err).Error()})
 			}
 		}
 
