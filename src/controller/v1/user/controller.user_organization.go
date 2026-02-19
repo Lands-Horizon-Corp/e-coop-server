@@ -1262,7 +1262,6 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 		userOrg.SettingsAllowWithdrawNegativeBalance = req.SettingsAllowWithdrawNegativeBalance
 		userOrg.SettingsMaintainingBalance = req.SettingsMaintainingBalance
-		userOrg.CheckVoucherGeneralAutoIncrement = req.CheckVoucherGeneralAutoIncrement
 		userOrg.LoanVoucherAutoIncrement = req.LoanVoucherAutoIncrement
 		userOrg.AdjustmentEntryAutoIncrement = req.AdjustmentEntryAutoIncrement
 		userOrg.JournalVoucherAutoIncrement = req.JournalVoucherAutoIncrement
@@ -1343,7 +1342,6 @@ func UserOrganizationController(service *horizon.HorizonService) {
 		userOrg.SettingsPaymentTypeDefaultValueID = req.SettingsPaymentTypeDefaultValueID
 		userOrg.TimeMachineTime = req.TimeMachineTime
 
-		userOrg.CheckVoucherGeneralAutoIncrement = req.CheckVoucherGeneralAutoIncrement
 		userOrg.LoanVoucherAutoIncrement = req.LoanVoucherAutoIncrement
 		userOrg.AdjustmentEntryAutoIncrement = req.AdjustmentEntryAutoIncrement
 		userOrg.JournalVoucherAutoIncrement = req.JournalVoucherAutoIncrement
