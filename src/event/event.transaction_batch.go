@@ -198,7 +198,7 @@ func TransactionBatchBalancing(context context.Context, service *horizon.Horizon
 	if err != nil {
 		return endTx(eris.Wrap(err, "failed to calculate cash check voucher"))
 	}
-	transactionBatch.LoanReleases = cashCheckVoucher.Credit
+	transactionBatch.CashCheckVoucherTotal = cashCheckVoucher.Credit
 	less = less.Add(decimal.NewFromFloat(cashCheckVoucher.Credit))
 
 	// Summary
