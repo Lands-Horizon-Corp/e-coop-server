@@ -360,6 +360,12 @@ func FeedController(service *horizon.HorizonService) {
 		if err := core.FeedCommentManager(service).Create(context, comment); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post comment"})
 		}
+
+		event.Footstep(ctx, service, event.FootstepEvent{
+			Activity:    "feed comment",
+			Module:      "FeedComment",
+			Description: fmt.Sprintf("Commented to post: %s \n %s", feed.CreatedBy.FullName, req.Comment),
+		})
 		return ctx.JSON(http.StatusCreated, core.FeedCommentManager(service).ToModel(comment))
 	})
 
