@@ -15,48 +15,6 @@ import (
 func FeedCommentController(service *horizon.HorizonService) {
 
 	service.API.RegisterWebRoute(horizon.Route{
-		Route:        "/api/v1/feed/:feed_id/comment",
-		Method:       "POST",
-		Note:         "Creates a new comment on a feed post.",
-		RequestType:  types.FeedCommentRequest{},
-		ResponseType: types.FeedCommentResponse{},
-	}, func(ctx echo.Context) error {
-		context := ctx.Request().Context()
-		feedID, err := helpers.EngineUUIDParam(ctx, "feed_id")
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid feed ID"})
-		}
-		req, err := core.FeedCommentManager(service).Validate(ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-		}
-		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
-		if err != nil {
-			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
-		}
-		comment := &types.FeedComment{
-			FeedID:         *feedID,
-			Comment:        req.Comment,
-			UserID:         userOrg.UserID,
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			CreatedAt:      time.Now().UTC(),
-			CreatedByID:    userOrg.UserID,
-			UpdatedAt:      time.Now().UTC(),
-			UpdatedByID:    userOrg.UserID,
-		}
-		if err := core.FeedCommentManager(service).Create(context, comment); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
-		}
-		event.Footstep(ctx, service, event.FootstepEvent{
-			Activity:    "create-success",
-			Description: "Created feed comment",
-			Module:      "FeedComment",
-		})
-		return ctx.JSON(http.StatusCreated, core.FeedCommentManager(service).ToModel(comment))
-	})
-
-	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feed/:feed_id/comments",
 		Method:       "GET",
 		Note:         "Returns all comments for a feed.",
