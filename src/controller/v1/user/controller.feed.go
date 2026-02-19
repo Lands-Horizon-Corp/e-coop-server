@@ -299,7 +299,7 @@ func FeedController(service *horizon.HorizonService) {
 		}, "")
 		if len(feedLikes) > 0 {
 			for _, like := range feedLikes {
-				if err := core.FeedLikeManager(service).Delete(context, like.ID); err != nil {
+				if err := core.FeedLikeManager(service).DeleteIncludeDeleted(context, like.ID); err != nil {
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Error unliking: " + err.Error()})
 				}
 			}
