@@ -59,7 +59,7 @@ type (
 
 	MemberEducationalAttainmentRequest struct {
 		MemberProfileID       uuid.UUID `json:"member_profile_id" validate:"required"`
-		SchoolName            string    `json:"school_name,omitempty" validate:"required,min=1,max=255"`
+		SchoolName            string    `json:"school_name,omitempty" validate:"max=255"`
 		SchoolYear            int       `json:"school_year,omitempty"`
 		ProgramCourse         string    `json:"program_course,omitempty"`
 		EducationalAttainment string    `json:"educational_attainment,omitempty"`
