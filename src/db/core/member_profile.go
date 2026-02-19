@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/query"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
@@ -560,4 +561,27 @@ func MemberProfileDestroy(ctx context.Context, service *horizon.HorizonService, 
 		return eris.Wrapf(err, "failed to delete member profile: %s", memberProfile.ID)
 	}
 	return err
+}
+
+func FindLatestMembers(ctx context.Context,
+	service *horizon.HorizonService,
+	organizationID uuid.UUID,
+	branchID uuid.UUID,
+) ([]*types.MemberProfile, error) {
+	filters := []query.ArrFilterSQL{
+		{Field: "organization_id", Op: query.ModeEqual, Value: organizationID},
+		{Field: "branch_id", Op: query.ModeEqual, Value: branchID},
+		{Field: "status", Op: query.ModeEqual, Value: types.MemberStatusPending},
+	}
+	data, err := MemberProfileManager(service).ArrFind(
+		ctx,
+		filters,
+		[]query.ArrFilterSortSQL{
+			{Field: "created_at", Order: query.SortOrderDesc},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

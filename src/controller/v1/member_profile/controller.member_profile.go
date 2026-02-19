@@ -31,11 +31,7 @@ func MemberProfileController(service *horizon.HorizonService) {
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := core.MemberProfileManager(service).Find(context, &types.MemberProfile{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			Status:         types.MemberStatusPending,
-		})
+		memberProfile, err := core.FindLatestMembers(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get pending member profiles: " + err.Error()})
 		}
