@@ -17,6 +17,11 @@ const (
 	MemberStatusNotAllowd MemberStatus = "not allowed"
 )
 
+const (
+	MemberMale   Sex = "male"
+	MemberFemale Sex = "female"
+)
+
 type (
 	Sex string
 
@@ -298,6 +303,18 @@ type (
 		Email         string     `json:"email" validate:"required,email,max=100"`
 		ContactNumber string     `json:"contact_number" validate:"required,max=20"`
 		BirthDate     *time.Time `json:"birthdate" validate:"required"`
+	}
+
+	MemberTypeCountResponse struct {
+		MemberTypeID uuid.UUID          `json:"member_type_id"`
+		MemberType   MemberTypeResponse `json:"member_type"`
+		Count        int64              `json:"count"`
+	}
+	MemberProfileDashboardSummaryResponse struct {
+		TotalMembers       int64                     `json:"total_members"`
+		TotalMaleMembers   int64                     `json:"total_male_members"`
+		TotalFemaleMembers int64                     `json:"total_female_members"`
+		MemberTypeCounts   []MemberTypeCountResponse `json:"member_type_counts"`
 	}
 )
 

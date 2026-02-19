@@ -39,6 +39,43 @@ func MemberProfileController(service *horizon.HorizonService) {
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/member-profile/summary",
+		Method:       "GET",
+		ResponseType: types.MemberProfileDashboardSummaryResponse{},
+		Note:         "Returns total number of  member profiles for the current user's branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+		totalMembers, err := core.MemberProfileManager(service).Find(context, &types.MemberProfile{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Status:         types.MemberStatusVerified,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
+		}
+		femaleCount, maleCount := 0, 0
+		for _, member := range totalMembers {
+			if member.Sex == types.MemberFemale {
+				femaleCount++
+			} else if member.Sex == types.MemberMale {
+				maleCount++
+			}
+		}
+		return ctx.JSON(http.StatusOK, types.MemberProfileDashboardSummaryResponse{
+			TotalMembers:       int64(len(totalMembers)),
+			TotalMaleMembers:   int64(maleCount),
+			TotalFemaleMembers: int64(femaleCount),
+		})
+	})
+
+	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/member-profile/:member_profile_id/user-account",
 		Method:       "POST",
 		RequestType:  types.MemberProfileUserAccountRequest{},
