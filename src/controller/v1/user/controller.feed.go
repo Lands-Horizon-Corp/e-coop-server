@@ -291,7 +291,7 @@ func FeedController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
 
-		feedLikes, err := core.FeedLikeManager(service).Find(context, &types.FeedLike{
+		feedLikes, err := core.FeedLikeManager(service).FindIncludeDeleted(context, &types.FeedLike{
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			FeedID:         *feedID,
@@ -304,7 +304,6 @@ func FeedController(service *horizon.HorizonService) {
 				}
 			}
 			return ctx.NoContent(http.StatusNoContent)
-
 		}
 		newLike := &types.FeedLike{
 			FeedID:         *feedID,
