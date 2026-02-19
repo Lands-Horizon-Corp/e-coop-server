@@ -191,14 +191,14 @@ func CreateGeneralLedgerEntry(
 	if err != nil {
 		return eris.Wrap(err, "general ledger: failed to get branch settings")
 	}
-	if userOrg.SettingsMaintainingBalance && data.Account != nil {
+	if ledger.Source == types.GeneralLedgerSourceWithdraw && userOrg.SettingsMaintainingBalance && data.Account != nil {
 		minAmount := decimal.NewFromFloat(data.Account.MinAmount)
 		if newBalance.LessThan(minAmount) {
 			return eris.New("general ledger: maintaining balance violation")
 		}
 	}
 
-	if !userOrg.SettingsAllowWithdrawNegativeBalance && data.Account != nil {
+	if ledger.Source == types.GeneralLedgerSourceWithdraw && !userOrg.SettingsAllowWithdrawNegativeBalance && data.Account != nil {
 		minAmount := decimal.NewFromFloat(0)
 		if newBalance.LessThan(minAmount) {
 			return eris.New("general ledger: maintaining balance violation")

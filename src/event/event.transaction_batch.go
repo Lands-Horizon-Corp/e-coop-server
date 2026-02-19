@@ -235,6 +235,11 @@ func TransactionBatchBalancing(context context.Context, service *horizon.Horizon
 	if err := endTx(nil); err != nil {
 		return eris.Wrap(err, "failed to end transaction")
 	}
+
+	// LoanReleases reelased loan of cash on hand
+	// Transaction batch per User
+	// Cash check voucher credit side sum
+	// Make account singleton
 	return nil
 }
 
@@ -259,6 +264,28 @@ func TBBatchFunding(
 
 	return totalBatchDec.InexactFloat64(), nil
 }
+
+// func TBLoanReleases(
+// 	context context.Context, service *horizon.HorizonService,
+// 	transactionBatchID, orgID, branchID uuid.UUID,
+// ) (float64, error) {
+// 	batchFunding, err := core.LoanTransactionApproved(service).Find(context, &types.BatchFunding{
+// 		TransactionBatchID: transactionBatchID,
+// 		OrganizationID:     orgID,
+// 		BranchID:           branchID,
+// 	})
+// 	if err != nil {
+// 		return 0, eris.Wrap(err, "failed to find batch fundings")
+// 	}
+
+// 	totalBatchDec := decimal.Zero
+// 	for _, funding := range batchFunding {
+// 		amountDec := decimal.NewFromFloat(funding.Amount)
+// 		totalBatchDec = totalBatchDec.Add(amountDec)
+// 	}
+
+// 	return totalBatchDec.InexactFloat64(), nil
+// }
 
 func TBCashCount(
 	context context.Context,
