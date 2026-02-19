@@ -283,6 +283,7 @@ func TransactionBatchController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update deposit for a closed transaction batch"})
 		}
 		transactionBatch.DepositInBank = req.DepositInBank
+		transactionBatch.TotalDepositInBank = req.DepositInBank
 
 		if err := core.TransactionBatchManager(service).UpdateByID(context, transactionBatch.ID, transactionBatch); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{

@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
@@ -281,21 +280,9 @@ func TBCashCount(
 	for _, cashCount := range cashCounts {
 		amountDec := decimal.NewFromFloat(cashCount.BillAmount)
 		quantityDec := decimal.NewFromFloat(float64(cashCount.Quantity))
-
 		lineTotal := amountDec.Mul(quantityDec)
-
-		// 🔎 Debug print
-		fmt.Printf(
-			"Amount: %f | Quantity: %d | LineTotal: %s\n",
-			cashCount.BillAmount,
-			cashCount.Quantity,
-			lineTotal.String(),
-		)
-
 		totalCashDec = totalCashDec.Add(lineTotal)
 	}
-
-	fmt.Printf("TOTAL CASH: %s\n", totalCashDec.String())
 
 	return totalCashDec.InexactFloat64(), nil
 }
