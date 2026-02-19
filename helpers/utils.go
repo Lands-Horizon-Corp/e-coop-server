@@ -394,10 +394,6 @@ func UUIDPtrEqual(a, b *uuid.UUID) bool {
 	return *a == *b
 }
 
-func Ptr[T any](v T) *T {
-	return &v
-}
-
 func ParseUUID(s *string) uuid.UUID {
 	if s == nil || *s == "" {
 		return uuid.Nil
@@ -463,4 +459,8 @@ func GenerateLicenseKey() (string, error) {
 	hash := sha512.Sum512([]byte(payload))
 	hashHex := strings.ToUpper(hex.EncodeToString(hash[:]))
 	return hashHex[:127], nil
+}
+
+func Ptr[T any](v T) *T {
+	return &v
 }

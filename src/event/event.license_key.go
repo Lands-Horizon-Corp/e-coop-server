@@ -57,6 +57,10 @@ func ActivateLicense(
 		if err := service.Cache.Set(ctx, reverseKey, hashedFingerprint, ttl); err != nil {
 			return "", eris.Wrap(err, "failed to store reverse mapping in Redis")
 		}
+		counterKey := fmt.Sprintf("license:counter:%s", secretKey)
+		if err := service.Cache.Set(ctx, counterKey, 1, ttl); err != nil {
+			return "", eris.Wrap(err, "failed to store counter in Redis")
+		}
 	}
 	return secretKey, nil
 }
@@ -66,6 +70,7 @@ func VerifyLicenseByFingerprint(
 	service *horizon.HorizonService,
 	secretKey string,
 	fingerprint string,
+	counter int,
 ) (*types.License, error) {
 	if secretKey == "" {
 		return nil, eris.New("secret key cannot be empty")
@@ -106,6 +111,25 @@ func VerifyLicenseByFingerprint(
 	var license types.License
 	if err := json.Unmarshal(licenseData, &license); err != nil {
 		return nil, eris.Wrap(err, "failed to unmarshal license data")
+	}
+	counterKey := fmt.Sprintf("license:counter:%s", secretKey)
+	counterData, err := service.Cache.Get(ctx, counterKey)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to get counter from Redis")
+	}
+	if counterData == nil {
+		return nil, eris.New("counter not found for license")
+	}
+	var currentCounter int
+	if err := json.Unmarshal(counterData, &currentCounter); err != nil {
+		return nil, eris.Wrap(err, "failed to unmarshal counter data")
+	}
+	if counter != currentCounter {
+		return nil, eris.New("counter mismatch: possible replay attack")
+	}
+	currentCounter++
+	if err := service.Cache.Set(ctx, counterKey, currentCounter, 365*24*time.Hour); err != nil {
+		return nil, eris.Wrap(err, "failed to update counter in Redis")
 	}
 	return &license, nil
 }

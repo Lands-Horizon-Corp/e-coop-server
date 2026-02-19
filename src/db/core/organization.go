@@ -240,9 +240,9 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, conf
 		Birthdate:         &config.AdminBirthdate,
 		Username:          config.AdminUsername,
 		FullName:          config.AdminFullName,
-		FirstName:         helpers.Ptr(config.AdminFirstName),
+		FirstName:         &config.AdminFirstName,
 		MiddleName:        config.AdminMiddleName,
-		LastName:          helpers.Ptr(config.AdminLastName),
+		LastName:          &config.AdminLastName,
 		Suffix:            config.AdminSuffix,
 		ContactNumber:     config.AdminContactNumber,
 		IsEmailVerified:   true,
@@ -366,11 +366,11 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, conf
 			Barangay:                br.Barangay,
 			PostalCode:              br.PostalCode,
 			CurrencyID:              &currency.ID,
-			ContactNumber:           helpers.Ptr(br.Contact),
+			ContactNumber:           &br.Contact,
 			MediaID:                 &branchMedia.ID,
 			Latitude:                &br.Latitude,
 			Longitude:               &br.Longitude,
-			TaxIdentificationNumber: helpers.Ptr(br.TaxID),
+			TaxIdentificationNumber: &br.TaxID,
 		}
 		if err := BranchManager(service).Create(ctx, branch); err != nil {
 			return eris.Wrapf(err, "failed to create branch %s", br.Name)

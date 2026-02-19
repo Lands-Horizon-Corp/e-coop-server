@@ -12,7 +12,10 @@ import (
 func FeedManager(service *horizon.HorizonService) *registry.Registry[
 	types.Feed, types.FeedResponse, types.FeedRequest] {
 	return registry.GetRegistry(registry.RegistryParams[types.Feed, types.FeedResponse, types.FeedRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy", "Organization", "Branch", "FeedMedias.Media", "FeedComments.User", "UserLikes.User"},
+		Preloads: []string{
+			"CreatedBy", "CreatedBy.Media",
+			"FeedMedias.Media", "FeedComments.User",
+			"FeedComments.User.Media", "UserLikes.User", "UserLikes.User.Media"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
@@ -20,6 +23,12 @@ func FeedManager(service *horizon.HorizonService) *registry.Registry[
 		Resource: func(data *types.Feed) *types.FeedResponse {
 			if data == nil {
 				return nil
+			}
+			if data.UserLikes == nil {
+				data.UserLikes = []*types.FeedLike{}
+			}
+			if data.FeedComments == nil {
+				data.FeedComments = []*types.FeedComment{}
 			}
 			return &types.FeedResponse{
 				ID:               data.ID,

@@ -106,4 +106,30 @@ type (
 		Description     string `json:"description,omitempty"`
 		ReferenceNumber string `json:"reference_number,omitempty"`
 	}
+
+	TransactionBatchHistoryTotal struct {
+		BatchFundingTotal            float64 `json:"batch_funding_total"`
+		DisbursementTransactionTotal float64 `json:"disbursement_transaction_total"`
+
+		GeneralLedgerDebitTotal  float64 `json:"general_ledger_debit_total"`
+		GeneralLedgerCreditTotal float64 `json:"general_ledger_credit_total"`
+
+		CheckEntryDebitTotal  float64 `json:"check_entry_debit_total"`
+		CheckEntryCreditTotal float64 `json:"check_entry_credit_total"`
+
+		OnlineEntryDebitTotal  float64 `json:"online_entry_debit_total"`
+		OnlineEntryCreditTotal float64 `json:"online_entry_credit_total"`
+
+		CashEntryDebitTotal  float64 `json:"cash_entry_debit_total"`
+		CashEntryCreditTotal float64 `json:"cash_entry_credit_total"`
+
+		PaymentEntryDebitTotal  float64 `json:"payment_entry_debit_total"`
+		PaymentEntryCreditTotal float64 `json:"payment_entry_credit_total"`
+
+		WithdrawEntryDebitTotal  float64 `json:"withdraw_entry_debit_total"`
+		WithdrawEntryCreditTotal float64 `json:"withdraw_entry_credit_total"`
+
+		DepositEntryDebitTotal  float64 `json:"deposit_entry_debit_total"`
+		DepositEntryCreditTotal float64 `json:"deposit_entry_credit_total"`
+	}
 )

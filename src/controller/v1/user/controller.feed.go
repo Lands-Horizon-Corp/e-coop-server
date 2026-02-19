@@ -100,7 +100,7 @@ func FeedController(service *horizon.HorizonService) {
 			for _, mID := range req.MediaIDs {
 				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, &types.FeedMedia{
 					FeedID:         feed.ID,
-					MediaID:        mID,
+					MediaID:        *mID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
 					CreatedByID:    userOrg.UserID,
@@ -230,7 +230,7 @@ func FeedController(service *horizon.HorizonService) {
 		Route:        "/api/v1/feed/:feed_id/like",
 		Method:       "PUT",
 		Note:         "Toggles a like on a feed post. If already liked, it will unlike.",
-		ResponseType: map[string]interface{}{},
+		ResponseType: map[string]any{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
 		feedID, err := helpers.EngineUUIDParam(ctx, "feed_id")
@@ -265,7 +265,7 @@ func FeedController(service *horizon.HorizonService) {
 		}
 
 		if err := core.FeedLikeManager(service).Create(context, newLike); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to like"})
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to like feed: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, map[string]string{"message": "Liked", "status": "liked"})
 	})

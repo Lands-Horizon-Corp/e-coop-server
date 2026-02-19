@@ -671,7 +671,7 @@ func DetectDataType(val any) DataType {
 			}
 			return DataTypeTime
 		}
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if !rv.IsNil() {
 			return DetectDataType(rv.Elem().Interface())
 		}

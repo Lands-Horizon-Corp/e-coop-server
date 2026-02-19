@@ -1541,10 +1541,11 @@ func LoanTransactionController(service *horizon.HorizonService) {
 		if loanTransaction.OrganizationID != userOrg.OrganizationID || loanTransaction.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this loan transaction"})
 		}
+		now := time.Now().UTC()
 		loanTransaction.PrintNumber++
-		loanTransaction.PrintedDate = helpers.Ptr(time.Now().UTC())
+		loanTransaction.PrintedDate = &now
 		loanTransaction.PrintedByID = &userOrg.UserID
-		loanTransaction.UpdatedAt = time.Now().UTC()
+		loanTransaction.UpdatedAt = now
 		loanTransaction.UpdatedByID = userOrg.UserID
 		if err := core.LoanTransactionManager(service).UpdateByID(context, loanTransaction.ID, loanTransaction); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update loan transaction: " + err.Error()})
