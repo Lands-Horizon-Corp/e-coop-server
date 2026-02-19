@@ -666,7 +666,7 @@ func JournalVoucherController(service *horizon.HorizonService) {
 		}
 
 		timeNow := userOrg.TimeMachine()
-		journalVoucher.ApprovedDate = helpers.Ptr(timeNow)
+		journalVoucher.ApprovedDate = &timeNow
 		journalVoucher.ApprovedByID = &userOrg.UserID
 		journalVoucher.UpdatedAt = time.Now().UTC()
 		journalVoucher.UpdatedByID = userOrg.UserID

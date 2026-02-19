@@ -15,7 +15,7 @@ func SectionFrom(title string, v any) Section {
 	}
 	val := reflect.ValueOf(v)
 	typ := reflect.TypeOf(v)
-	for val.Kind() == reflect.Ptr {
+	for val.Kind() == reflect.Pointer {
 		if val.IsNil() {
 			return Section{
 				Title: title,

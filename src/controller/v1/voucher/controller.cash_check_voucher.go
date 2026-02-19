@@ -960,9 +960,9 @@ func CashCheckVoucherController(service *horizon.HorizonService) {
 		if cashCheckVoucher.OrganizationID != userOrg.OrganizationID || cashCheckVoucher.BranchID != *userOrg.BranchID {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Access denied to this cash check voucher"})
 		}
-
+		now := time.Now().UTC()
 		cashCheckVoucher.PrintCount++
-		cashCheckVoucher.PrintedDate = helpers.Ptr(time.Now().UTC())
+		cashCheckVoucher.PrintedDate = &now
 		cashCheckVoucher.Status = types.CashCheckVoucherStatusPrinted
 		cashCheckVoucher.UpdatedAt = time.Now().UTC()
 		cashCheckVoucher.UpdatedByID = userOrg.UserID

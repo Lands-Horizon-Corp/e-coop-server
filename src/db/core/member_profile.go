@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/pkg/registry"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
@@ -394,7 +393,6 @@ func memberProfileSeed(context context.Context, service *horizon.HorizonService,
 
 	fullName := fmt.Sprintf("%s %s %s", firstName, middleName, lastName)
 	passbook := fmt.Sprintf("PB-%s-0001", branch.Name[:min(3, len(branch.Name))])
-
 	memberProfile := &types.MemberProfile{
 		CreatedAt:             now,
 		CreatedByID:           &userID,
@@ -408,7 +406,7 @@ func memberProfileSeed(context context.Context, service *horizon.HorizonService,
 		MiddleName:            middleName,
 		LastName:              lastName,
 		FullName:              fullName,
-		BirthDate:             helpers.Ptr(time.Now().UTC()),
+		BirthDate:             &now,
 		Status:                "active",
 		Description:           fmt.Sprintf("Founding member of %s", organization.Name),
 		Notes:                 fmt.Sprintf("Organization founder and branch creator for %s", branch.Name),

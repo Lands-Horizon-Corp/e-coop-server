@@ -12,7 +12,7 @@ E-Coop Server is a multipurpose cooperative management system built with **Go**.
 
 ## Prerequisites
 
-* **Go** 1.25.6+
+* **Go** 1.26.0+
 * **Docker** & **Docker Compose**
 * **PostgreSQL** 13+
 * **Redis** 6+
