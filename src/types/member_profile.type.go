@@ -233,7 +233,7 @@ type (
 
 		MediaID          *uuid.UUID `json:"media_id,omitempty"`
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
-		CivilStatus      string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // Adjust the allowed values as needed
+		CivilStatus      string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"`
 
 		MemberOccupationID    *uuid.UUID `json:"member_occupation_id,omitempty"`
 		BusinessAddress       string     `json:"business_address,omitempty" validate:"max=255"`
@@ -241,6 +241,9 @@ type (
 		Notes                 string     `json:"notes,omitempty"`
 		Description           string     `json:"description,omitempty"`
 		Sex                   Sex        `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
+
+		MemberAddress          []*MemberAddress `json:"member_address,omitempty"`
+		MemberAddressDeletedID *uuid.UUIDs      `json:"member_address_deleted_id,omitempty"`
 	}
 
 	MemberProfileMembershipInfoRequest struct {

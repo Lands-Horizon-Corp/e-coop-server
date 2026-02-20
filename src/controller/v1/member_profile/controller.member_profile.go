@@ -966,7 +966,6 @@ func MemberProfileController(service *horizon.HorizonService) {
 		profile.ContactNumber = req.ContactNumber
 		profile.CivilStatus = req.CivilStatus
 		profile.Sex = req.Sex
-
 		if req.MemberGenderID != nil && !helpers.UUIDPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
 			data := &types.MemberGenderHistory{
 				OrganizationID:  userOrg.OrganizationID,
@@ -1009,7 +1008,6 @@ func MemberProfileController(service *horizon.HorizonService) {
 			}
 			profile.MemberOccupationID = req.MemberOccupationID
 		}
-
 		profile.BusinessAddress = req.BusinessAddress
 		profile.BusinessContactNumber = req.BusinessContactNumber
 		profile.Notes = req.Notes
@@ -1024,6 +1022,72 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
+		if req.MemberAddressDeletedID != nil {
+			for _, deletedID := range *req.MemberAddressDeletedID {
+				address, err := core.MemberAddressManager(service).GetByID(context, deletedID)
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find member address for deletion: " + err.Error()})
+				}
+				if err := core.MemberAddressManager(service).Delete(context, address.ID); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member address: " + err.Error()})
+				}
+			}
+		}
+		if req.MemberAddress != nil {
+			for _, addrReq := range req.MemberAddress {
+				if addrReq.ID != uuid.Nil {
+					existingRecord, err := core.MemberAddressManager(service).GetByID(context, addrReq.ID)
+					if err != nil {
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing member address: " + err.Error()})
+					}
+					if existingRecord.MemberProfileID == nil || *existingRecord.MemberProfileID != profile.ID {
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update member address that doesn't belong to this member profile"})
+					}
+					existingRecord.UpdatedAt = time.Now().UTC()
+					existingRecord.UpdatedByID = &userOrg.UserID
+					existingRecord.Label = addrReq.Label
+					existingRecord.City = addrReq.City
+					existingRecord.CountryCode = addrReq.CountryCode
+					existingRecord.PostalCode = addrReq.PostalCode
+					existingRecord.ProvinceState = addrReq.ProvinceState
+					existingRecord.AreaID = addrReq.AreaID
+					existingRecord.Barangay = addrReq.Barangay
+					existingRecord.Landmark = addrReq.Landmark
+					existingRecord.Address = addrReq.Address
+					existingRecord.Latitude = addrReq.Latitude
+					existingRecord.Longitude = addrReq.Longitude
+					if err := core.MemberAddressManager(service).UpdateByID(context, existingRecord.ID, existingRecord); err != nil {
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member address: " + err.Error()})
+					}
+				} else {
+					newAddress := &types.MemberAddress{
+						CreatedAt:       time.Now().UTC(),
+						UpdatedAt:       time.Now().UTC(),
+						CreatedByID:     &userOrg.UserID,
+						UpdatedByID:     &userOrg.UserID,
+						OrganizationID:  userOrg.OrganizationID,
+						BranchID:        *userOrg.BranchID,
+						MemberProfileID: &profile.ID,
+						Label:           addrReq.Label,
+						City:            addrReq.City,
+						CountryCode:     addrReq.CountryCode,
+						PostalCode:      addrReq.PostalCode,
+						ProvinceState:   addrReq.ProvinceState,
+						AreaID:          addrReq.AreaID,
+						Barangay:        addrReq.Barangay,
+						Landmark:        addrReq.Landmark,
+						Address:         addrReq.Address,
+						Latitude:        addrReq.Latitude,
+						Longitude:       addrReq.Longitude,
+					}
+
+					if err := core.MemberAddressManager(service).Create(context, newAddress); err != nil {
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address: " + err.Error()})
+					}
+				}
+			}
+		}
+
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Updated member profile personal info: %s", profile.FullName),
