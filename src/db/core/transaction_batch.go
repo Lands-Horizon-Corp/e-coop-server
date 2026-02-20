@@ -49,7 +49,7 @@ func TransactionBatchManager(service *horizon.HorizonService) *registry.Registry
 			}
 			isToday := CheckIsToday(
 				service,
-				time.Now().UTC(),
+				data.CreatedAt,
 				data.OrganizationID,
 				data.BranchID,
 				*data.EmployeeUserID,
