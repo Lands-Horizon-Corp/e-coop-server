@@ -229,3 +229,19 @@ func Members(context context.Context, service *horizon.HorizonService, organizat
 		UserType:       types.UserOrganizationTypeMember,
 	})
 }
+func CheckIsToday(service *horizon.HorizonService, referenceTime time.Time, organizationID, branchID, userID uuid.UUID) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	userOrg, err := UserOrganizationManager(service).FindOne(ctx, &types.UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+		UserID:         userID,
+	})
+	if err != nil || userOrg == nil {
+		return false
+	}
+	machineTime := userOrg.TimeMachine()
+	y1, m1, d1 := machineTime.Date()
+	y2, m2, d2 := referenceTime.Date()
+	return y1 == y2 && m1 == m2 && d1 == d2
+}

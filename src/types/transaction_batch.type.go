@@ -220,6 +220,8 @@ type (
 
 		UnbalancedAccountID uuid.UUID                  `json:"unbalanced_account_id"`
 		UnbalancedAccount   *UnbalancedAccountResponse `json:"unbalanced_account,omitempty"`
+
+		IsToday bool `json:"is_today"`
 	}
 
 	TransactionBatchRequest struct {
