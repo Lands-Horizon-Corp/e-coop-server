@@ -156,6 +156,8 @@ func CreateGeneralLedgerEntry(
 		} else {
 			return eris.Wrap(err, "general ledger: failed to fetch previous ledger")
 		}
+	} else if ledger != nil {
+		previousBalance = decimal.NewFromFloat(ledger.Balance)
 	}
 
 	debit := decimal.NewFromFloat(data.Debit)
