@@ -201,6 +201,7 @@ func startServer() horizon.CommandConfig {
 			settings.HolidayController(service)
 			settings.BankController(service)
 			settings.CompanyController(service)
+			settings.AreaController(service)
 
 			user.AuthenticationController(service)
 			user.UserController(service)
