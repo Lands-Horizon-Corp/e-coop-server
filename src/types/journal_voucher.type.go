@@ -76,7 +76,6 @@ type (
 		CurrencyID        uuid.UUID             `json:"currency_id"`
 		Currency          *CurrencyResponse     `json:"currency,omitempty"`
 		Name              string                `json:"name"`
-		VoucherNumber     string                `json:"voucher_number"`
 		CashVoucherNumber string                `json:"cash_voucher_number"`
 		Date              string                `json:"date"`
 		Description       string                `json:"description"`
