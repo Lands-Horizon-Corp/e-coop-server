@@ -236,12 +236,20 @@ func CheckIsToday(service *horizon.HorizonService, referenceTime time.Time, orga
 		OrganizationID: organizationID,
 		BranchID:       &branchID,
 		UserID:         userID,
-	})
+	}, "Branch.Currency")
+
 	if err != nil || userOrg == nil {
 		return false
 	}
-	machineTime := userOrg.TimeMachine()
-	y1, m1, d1 := machineTime.Date()
-	y2, m2, d2 := referenceTime.Date()
+	loc := time.UTC
+	if userOrg.Branch != nil && userOrg.Branch.Currency != nil && userOrg.Branch.Currency.Timezone != "" {
+		if l, err := time.LoadLocation(userOrg.Branch.Currency.Timezone); err == nil {
+			loc = l
+		}
+	}
+	machineTimeInLoc := userOrg.TimeMachine().In(loc)
+	nowInLoc := referenceTime.In(loc)
+	y1, m1, d1 := machineTimeInLoc.Date()
+	y2, m2, d2 := nowInLoc.Date()
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
