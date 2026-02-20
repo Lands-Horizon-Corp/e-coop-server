@@ -242,7 +242,7 @@ type (
 		Description           string     `json:"description,omitempty"`
 		Sex                   Sex        `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
 
-		MemberAddress          []*MemberAddress `json:"member_address,omitempty"`
+		MemberAddresses        []*MemberAddress `json:"member_addresses,omitempty"`
 		MemberAddressDeletedID *uuid.UUIDs      `json:"member_address_deleted_id,omitempty"`
 	}
 

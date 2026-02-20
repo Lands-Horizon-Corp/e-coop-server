@@ -1033,8 +1033,8 @@ func MemberProfileController(service *horizon.HorizonService) {
 				}
 			}
 		}
-		if req.MemberAddress != nil {
-			for _, addrReq := range req.MemberAddress {
+		if req.MemberAddresses != nil {
+			for _, addrReq := range req.MemberAddresses {
 				if addrReq.ID != uuid.Nil {
 					existingRecord, err := core.MemberAddressManager(service).GetByID(context, addrReq.ID)
 					if err != nil {
