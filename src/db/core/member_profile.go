@@ -29,6 +29,7 @@ func MemberProfileManager(service *horizon.HorizonService) *registry.Registry[
 			"MemberVerifiedByEmployeeUser.Media",
 
 			"MemberAddresses",
+			"MemberAddresses.Area",
 			"MemberAssets", "MemberAssets.Media",
 			"MemberIncomes", "MemberIncomes.Media",
 			"MemberExpenses",

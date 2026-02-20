@@ -1087,13 +1087,16 @@ func MemberProfileController(service *horizon.HorizonService) {
 				}
 			}
 		}
-
+		memberProfile, err := core.MemberProfileManager(service).GetByIDRaw(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Updated member profile personal info: %s", profile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(profile))
+		return ctx.JSON(http.StatusOK, memberProfile)
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{
