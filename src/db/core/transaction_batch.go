@@ -184,7 +184,15 @@ func TransactionBatchMinimal(context context.Context, service *horizon.HorizonSe
 		s := data.EndedAt.Format(time.RFC3339)
 		endedAt = &s
 	}
+	isToday := CheckIsToday(
+		service,
+		time.Now().UTC(),
+		data.OrganizationID,
+		data.BranchID,
+		*data.EmployeeUserID,
+	)
 	return &types.TransactionBatchResponse{
+		IsToday:          isToday,
 		ID:               data.ID,
 		CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 		CreatedByID:      data.CreatedByID,
