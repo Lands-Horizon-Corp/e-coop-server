@@ -10,6 +10,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/db/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
+	"github.com/go-faker/faker/v4"
 	"github.com/rotisserie/eris"
 )
 
@@ -64,6 +65,42 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, conf
 	}
 	if len(orgs) > 0 {
 		return nil
+	}
+	if config.SeminarsRandom != nil {
+		for i := 0; i < *config.SeminarsRandom; i++ {
+			config.SeminarEntries = append(config.SeminarEntries, types.SeminarEntry{
+				Name:        faker.Sentence(),
+				Description: faker.Paragraph(),
+				MediaPath:   "seeder/images/defaults/seminar.jpg",
+			})
+		}
+	}
+
+	// Generate random Branches if requested
+	if config.BranchesRandom != nil {
+		for i := 0; i < *config.BranchesRandom; i++ {
+			config.Branches = append(config.Branches, types.BranchConfig{
+				Name:                   faker.FirstName() + " Branch",
+				Type:                   "branch",
+				Email:                  faker.Email(),
+				Address:                faker.GetRealAddress().Address,
+				City:                   "Quezon City",
+				Region:                 "NCR",
+				Barangay:               "Barangay " + faker.Word(),
+				PostalCode:             "1100",
+				Contact:                faker.Phonenumber(),
+				Latitude:               14.5995,
+				Longitude:              120.9842,
+				TaxID:                  faker.UUIDDigit(),
+				LogoPath:               config.OrgLogoPath,
+				WithdrawAllowUserInput: true,
+				WithdrawPrefix:         "RND",
+				WithdrawORStart:        1,
+				WithdrawORCurrent:      1,
+				WithdrawOREnd:          999999,
+				WithdrawORIteration:    1,
+			})
+		}
 	}
 	hashedPassword, err := service.Security.HashPassword(config.AdminPassword)
 	if err != nil {

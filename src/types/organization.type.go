@@ -205,8 +205,9 @@ type (
 		OrgXLink           *string
 
 		SeminarEntries []SeminarEntry // Slice of seminar media to add
-
-		Branches []BranchConfig // Slice of branch configurations
+		Branches       []BranchConfig // Slice of branch configurations
+		BranchesRandom *int           // Number of random branches to generate
+		SeminarsRandom *int           // Number of random seminars to generate
 
 		CurrencyAlpha2       string        // e.g., "PH" for PHP
 		SubscriptionDays     int           // Days for subscription end date, e.g., 30
