@@ -44,6 +44,9 @@ type (
 
 		Latitude  *float64 `gorm:"type:double precision" json:"latitude,omitempty"`
 		Longitude *float64 `gorm:"type:double precision" json:"longitude,omitempty"`
+
+		AreaID *uuid.UUID `gorm:"type:uuid" json:"area_id,omitempty"`
+		Area   *Area      `gorm:"foreignKey:AreaID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE;" json:"area,omitempty"`
 	}
 
 	MemberAddressResponse struct {
@@ -72,6 +75,9 @@ type (
 		Address       string   `json:"address"`
 		Longitude     *float64 `json:"longitude,omitempty"`
 		Latitude      *float64 `json:"latitude,omitempty"`
+
+		AreaID *uuid.UUID    `json:"area_id,omitempty"`
+		Area   *AreaResponse `json:"area,omitempty"`
 	}
 
 	MemberAddressRequest struct {
@@ -87,5 +93,7 @@ type (
 		Address       string   `json:"address" validate:"required,min=1,max=255"`
 		Longitude     *float64 `json:"longitude,omitempty" validate:"omitempty,min=-180,max=180"`
 		Latitude      *float64 `json:"latitude,omitempty" validate:"omitempty,min=-90,max=90"`
+
+		AreaID *uuid.UUID `json:"area_id,omitempty" validate:"omitempty,uuid4"`
 	}
 )

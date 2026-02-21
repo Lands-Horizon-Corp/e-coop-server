@@ -26,6 +26,26 @@ func (r *Registry[TData, TResponse, TRequest]) Delete(
 	return nil
 }
 
+func (r *Registry[TData, TResponse, TRequest]) DeleteIncludeDeleted(
+	ctx context.Context,
+	id any,
+) error {
+	var entity TData
+	if err := r.Client(ctx).
+		Unscoped().
+		Where(fmt.Sprintf("%s = ?", r.columnDefaultID), id).
+		First(&entity).Error; err != nil {
+		return fmt.Errorf("failed to find entity (including deleted): %w", err)
+	}
+	if err := r.Client(ctx).
+		Unscoped().
+		Delete(&entity).Error; err != nil {
+		return fmt.Errorf("failed to permanently delete entity: %w", err)
+	}
+	r.OnDelete(ctx, &entity)
+	return nil
+}
+
 func (r *Registry[TData, TResponse, TRequest]) DeleteWithTx(
 	context context.Context,
 	tx *gorm.DB,

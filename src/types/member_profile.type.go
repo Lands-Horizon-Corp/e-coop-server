@@ -17,6 +17,11 @@ const (
 	MemberStatusNotAllowd MemberStatus = "not allowed"
 )
 
+const (
+	MemberMale   Sex = "male"
+	MemberFemale Sex = "female"
+)
+
 type (
 	Sex string
 
@@ -228,7 +233,7 @@ type (
 
 		MediaID          *uuid.UUID `json:"media_id,omitempty"`
 		SignatureMediaID *uuid.UUID `json:"signature_media_id,omitempty"`
-		CivilStatus      string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"` // Adjust the allowed values as needed
+		CivilStatus      string     `json:"civil_status" validate:"required,oneof=single married widowed separated divorced"`
 
 		MemberOccupationID    *uuid.UUID `json:"member_occupation_id,omitempty"`
 		BusinessAddress       string     `json:"business_address,omitempty" validate:"max=255"`
@@ -236,6 +241,9 @@ type (
 		Notes                 string     `json:"notes,omitempty"`
 		Description           string     `json:"description,omitempty"`
 		Sex                   Sex        `json:"sex,omitempty" validate:"omitempty,oneof=male female n/a"`
+
+		MemberAddresses        []*MemberAddress `json:"member_addresses,omitempty"`
+		MemberAddressDeletedID *uuid.UUIDs      `json:"member_address_deleted_id,omitempty"`
 	}
 
 	MemberProfileMembershipInfoRequest struct {
@@ -298,6 +306,18 @@ type (
 		Email         string     `json:"email" validate:"required,email,max=100"`
 		ContactNumber string     `json:"contact_number" validate:"required,max=20"`
 		BirthDate     *time.Time `json:"birthdate" validate:"required"`
+	}
+
+	MemberTypeCountResponse struct {
+		MemberTypeID uuid.UUID          `json:"member_type_id"`
+		MemberType   MemberTypeResponse `json:"member_type"`
+		Count        int64              `json:"count"`
+	}
+	MemberProfileDashboardSummaryResponse struct {
+		TotalMembers       int64                     `json:"total_members"`
+		TotalMaleMembers   int64                     `json:"total_male_members"`
+		TotalFemaleMembers int64                     `json:"total_female_members"`
+		MemberTypeCounts   []MemberTypeCountResponse `json:"member_type_counts"`
 	}
 )
 

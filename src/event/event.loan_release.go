@@ -15,7 +15,6 @@ import (
 func LoanRelease(context context.Context, service *horizon.HorizonService, loanTransactionID uuid.UUID, userOrg *types.UserOrganization) (*types.LoanTransaction, error) {
 
 	tx, endTx := service.Database.StartTransaction(context)
-
 	now := time.Now().UTC()
 	timeMachine := userOrg.TimeMachine()
 	if userOrg.BranchID == nil {
@@ -26,29 +25,22 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to get loan transaction"))
 	}
-
 	loanAccountCurrency := loanTransaction.Account.Currency
-
 	if loanAccountCurrency == nil {
 		return nil, endTx(eris.New("currency data is nil"))
 	}
 
 	transactionBatch, err := core.TransactionBatchCurrent(context, service, *loanTransaction.EmployeeUserID, userOrg.OrganizationID, *userOrg.BranchID)
 	if err != nil {
-		return nil, endTx(eris.Wrap(err, "failed to retrieve transaction batch - The one who created the loan must have created the transaction batch"))
+		return nil, endTx(eris.Wrap(err, "failed to retrieve transaction batch"))
 	}
 
 	if transactionBatch == nil {
 		return nil, endTx(eris.New("transaction batch is nil"))
 	}
-
 	memberProfile, err := core.MemberProfileManager(service).GetByID(context, *loanTransaction.MemberProfileID)
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to retrieve member profile"))
-	}
-
-	if memberProfile == nil {
-		return nil, endTx(eris.New("member profile not found"))
 	}
 
 	loanTransactionEntries, err := core.LoanTransactionEntryManager(service).Find(context, &types.LoanTransactionEntry{
@@ -59,7 +51,6 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 	if err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to retrieve loan transaction entries"))
 	}
-
 	var addOnEntry *types.LoanTransactionEntry
 	var filteredEntries []*types.LoanTransactionEntry
 
@@ -88,7 +79,6 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 		}
 
 		if entry.AccountID == nil {
-
 			return nil, endTx(eris.New("entry.AccountID is nil"))
 		}
 
@@ -115,7 +105,6 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 				return nil, endTx(eris.Wrap(err, "failed to retrieve payment type"))
 			}
 			account.DefaultPaymentType = paymentType
-
 		}
 
 		var typeOfPaymentType types.TypeOfPaymentType
@@ -147,13 +136,10 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 			LoanTransactionID:          &loanTransaction.ID,
 			Account:                    account,
 		}
-
 		if err := core.CreateGeneralLedgerEntry(context, service, tx, memberLedgerEntry); err != nil {
 			return nil, endTx(eris.Wrap(err, "failed to create member ledger entry"))
 		}
-
 	}
-
 	loanRelatedAccounts, err := core.GetAccountHistoriesByFiltersAtTime(
 		context, service,
 		loanTransaction.OrganizationID,
@@ -165,11 +151,8 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 	if err != nil {
 		return nil, endTx(eris.Wrapf(err, "failed to retrieve accounts for loan transaction ID: %s", loanTransaction.ID.String()))
 	}
-
 	loanRelatedAccounts = append(loanRelatedAccounts, loanTransaction.Account)
-
 	for _, interestAccount := range loanRelatedAccounts {
-
 		interestAccountHistory, err := core.GetAccountHistoryLatestByTimeHistory(
 			context, service,
 			interestAccount.ID,
@@ -184,7 +167,6 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 		if interestAccountHistory == nil {
 			return nil, endTx(eris.New("interest account history is nil"))
 		}
-
 		if err := core.LoanAccountManager(service).CreateWithTx(context, tx, &types.LoanAccount{
 			CreatedAt:         now,
 			CreatedByID:       userOrg.UserID,
@@ -199,9 +181,7 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 		}); err != nil {
 			return nil, endTx(eris.Wrap(err, "failed to create loan account"))
 		}
-
 	}
-
 	loanTransaction.ReleasedDate = &timeMachine
 	loanTransaction.ReleasedByID = &userOrg.UserID
 	loanTransaction.UpdatedAt = now
@@ -212,15 +192,12 @@ func LoanRelease(context context.Context, service *horizon.HorizonService, loanT
 	if err := core.LoanTransactionManager(service).UpdateByIDWithTx(context, tx, loanTransaction.ID, loanTransaction); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to update loan transaction"))
 	}
-
 	if err := endTx(nil); err != nil {
 		return nil, endTx(eris.Wrap(err, "failed to commit transaction"))
 	}
-
 	updatedloanTransaction, err := core.LoanTransactionManager(service).GetByID(context, loanTransaction.ID)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get updated loan transaction")
 	}
-
 	return updatedloanTransaction, nil
 }

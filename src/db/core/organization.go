@@ -446,6 +446,29 @@ func SeedOrganization(ctx context.Context, service *horizon.HorizonService, conf
 				return eris.Wrap(err, "failed to create invitation code")
 			}
 		}
+		feed := &types.Feed{
+			Description:    "🎉 Welcome! Today the coop system has been created. Let's grow together!",
+			CreatedAt:      time.Now().UTC(),
+			CreatedByID:    owner.ID,
+			UpdatedAt:      time.Now().UTC(),
+			UpdatedByID:    owner.ID,
+			BranchID:       branch.ID,
+			OrganizationID: organization.ID,
+		}
+		if err := FeedManager(service).Create(ctx, feed); err != nil {
+			return eris.Wrap(err, "Failed to create feed record")
+		}
+		if err := FeedMediaManager(service).Create(ctx, &types.FeedMedia{
+			FeedID:         feed.ID,
+			MediaID:        logoMedia.ID,
+			OrganizationID: organization.ID,
+			BranchID:       branch.ID,
+			CreatedByID:    owner.ID,
+			UpdatedByID:    owner.ID,
+		}); err != nil {
+			return eris.Wrap(err, "Failed to associate media with feed")
+		}
 	}
+
 	return nil
 }

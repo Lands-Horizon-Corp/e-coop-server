@@ -39,13 +39,14 @@ type (
 		WithdrawPadding        int    `gorm:"not null;default:6" json:"withdraw_padding"`
 		WithdrawCommonOR       string `gorm:"type:varchar(100)" json:"withdraw_common_or"`
 
-		DepositORStart     int    `gorm:"not null;default:0" json:"deposit_or_start"`
-		DepositORCurrent   int    `gorm:"not null;default:1" json:"deposit_or_current"`
-		DepositOREnd       int    `gorm:"not null;default:9999" json:"deposit_or_end"`
-		DepositORIteration int    `gorm:"not null;default:1" json:"deposit_or_iteration"`
-		DepositUseDateOR   bool   `gorm:"not null;default:false" json:"deposit_use_date_or"`
-		DepositPadding     int    `gorm:"not null;default:6" json:"deposit_padding"`
-		DepositCommonOR    string `gorm:"type:varchar(100)" json:"deposit_common_or"`
+		DepositAllowUserInput bool   `gorm:"not null;default:true" json:"deposit_allow_user_input"`
+		DepositORStart        int    `gorm:"not null;default:0" json:"deposit_or_start"`
+		DepositORCurrent      int    `gorm:"not null;default:1" json:"deposit_or_current"`
+		DepositOREnd          int    `gorm:"not null;default:9999" json:"deposit_or_end"`
+		DepositORIteration    int    `gorm:"not null;default:1" json:"deposit_or_iteration"`
+		DepositUseDateOR      bool   `gorm:"not null;default:false" json:"deposit_use_date_or"`
+		DepositPadding        int    `gorm:"not null;default:6" json:"deposit_padding"`
+		DepositCommonOR       string `gorm:"type:varchar(100)" json:"deposit_common_or"`
 
 		CashCheckVoucherAllowUserInput bool   `gorm:"not null;default:true" json:"cash_check_voucher_allow_user_input"`
 		CashCheckVoucherORUnique       bool   `gorm:"not null;default:false" json:"cash_check_voucher_or_unique"`
@@ -117,13 +118,14 @@ type (
 		WithdrawPadding        int    `json:"withdraw_padding" validate:"min=0"`
 		WithdrawCommonOR       string `json:"withdraw_common_or" validate:"omitempty"`
 
-		DepositORStart     int    `json:"deposit_or_start" validate:"min=0"`
-		DepositORCurrent   int    `json:"deposit_or_current" validate:"min=0"`
-		DepositOREnd       int    `json:"deposit_or_end" validate:"min=0"`
-		DepositORIteration int    `json:"deposit_or_iteration" validate:"min=0"`
-		DepositUseDateOR   bool   `json:"deposit_use_date_or"`
-		DepositPadding     int    `json:"deposit_padding" validate:"min=0"`
-		DepositCommonOR    string `json:"deposit_common_or" validate:"omitempty"`
+		DepositAllowUserInput bool   `json:"deposit_allow_user_input"`
+		DepositORStart        int    `json:"deposit_or_start" validate:"min=0"`
+		DepositORCurrent      int    `json:"deposit_or_current" validate:"min=0"`
+		DepositOREnd          int    `json:"deposit_or_end" validate:"min=0"`
+		DepositORIteration    int    `json:"deposit_or_iteration" validate:"min=0"`
+		DepositUseDateOR      bool   `json:"deposit_use_date_or"`
+		DepositPadding        int    `json:"deposit_padding" validate:"min=0"`
+		DepositCommonOR       string `json:"deposit_common_or" validate:"omitempty"`
 
 		CashCheckVoucherAllowUserInput bool   `json:"cash_check_voucher_allow_user_input"`
 		CashCheckVoucherORUnique       bool   `json:"cash_check_voucher_or_unique"`
@@ -206,13 +208,14 @@ type (
 		WithdrawPadding        int    `json:"withdraw_padding"`
 		WithdrawCommonOR       string `json:"withdraw_common_or"`
 
-		DepositORStart     int    `json:"deposit_or_start"`
-		DepositORCurrent   int    `json:"deposit_or_current"`
-		DepositOREnd       int    `json:"deposit_or_end"`
-		DepositORIteration int    `json:"deposit_or_iteration"`
-		DepositUseDateOR   bool   `json:"deposit_use_date_or"`
-		DepositPadding     int    `json:"deposit_padding"`
-		DepositCommonOR    string `json:"deposit_common_or"`
+		DepositAllowUserInput bool   `json:"deposit_allow_user_input"`
+		DepositORStart        int    `json:"deposit_or_start"`
+		DepositORCurrent      int    `json:"deposit_or_current"`
+		DepositOREnd          int    `json:"deposit_or_end"`
+		DepositORIteration    int    `json:"deposit_or_iteration"`
+		DepositUseDateOR      bool   `json:"deposit_use_date_or"`
+		DepositPadding        int    `json:"deposit_padding"`
+		DepositCommonOR       string `json:"deposit_common_or"`
 
 		CashCheckVoucherAllowUserInput bool   `json:"cash_check_voucher_allow_user_input"`
 		CashCheckVoucherORUnique       bool   `json:"cash_check_voucher_or_unique"`

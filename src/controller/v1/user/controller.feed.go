@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/helpers"
@@ -10,10 +11,93 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/db/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/event"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 func FeedController(service *horizon.HorizonService) {
+
+	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/feed/my/search",
+		Method:       "GET",
+		Note:         "Returns a paginated list of feeds.",
+		ResponseType: types.FeedResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authentication failed"})
+		}
+		feeds, err := core.FeedManager(service).NormalPagination(context, ctx, &types.Feed{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			CreatedByID:    userOrg.UserID,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch feeds: " + err.Error()})
+		}
+		for i := range feeds.Data {
+			for _, like := range feeds.Data[i].UserLikes {
+				if like.UserID == userOrg.UserID {
+					feeds.Data[i].IsLiked = true
+					break
+				}
+			}
+			slices.SortFunc(feeds.Data[i].FeedComments, func(a, b *types.FeedCommentResponse) int {
+				if a.CreatedAt > b.CreatedAt {
+					return -1
+				}
+				if a.CreatedAt < b.CreatedAt {
+					return 1
+				}
+				return 0
+			})
+		}
+		return ctx.JSON(http.StatusOK, feeds)
+	})
+
+	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/feed/user/:user_id/search",
+		Method:       "GET",
+		Note:         "Returns a paginated list of feeds.",
+		ResponseType: types.FeedResponse{},
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Authentication failed"})
+		}
+		userId, err := helpers.EngineUUIDParam(ctx, "user_id")
+		if err != nil {
+			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+		}
+		feeds, err := core.FeedManager(service).NormalPagination(context, ctx, &types.Feed{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			CreatedByID:    *userId,
+		})
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch feeds: " + err.Error()})
+		}
+		for i := range feeds.Data {
+			for _, like := range feeds.Data[i].UserLikes {
+				if like.UserID == userOrg.UserID {
+					feeds.Data[i].IsLiked = true
+					break
+				}
+			}
+			slices.SortFunc(feeds.Data[i].FeedComments, func(a, b *types.FeedCommentResponse) int {
+				if a.CreatedAt > b.CreatedAt {
+					return -1
+				}
+				if a.CreatedAt < b.CreatedAt {
+					return 1
+				}
+				return 0
+			})
+		}
+		return ctx.JSON(http.StatusOK, feeds)
+	})
 
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feed/search",
@@ -40,6 +124,15 @@ func FeedController(service *horizon.HorizonService) {
 					break
 				}
 			}
+			slices.SortFunc(feeds.Data[i].FeedComments, func(a, b *types.FeedCommentResponse) int {
+				if a.CreatedAt > b.CreatedAt {
+					return -1
+				}
+				if a.CreatedAt < b.CreatedAt {
+					return 1
+				}
+				return 0
+			})
 		}
 		return ctx.JSON(http.StatusOK, feeds)
 	})
@@ -70,6 +163,7 @@ func FeedController(service *horizon.HorizonService) {
 		ResponseType: types.FeedResponse{},
 	}, func(ctx echo.Context) error {
 		context := ctx.Request().Context()
+
 		req, err := core.FeedManager(service).Validate(ctx)
 		if err != nil {
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
@@ -79,6 +173,7 @@ func FeedController(service *horizon.HorizonService) {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
 		tx, endTx := service.Database.StartTransaction(context)
+
 		feed := &types.Feed{
 			Description:    req.Description,
 			CreatedAt:      time.Now().UTC(),
@@ -95,12 +190,12 @@ func FeedController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		}
-		if len(req.MediaIDs) > 0 {
-			var feedMedias []*types.FeedMedia
-			for _, mID := range req.MediaIDs {
+
+		if len(req.FeedMedias) > 0 {
+			for _, m := range req.FeedMedias {
 				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, &types.FeedMedia{
 					FeedID:         feed.ID,
-					MediaID:        *mID,
+					MediaID:        m.MediaID,
 					OrganizationID: userOrg.OrganizationID,
 					BranchID:       *userOrg.BranchID,
 					CreatedByID:    userOrg.UserID,
@@ -112,9 +207,6 @@ func FeedController(service *horizon.HorizonService) {
 					})
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 				}
-			}
-			if err := tx.Create(&feedMedias).Error; err != nil {
-				return err
 			}
 		}
 		if err := endTx(nil); err != nil {
@@ -128,14 +220,15 @@ func FeedController(service *horizon.HorizonService) {
 			Activity: "create-success", Module: "Feed",
 			Description: fmt.Sprintf("Created feed: %s", feed.ID),
 		})
+
 		return ctx.JSON(http.StatusCreated, core.FeedManager(service).ToModel(feed))
 	})
-
 	// PUT: Update Feed
+
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:        "/api/v1/feed/:feed_id",
 		Method:       "PUT",
-		Note:         "Updates an existing feed description.",
+		Note:         "Updates an existing feed and its media associations.",
 		RequestType:  types.FeedRequest{},
 		ResponseType: types.FeedResponse{},
 	}, func(ctx echo.Context) error {
@@ -154,26 +247,64 @@ func FeedController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-		feed, err := core.FeedManager(service).GetByID(context, *feedID)
+
+		// 1. Fetch existing feed with preloaded media
+		feed, err := core.FeedManager(service).GetByID(context, *feedID, "FeedMedias")
 		if err != nil {
 			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feed not found"})
 		}
 
+		tx, endTx := service.Database.StartTransaction(context)
 		feed.Description = req.Description
 		feed.UpdatedAt = time.Now().UTC()
 		feed.UpdatedByID = userOrg.UserID
-
-		if err := core.FeedManager(service).UpdateByID(context, feed.ID, feed); err != nil {
-			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		if err := core.FeedManager(service).UpdateByIDWithTx(context, tx, feed.ID, feed); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": endTx(err).Error()})
+		}
+		existingMap := make(map[uuid.UUID]bool)
+		for _, m := range feed.FeedMedias {
+			existingMap[m.MediaID] = true
+		}
+		incomingMap := make(map[uuid.UUID]bool)
+		for _, m := range req.FeedMedias {
+			incomingMap[m.MediaID] = true
+			if !existingMap[m.MediaID] {
+				newMedia := &types.FeedMedia{
+					FeedID:         feed.ID,
+					MediaID:        m.MediaID,
+					OrganizationID: userOrg.OrganizationID,
+					BranchID:       *userOrg.BranchID,
+					CreatedByID:    userOrg.UserID,
+					UpdatedByID:    userOrg.UserID,
+				}
+				if err := core.FeedMediaManager(service).CreateWithTx(context, tx, newMedia); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": endTx(err).Error()})
+				}
+			}
+		}
+		for _, m := range feed.FeedMedias {
+			if !incomingMap[m.MediaID] {
+				if err := core.FeedMediaManager(service).DeleteWithTx(context, tx, m.ID); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": endTx(err).Error()})
+				}
+			}
+		}
+		if err := endTx(nil); err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Transaction failed"})
+		}
+		updatedFeed, err := core.FeedManager(service).GetByID(context, feed.ID)
+		if err != nil {
+			updatedFeed = feed
 		}
 
 		event.Footstep(ctx, service, event.FootstepEvent{
-			Activity: "update-success", Module: "Feed",
-			Description: "Updated feed: " + feed.ID.String(),
+			Activity:    "update-success",
+			Module:      "Feed",
+			Description: fmt.Sprintf("Updated feed and media: %s", feed.ID),
 		})
-		return ctx.JSON(http.StatusOK, core.FeedManager(service).ToModel(feed))
-	})
 
+		return ctx.JSON(http.StatusOK, core.FeedManager(service).ToModel(updatedFeed))
+	})
 	// DELETE: Single Feed
 	service.API.RegisterWebRoute(horizon.Route{
 		Route:  "/api/v1/feed/:feed_id",
@@ -241,33 +372,33 @@ func FeedController(service *horizon.HorizonService) {
 		if err != nil {
 			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-		feed, err := core.FeedManager(service).GetByID(context, *feedID)
-		if err != nil {
-			return ctx.JSON(http.StatusNotFound, map[string]string{"error": "Feed not found"})
-		}
-		var existingLike types.FeedLike
-		db := service.Database.Client().WithContext(context)
-		result := db.Where("feed_id = ? AND user_id = ?", feed.ID, userOrg.UserID).First(&existingLike)
 
-		if result.Error == nil {
-			if err := core.FeedLikeManager(service).Delete(context, existingLike.ID); err != nil {
-				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to unlike"})
+		feedLikes, err := core.FeedLikeManager(service).FindIncludeDeleted(context, &types.FeedLike{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			FeedID:         *feedID,
+			UserID:         userOrg.UserID,
+		}, "")
+		if len(feedLikes) > 0 {
+			for _, like := range feedLikes {
+				if err := core.FeedLikeManager(service).DeleteIncludeDeleted(context, like.ID); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Error unliking: " + err.Error()})
+				}
 			}
-			return ctx.JSON(http.StatusOK, map[string]string{"message": "Unliked", "status": "unliked"})
+			return ctx.NoContent(http.StatusNoContent)
 		}
 		newLike := &types.FeedLike{
-			FeedID:         feed.ID,
+			FeedID:         *feedID,
 			UserID:         userOrg.UserID,
 			OrganizationID: userOrg.OrganizationID,
 			BranchID:       *userOrg.BranchID,
 			CreatedByID:    userOrg.UserID,
 			UpdatedByID:    userOrg.UserID,
 		}
-
 		if err := core.FeedLikeManager(service).Create(context, newLike); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to like feed: " + err.Error()})
 		}
-		return ctx.JSON(http.StatusOK, map[string]string{"message": "Liked", "status": "liked"})
+		return ctx.NoContent(http.StatusNoContent)
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{
@@ -311,6 +442,12 @@ func FeedController(service *horizon.HorizonService) {
 		if err := core.FeedCommentManager(service).Create(context, comment); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to post comment"})
 		}
+
+		event.Footstep(ctx, service, event.FootstepEvent{
+			Activity:    "feed comment",
+			Module:      "FeedComment",
+			Description: fmt.Sprintf("Commented to post: %s \n %s", feed.CreatedBy.FullName, req.Comment),
+		})
 		return ctx.JSON(http.StatusCreated, core.FeedCommentManager(service).ToModel(comment))
 	})
 

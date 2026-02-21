@@ -201,6 +201,7 @@ func startServer() horizon.CommandConfig {
 			settings.HolidayController(service)
 			settings.BankController(service)
 			settings.CompanyController(service)
+			settings.AreaController(service)
 
 			user.AuthenticationController(service)
 			user.UserController(service)
@@ -209,6 +210,7 @@ func startServer() horizon.CommandConfig {
 			user.InvitationCodeController(service)
 			user.KYCController(service)
 			user.FeedController(service)
+			user.FeedCommentController(service)
 
 			member_profile.MemberGenderController(service)
 			member_profile.MemberCenterController(service)

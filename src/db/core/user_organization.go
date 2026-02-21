@@ -111,6 +111,14 @@ func UserOrganizationManager(service *horizon.HorizonService) *registry.Registry
 				SettingsAccountingWithdrawDefaultValue:   AccountManager(service).ToModel(data.SettingsAccountingWithdrawDefaultValue),
 				SettingsPaymentTypeDefaultValueID:        data.SettingsPaymentTypeDefaultValueID,
 				SettingsPaymentTypeDefaultValue:          PaymentTypeManager(service).ToModel(data.SettingsPaymentTypeDefaultValue),
+
+				LoanVoucherAutoIncrement:      data.LoanVoucherAutoIncrement,
+				AdjustmentEntryAutoIncrement:  data.AdjustmentEntryAutoIncrement,
+				JournalVoucherAutoIncrement:   data.JournalVoucherAutoIncrement,
+				CashCheckVoucherAutoIncrement: data.CashCheckVoucherAutoIncrement,
+				DepositAutoIncrement:          data.DepositAutoIncrement,
+				WithdrawAutoIncrement:         data.WithdrawAutoIncrement,
+				PaymentAutoIncrement:          data.PaymentAutoIncrement,
 			}
 		},
 		Created: func(data *types.UserOrganization) registry.Topics {
@@ -220,4 +228,61 @@ func Members(context context.Context, service *horizon.HorizonService, organizat
 		BranchID:       &branchID,
 		UserType:       types.UserOrganizationTypeMember,
 	})
+}
+
+func CheckIsToday(service *horizon.HorizonService, referenceTime time.Time, organizationID, branchID, userID uuid.UUID) bool {
+	fmt.Println("\n--- 🔍 DEBUG START: CheckIsToday ---")
+	fmt.Printf("1. Input Params: Org=%s, Branch=%s, User=%s\n", organizationID, branchID, userID)
+	fmt.Printf("2. Reference Time (UTC): %v\n", referenceTime.Format(time.RFC3339))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	userOrg, err := UserOrganizationManager(service).FindOne(ctx, &types.UserOrganization{
+		OrganizationID: organizationID,
+		BranchID:       &branchID,
+		UserID:         userID,
+	}, "Branch.Currency")
+
+	if err != nil {
+		fmt.Printf("❌ DB ERROR: %v\n", err)
+		return false
+	}
+	if userOrg == nil {
+		fmt.Println("❌ DB RESULT: userOrg is NIL (Record not found)")
+		return false
+	}
+
+	// Check if Timezone loaded
+	tz := "UTC"
+	if userOrg.Branch != nil && userOrg.Branch.Currency != nil {
+		tz = userOrg.Branch.Currency.Timezone
+	}
+	fmt.Printf("3. Found Timezone: %s\n", tz)
+
+	loc := time.UTC
+	if tz != "" {
+		if l, err := time.LoadLocation(tz); err == nil {
+			loc = l
+		} else {
+			fmt.Printf("⚠️ Timezone Load Fail: %v\n", err)
+		}
+	}
+
+	// Check TimeMachine Result
+	mUTC := userOrg.TimeMachine()
+	machineTimeInLoc := mUTC.In(loc)
+	nowInLoc := referenceTime.In(loc)
+
+	y1, m1, d1 := machineTimeInLoc.Date()
+	y2, m2, d2 := nowInLoc.Date()
+
+	fmt.Printf("4. Machine Time: %v (Local: %04d-%02d-%02d)\n", machineTimeInLoc.Format(time.RFC3339), y1, m1, d1)
+	fmt.Printf("5. 'Now' Time:    %v (Local: %04d-%02d-%02d)\n", nowInLoc.Format(time.RFC3339), y2, m2, d2)
+
+	isMatch := (y1 == y2 && m1 == m2 && d1 == d2)
+	fmt.Printf("6. FINAL MATCH: %v\n", isMatch)
+	fmt.Println("--- 🔍 DEBUG END ---\n")
+
+	return isMatch
 }

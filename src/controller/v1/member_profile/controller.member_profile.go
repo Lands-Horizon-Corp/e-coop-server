@@ -12,6 +12,7 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/rotisserie/eris"
 )
 
 func MemberProfileController(service *horizon.HorizonService) {
@@ -30,15 +31,64 @@ func MemberProfileController(service *horizon.HorizonService) {
 		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
 			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
 		}
-		memberProfile, err := core.MemberProfileManager(service).Find(context, &types.MemberProfile{
-			OrganizationID: userOrg.OrganizationID,
-			BranchID:       *userOrg.BranchID,
-			Status:         types.MemberStatusPending,
-		})
+		memberProfile, err := core.FindLatestMembers(context, service, userOrg.OrganizationID, *userOrg.BranchID)
 		if err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get pending member profiles: " + err.Error()})
 		}
 		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModels(memberProfile))
+	})
+
+	service.API.RegisterWebRoute(horizon.Route{
+		Route:        "/api/v1/member-profile/summary",
+		Method:       "GET",
+		ResponseType: types.MemberProfileDashboardSummaryResponse{},
+		Note:         "Returns total number of  member profiles for the current user's branch.",
+	}, func(ctx echo.Context) error {
+		context := ctx.Request().Context()
+		userOrg, err := event.CurrentUserOrganization(context, service, ctx)
+		if err != nil {
+			return ctx.JSON(http.StatusUnauthorized, map[string]string{"error": "Failed to get user organization: " + err.Error()})
+		}
+		if userOrg.UserType != types.UserOrganizationTypeOwner && userOrg.UserType != types.UserOrganizationTypeEmployee {
+			return ctx.JSON(http.StatusForbidden, map[string]string{"error": "User is not authorized"})
+		}
+		totalMembers, err := core.MemberProfileManager(service).Find(context, &types.MemberProfile{
+			OrganizationID: userOrg.OrganizationID,
+			BranchID:       *userOrg.BranchID,
+			Status:         types.MemberStatusVerified,
+		}, "MemberType", "Media")
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to get member profiles: " + err.Error()})
+		}
+		femaleCount, maleCount := 0, 0
+		memberTypeCount := []types.MemberTypeCountResponse{}
+		for _, member := range totalMembers {
+			if member.Sex == types.MemberFemale {
+				femaleCount++
+			} else if member.Sex == types.MemberMale {
+				maleCount++
+			}
+			found := false
+			for i, count := range memberTypeCount {
+				if &count.MemberTypeID == member.MemberTypeID {
+					memberTypeCount[i].Count++
+					found = true
+					break
+				}
+			}
+			if !found {
+				memberTypeCount = append(memberTypeCount, types.MemberTypeCountResponse{
+					MemberTypeID: *member.MemberTypeID,
+					Count:        1,
+				})
+			}
+		}
+		return ctx.JSON(http.StatusOK, types.MemberProfileDashboardSummaryResponse{
+			TotalMembers:       int64(len(totalMembers)),
+			TotalMaleMembers:   int64(maleCount),
+			TotalFemaleMembers: int64(femaleCount),
+			MemberTypeCounts:   memberTypeCount,
+		})
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{
@@ -640,11 +690,26 @@ func MemberProfileController(service *horizon.HorizonService) {
 					Passbook: req.Passbook,
 				})
 				if err != nil {
+					event.Footstep(ctx, service, event.FootstepEvent{
+						Activity:    "create-error",
+						Description: "Quick create member profile failed: failed to check passbook uniqueness: " + endTx(err).Error(),
+						Module:      "MemberProfile",
+					})
 					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check passbook uniqueness"})
 				}
 				if len(memberProfiles) > 0 {
+					endTx(eris.New("member profile with the same passbook already exists"))
+					event.Footstep(ctx, service, event.FootstepEvent{
+						Activity:    "create-error",
+						Description: "Quick create member profile failed: member profile with the same passbook already exists",
+						Module:      "MemberProfile",
+					})
 					return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Member profile with the same passbook already exists"})
 				}
+			}
+			branchSetting.MemberProfilePassbookORCurrent++
+			if err := core.BranchSettingManager(service).UpdateByIDWithTx(context, tx, branchSetting.ID, branchSetting); err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update branch settings: " + endTx(err).Error()})
 			}
 		}
 
@@ -901,7 +966,6 @@ func MemberProfileController(service *horizon.HorizonService) {
 		profile.ContactNumber = req.ContactNumber
 		profile.CivilStatus = req.CivilStatus
 		profile.Sex = req.Sex
-
 		if req.MemberGenderID != nil && !helpers.UUIDPtrEqual(profile.MemberGenderID, req.MemberGenderID) {
 			data := &types.MemberGenderHistory{
 				OrganizationID:  userOrg.OrganizationID,
@@ -944,7 +1008,6 @@ func MemberProfileController(service *horizon.HorizonService) {
 			}
 			profile.MemberOccupationID = req.MemberOccupationID
 		}
-
 		profile.BusinessAddress = req.BusinessAddress
 		profile.BusinessContactNumber = req.BusinessContactNumber
 		profile.Notes = req.Notes
@@ -959,12 +1022,81 @@ func MemberProfileController(service *horizon.HorizonService) {
 			})
 			return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "Could not update member profile: " + err.Error()})
 		}
+		if req.MemberAddressDeletedID != nil {
+			for _, deletedID := range *req.MemberAddressDeletedID {
+				address, err := core.MemberAddressManager(service).GetByID(context, deletedID)
+				if err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find member address for deletion: " + err.Error()})
+				}
+				if err := core.MemberAddressManager(service).Delete(context, address.ID); err != nil {
+					return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete member address: " + err.Error()})
+				}
+			}
+		}
+		if req.MemberAddresses != nil {
+			for _, addrReq := range req.MemberAddresses {
+				if addrReq.ID != uuid.Nil {
+					existingRecord, err := core.MemberAddressManager(service).GetByID(context, addrReq.ID)
+					if err != nil {
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to find existing member address: " + err.Error()})
+					}
+					if existingRecord.MemberProfileID == nil || *existingRecord.MemberProfileID != profile.ID {
+						return ctx.JSON(http.StatusForbidden, map[string]string{"error": "Cannot update member address that doesn't belong to this member profile"})
+					}
+					existingRecord.UpdatedAt = time.Now().UTC()
+					existingRecord.UpdatedByID = &userOrg.UserID
+					existingRecord.Label = addrReq.Label
+					existingRecord.City = addrReq.City
+					existingRecord.CountryCode = addrReq.CountryCode
+					existingRecord.PostalCode = addrReq.PostalCode
+					existingRecord.ProvinceState = addrReq.ProvinceState
+					existingRecord.AreaID = addrReq.AreaID
+					existingRecord.Barangay = addrReq.Barangay
+					existingRecord.Landmark = addrReq.Landmark
+					existingRecord.Address = addrReq.Address
+					existingRecord.Latitude = addrReq.Latitude
+					existingRecord.Longitude = addrReq.Longitude
+					if err := core.MemberAddressManager(service).UpdateByID(context, existingRecord.ID, existingRecord); err != nil {
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update member address: " + err.Error()})
+					}
+				} else {
+					newAddress := &types.MemberAddress{
+						CreatedAt:       time.Now().UTC(),
+						UpdatedAt:       time.Now().UTC(),
+						CreatedByID:     &userOrg.UserID,
+						UpdatedByID:     &userOrg.UserID,
+						OrganizationID:  userOrg.OrganizationID,
+						BranchID:        *userOrg.BranchID,
+						MemberProfileID: &profile.ID,
+						Label:           addrReq.Label,
+						City:            addrReq.City,
+						CountryCode:     addrReq.CountryCode,
+						PostalCode:      addrReq.PostalCode,
+						ProvinceState:   addrReq.ProvinceState,
+						AreaID:          addrReq.AreaID,
+						Barangay:        addrReq.Barangay,
+						Landmark:        addrReq.Landmark,
+						Address:         addrReq.Address,
+						Latitude:        addrReq.Latitude,
+						Longitude:       addrReq.Longitude,
+					}
+
+					if err := core.MemberAddressManager(service).Create(context, newAddress); err != nil {
+						return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create member address: " + err.Error()})
+					}
+				}
+			}
+		}
+		memberProfile, err := core.MemberProfileManager(service).GetByIDRaw(context, *memberProfileID)
+		if err != nil {
+			return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		}
 		event.Footstep(ctx, service, event.FootstepEvent{
 			Activity:    "update-success",
 			Description: fmt.Sprintf("Updated member profile personal info: %s", profile.FullName),
 			Module:      "MemberProfile",
 		})
-		return ctx.JSON(http.StatusOK, core.MemberProfileManager(service).ToModel(profile))
+		return ctx.JSON(http.StatusOK, memberProfile)
 	})
 
 	service.API.RegisterWebRoute(horizon.Route{

@@ -52,7 +52,7 @@ type (
 
 		Status                     CashCheckVoucherStatus `gorm:"type:varchar(20)" json:"status,omitempty"` // enum as string
 		Description                string                 `gorm:"type:text" json:"description,omitempty"`
-		CashVoucherNumber          string                 `gorm:"type:varchar(255)" json:"cash_voucher_number,omitempty"`
+		CashVoucherNumber          string                 `gorm:"type:varchar(255);default:''" json:"cash_voucher_number"`
 		TotalDebit                 float64                `gorm:"type:decimal" json:"total_debit,omitempty"`
 		TotalCredit                float64                `gorm:"type:decimal" json:"total_credit,omitempty"`
 		PrintCount                 int                    `gorm:"default:0" json:"print_count,omitempty"`
@@ -203,8 +203,8 @@ type (
 
 		PayTo             string                 `json:"pay_to,omitempty"`
 		Status            CashCheckVoucherStatus `json:"status,omitempty"`
-		Description       string                 `json:"description,omitempty"`
-		CashVoucherNumber string                 `json:"cash_voucher_number,omitempty"`
+		Description       string                 `json:"description"`
+		CashVoucherNumber string                 `json:"cash_voucher_number"`
 		Name              string                 `json:"name" validate:"required"`
 		PrintCount        int                    `json:"print_count,omitempty"`
 		EntryDate         *time.Time             `json:"entry_date,omitempty"`

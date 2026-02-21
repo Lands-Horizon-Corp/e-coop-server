@@ -13,7 +13,7 @@ import (
 
 func MemberAddressManager(service *horizon.HorizonService) *registry.Registry[types.MemberAddress, types.MemberAddressResponse, types.MemberAddressRequest] {
 	return registry.NewRegistry(registry.RegistryParams[types.MemberAddress, types.MemberAddressResponse, types.MemberAddressRequest]{
-		Preloads: []string{"CreatedBy", "UpdatedBy"},
+		Preloads: []string{"CreatedBy", "UpdatedBy", "Area"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
@@ -46,6 +46,9 @@ func MemberAddressManager(service *horizon.HorizonService) *registry.Registry[ty
 				Address:         data.Address,
 				Longitude:       data.Longitude,
 				Latitude:        data.Latitude,
+
+				AreaID: data.AreaID,
+				Area:   AreaManager(service).ToModel(data.Area),
 			}
 		},
 

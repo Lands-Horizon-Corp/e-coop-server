@@ -130,14 +130,11 @@ func CreateGeneralLedgerEntry(
 	if data == nil {
 		return eris.New("general ledger: data is nil")
 	}
-
-	// Build filters for previous ledger lookup
 	filters := []query.ArrFilterSQL{
 		{Field: "organization_id", Op: query.ModeEqual, Value: data.OrganizationID},
 		{Field: "branch_id", Op: query.ModeEqual, Value: data.BranchID},
 		{Field: "account_id", Op: query.ModeEqual, Value: data.AccountID},
 	}
-
 	if data.Account != nil &&
 		data.Account.Type != types.AccountTypeOther &&
 		data.MemberProfileID != nil {
@@ -147,18 +144,19 @@ func CreateGeneralLedgerEntry(
 			Value: data.MemberProfileID,
 		})
 	}
-
-	// Get last ledger entry (locked)
 	ledger, err := GeneralLedgerManager(service).
 		ArrFindOneWithLock(ctx, tx, filters, []query.ArrFilterSortSQL{
 			{Field: "created_at", Order: "DESC"},
 		})
 
 	previousBalance := decimal.Zero
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return eris.Wrap(err, "general ledger: failed to fetch previous ledger")
-	}
-	if ledger != nil {
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// skipped
+		} else {
+			return eris.Wrap(err, "general ledger: failed to fetch previous ledger")
+		}
+	} else if ledger != nil {
 		previousBalance = decimal.NewFromFloat(ledger.Balance)
 	}
 
@@ -172,16 +170,15 @@ func CreateGeneralLedgerEntry(
 	} else {
 		switch data.Account.GeneralLedgerType {
 		case types.GLTypeAssets, types.GLTypeExpenses:
-			balanceChange = credit.Sub(credit)
+			balanceChange = debit.Sub(credit)
 		case types.GLTypeLiabilities, types.GLTypeEquity, types.GLTypeRevenue:
 			balanceChange = credit.Sub(debit)
 		default:
-			balanceChange = debit.Sub(credit)
+			balanceChange = credit.Sub(debit)
 		}
 	}
 
 	newBalance := previousBalance.Add(balanceChange)
-
 	// Load branch settings
 	userOrg, err := UserOrganizationManager(service).FindOne(ctx, &types.UserOrganization{
 		BranchID:       &data.BranchID,
@@ -191,23 +188,27 @@ func CreateGeneralLedgerEntry(
 	if err != nil {
 		return eris.Wrap(err, "general ledger: failed to get branch settings")
 	}
-	if userOrg.SettingsMaintainingBalance && data.Account != nil {
-		minAmount := decimal.NewFromFloat(data.Account.MinAmount)
-		if newBalance.LessThan(minAmount) {
-			return eris.New("general ledger: maintaining balance violation")
-		}
-	}
 
-	if !userOrg.SettingsAllowWithdrawNegativeBalance && data.Account != nil {
-		minAmount := decimal.NewFromFloat(0)
-		if newBalance.LessThan(minAmount) {
-			return eris.New("general ledger: maintaining balance violation")
+	// --- CRITICAL PANIC FIXES START ---
+	// You cannot access ledger.Source if ledger is nil!
+	if ledger != nil && data.Account != nil {
+		if ledger.Source == types.GeneralLedgerSourceWithdraw && userOrg.SettingsMaintainingBalance {
+			minAmount := decimal.NewFromFloat(data.Account.MinAmount)
+			if newBalance.LessThan(minAmount) {
+				return eris.New("general ledger: maintaining balance violation")
+			}
 		}
-	}
 
+		if ledger.Source == types.GeneralLedgerSourceWithdraw && !userOrg.SettingsAllowWithdrawNegativeBalance {
+			zero := decimal.NewFromFloat(0)
+			if newBalance.LessThan(zero) {
+				return eris.New("general ledger: negative balance violation")
+			}
+		}
+	} else {
+		// skipping
+	}
 	data.Balance, _ = newBalance.Float64()
-
-	// Create ledger entry
 	if err := GeneralLedgerManager(service).CreateWithTx(ctx, tx, data); err != nil {
 		return eris.Wrap(err, "general ledger: failed to create entry")
 	}
@@ -216,7 +217,6 @@ func CreateGeneralLedgerEntry(
 	if data.Account != nil &&
 		data.Account.Type != types.AccountTypeOther &&
 		data.MemberProfileID != nil {
-
 		_, err = MemberAccountingLedgerUpdateOrCreate(
 			ctx,
 			service,
@@ -235,7 +235,6 @@ func CreateGeneralLedgerEntry(
 			return eris.Wrap(err, "general ledger: failed to update member accounting ledger")
 		}
 	}
-
 	return nil
 }
 

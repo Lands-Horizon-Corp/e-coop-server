@@ -47,8 +47,15 @@ func TransactionBatchManager(service *horizon.HorizonService) *registry.Registry
 				s := data.EndedAt.Format(time.RFC3339)
 				endedAt = &s
 			}
-
+			isToday := CheckIsToday(
+				service,
+				data.CreatedAt,
+				data.OrganizationID,
+				data.BranchID,
+				*data.EmployeeUserID,
+			)
 			return &types.TransactionBatchResponse{
+				IsToday:                       isToday,
 				ID:                            data.ID,
 				CreatedAt:                     data.CreatedAt.Format(time.RFC3339),
 				CreatedByID:                   data.CreatedByID,
@@ -71,6 +78,7 @@ func TransactionBatchManager(service *horizon.HorizonService) *registry.Registry
 				GrandTotal:                    data.GrandTotal,
 				PettyCash:                     data.PettyCash,
 				LoanReleases:                  data.LoanReleases,
+				CashCheckVoucherTotal:         data.CashCheckVoucherTotal,
 				TimeDepositWithdrawal:         data.TimeDepositWithdrawal,
 				SavingsWithdrawal:             data.SavingsWithdrawal,
 				TotalCashHandled:              data.TotalCashHandled,
@@ -176,7 +184,15 @@ func TransactionBatchMinimal(context context.Context, service *horizon.HorizonSe
 		s := data.EndedAt.Format(time.RFC3339)
 		endedAt = &s
 	}
+	isToday := CheckIsToday(
+		service,
+		time.Now().UTC(),
+		data.OrganizationID,
+		data.BranchID,
+		*data.EmployeeUserID,
+	)
 	return &types.TransactionBatchResponse{
+		IsToday:          isToday,
 		ID:               data.ID,
 		CreatedAt:        data.CreatedAt.Format(time.RFC3339),
 		CreatedByID:      data.CreatedByID,

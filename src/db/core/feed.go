@@ -15,7 +15,7 @@ func FeedManager(service *horizon.HorizonService) *registry.Registry[
 		Preloads: []string{
 			"CreatedBy", "CreatedBy.Media",
 			"FeedMedias.Media", "FeedComments.User",
-			"FeedComments.User.Media", "UserLikes.User", "UserLikes.User.Media"},
+			"FeedComments.User.Media", "FeedComments.Media", "UserLikes.User", "UserLikes.User.Media"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)

@@ -594,6 +594,7 @@ func BranchController(service *horizon.HorizonService) {
 		branchSetting.UpdatedAt = now
 
 		branchSetting.WithdrawAllowUserInput = settingsReq.WithdrawAllowUserInput
+		branchSetting.DepositAllowUserInput = settingsReq.DepositAllowUserInput
 		branchSetting.WithdrawPrefix = settingsReq.WithdrawPrefix
 		branchSetting.WithdrawORStart = settingsReq.WithdrawORStart
 		branchSetting.WithdrawORCurrent = settingsReq.WithdrawORCurrent
