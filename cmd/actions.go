@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Lands-Horizon-Corp/e-coop-server/horizon"
+	"github.com/Lands-Horizon-Corp/e-coop-server/seeder"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/account"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/admin"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/charges"
@@ -20,7 +21,6 @@ import (
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/user"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/controller/v1/voucher"
 	core_admin "github.com/Lands-Horizon-Corp/e-coop-server/src/db/admin"
-	"github.com/Lands-Horizon-Corp/e-coop-server/src/db/core"
 	"github.com/Lands-Horizon-Corp/e-coop-server/src/types"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -48,7 +48,7 @@ func seedDatabase() horizon.CommandConfig {
 		CommandShortText:   "Seed database with initial configuration",
 		HandlerFunc: func(ctx context.Context, service *horizon.HorizonService, _ *cobra.Command, _ []string) error {
 
-			if err := core.Seed(ctx, service); err != nil {
+			if err := seeder.Seed(ctx, service); err != nil {
 				return err
 			}
 			return core_admin.GlobalSeeder(ctx, service)
@@ -95,7 +95,7 @@ func refreshDatabase() horizon.CommandConfig {
 			if err := types.Migrate(service); err != nil {
 				return err
 			}
-			return core.Seed(ctx, service)
+			return seeder.Seed(ctx, service)
 		},
 	})
 }
