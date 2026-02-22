@@ -115,7 +115,7 @@ func cleanCache() horizon.CommandConfig {
 
 func enforceBlocklist() horizon.CommandConfig {
 	return horizon.HorizonServiceRegister(horizon.DefaultHorizonRunnerParams{
-		TimeoutValue:       30 * time.Minute,
+		TimeoutValue:       2 * time.Hour,
 		OnStartMessageText: "🛡️  Enforcing HaGeZi blocklist updates...",
 		OnStopMessageText:  "✅ Blocklist enforcement completed",
 		CommandUseText:     "security-enforce-blocklist",

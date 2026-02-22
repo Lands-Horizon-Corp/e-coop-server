@@ -109,6 +109,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 			UpdatedByID:    userOrg.UserID,
 			BranchID:       *userOrg.BranchID,
 			OrganizationID: userOrg.OrganizationID,
+			AccountID:      req.AccountID,
 		}
 
 		if err := core.PaymentTypeManager(service).Create(context, paymentType); err != nil {
@@ -181,6 +182,7 @@ func PaymentTypeController(service *horizon.HorizonService) {
 		paymentType.Type = req.Type
 		paymentType.UpdatedAt = time.Now().UTC()
 		paymentType.UpdatedByID = userOrg.UserID
+		paymentType.AccountID = req.AccountID
 		if err := core.PaymentTypeManager(service).UpdateByID(context, paymentType.ID, paymentType); err != nil {
 			event.Footstep(ctx, service, event.FootstepEvent{
 				Activity:    "update-error",

@@ -15,7 +15,7 @@ func PaymentTypeManager(service *horizon.HorizonService) *registry.Registry[type
 	return registry.NewRegistry(registry.RegistryParams[
 		types.PaymentType, types.PaymentTypeResponse, types.PaymentTypeRequest,
 	]{
-		Preloads: []string{"CreatedBy", "UpdatedBy"},
+		Preloads: []string{"Account"},
 		Database: service.Database.Client(),
 		Dispatch: func(topics registry.Topics, payload any) error {
 			return service.Broker.Dispatch(topics, payload)
@@ -40,6 +40,8 @@ func PaymentTypeManager(service *horizon.HorizonService) *registry.Registry[type
 				Description:    data.Description,
 				NumberOfDays:   data.NumberOfDays,
 				Type:           data.Type,
+				AccountID:      data.AccountID,
+				Account:        AccountManager(service).ToModel(data.Account),
 			}
 		},
 		Created: func(data *types.PaymentType) registry.Topics {

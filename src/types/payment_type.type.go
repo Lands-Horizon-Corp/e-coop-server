@@ -38,6 +38,9 @@ type (
 		Description  string            `gorm:"type:text"`
 		NumberOfDays int               `gorm:"type:int"`
 		Type         TypeOfPaymentType `gorm:"type:varchar(20)"`
+
+		AccountID uuid.UUID `gorm:"type:uuid;not null" json:"account_id"`
+		Account   *Account  `gorm:"foreignKey:AccountID;constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;" json:"account,omitempty"`
 	}
 
 	PaymentTypeResponse struct {
@@ -56,10 +59,14 @@ type (
 		Description    string                `json:"description"`
 		NumberOfDays   int                   `json:"number_of_days"`
 		Type           TypeOfPaymentType     `json:"type"`
+
+		AccountID uuid.UUID        `json:"account_id"`
+		Account   *AccountResponse `json:"account,omitempty"`
 	}
 
 	PaymentTypeRequest struct {
 		Name         string            `json:"name" validate:"required,min=1,max=255"`
+		AccountID    uuid.UUID         `json:"account_id" validate:"required"`
 		Description  string            `json:"description,omitempty"`
 		NumberOfDays int               `json:"number_of_days,omitempty"`
 		Type         TypeOfPaymentType `json:"type" validate:"required,oneof=cash check online adjustment"`
