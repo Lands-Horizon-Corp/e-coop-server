@@ -9,9 +9,9 @@ This Copyright Notice and Software License Agreement (“Agreement”) governs t
 
 ## 1. Copyright Ownership
 
-**eCOOP SUITE** is a proprietary software product developed and owned by **[Your Company Name]** (“Company”).
+**eCOOP SUITE** is a proprietary software product developed and owned by **Lands Horizon** (“Company”).
 
-© 2026 [Your Company Name]. All Rights Reserved.
+© 2026 Lands Horizon. All Rights Reserved.
 
 All intellectual property rights, including but not limited to source code, object code, design, architecture, databases, workflows, algorithms, documentation, trademarks, trade secrets, and related materials are the exclusive property of the Company.
 
