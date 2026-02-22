@@ -52,6 +52,5 @@ func SeedFakeOrganization(ctx context.Context, service *horizon.HorizonService) 
 		InvitationMaxUse:     500,
 		InvitationExpiration: 30 * 24 * time.Hour,
 	}
-
 	return SeedOrganization(ctx, service, config)
 }

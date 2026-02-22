@@ -21,6 +21,9 @@ func Seed(ctx context.Context, service *horizon.HorizonService) error {
 	if err := SeedVALDECO(ctx, service); err != nil {
 		return err
 	}
+	if err := SeedFakeOrganization(ctx, service); err != nil {
+		return err
+	}
 	return nil
 }
 
